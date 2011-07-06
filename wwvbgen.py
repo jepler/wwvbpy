@@ -201,12 +201,22 @@ class WWVBTimecode:
 if __name__ == '__main__':
     import optparse
     parser = optparse.OptionParser(usage="Usage: %prog [options] [year yday hour minute]")
-    parser.add_option("-i", "--iers", dest="iers", help="Use IERS data for DUT1 and LS", action="store_true", default=True)
-    parser.add_option("-I", "--no-iers", dest="iers", help="Use IERS data for DUT1 and LS", action="store_false")
-    parser.add_option("-s", "--leap-second", dest="forcels", help="Force a leap second", action="store_true", default=None)
-    parser.add_option("-S", "--no-leap-second", dest="forcels", help="Force no leap second", action="store_false")
-    parser.add_option("-d", "--dut1", dest="forcedut1", help="Force dut1", metavar="DUT1", default=None)
-    parser.add_option("-m", "--minutes", dest="minutes", help="Number of minutes to generate", metavar="MINUTES", type="int", default=10)
+    parser.add_option("-i", "--iers", dest="iers",
+        help="use IERS data for DUT1 and LS [Default]",
+        action="store_true", default=True)
+    parser.add_option("-I", "--no-iers", dest="iers",
+        help="do not use IERS data for DUT1 and LS", action="store_false")
+#   parser.add_option("-s", "--leap-second", dest="forcels",
+#       help="force a leap second  [Requires --no-iers]",
+#       action="store_true", default=None)
+#   parser.add_option("-S", "--no-leap-second", dest="forcels",
+#       help="force no leap second [Requires --no-iers]", action="store_false")
+#   parser.add_option("-d", "--dut1", dest="forcedut1",
+#       help="force dut1           [Requires --no-iers]",
+#       metavar="DUT1", default=None)
+    parser.add_option("-m", "--minutes", dest="minutes",
+        help="number of minutes to generate [Default: 10]",
+        metavar="MINUTES", type="int", default=10)
     options, args = parser.parse_args()
 
     if options.iers:
