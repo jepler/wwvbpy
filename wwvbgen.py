@@ -46,8 +46,6 @@ def isdst(t):
 _WWVBMinute = collections.namedtuple('_WWVBMinute',
     'year days hour min dst ut1 ls')
 class WWVBMinute(_WWVBMinute):
-    days_before = 1, 32, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335, 366
-    days_before_ly = 1, 32, 61, 92, 122, 153, 183, 214, 245, 275, 306, 336, 367
     def __new__(cls, year, days, hour, min, dst=None, ut1=None, ls=None):
         if dst is None:
             dst = cls.get_dst(year, days)
