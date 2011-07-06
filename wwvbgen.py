@@ -54,7 +54,7 @@ class WWVBMinute(_WWVBMinute):
         elif ut1 is None or ls is None:
             raise ValueError, "sepecify both ut1 and ls or neither one"
         if year < 70: year = year + 2000
-        elif year < 1000: year = year + 1900
+        elif year < 100: year = year + 1900
         return _WWVBMinute.__new__(cls, year, days, hour, min, dst, ut1, ls)
 
     @staticmethod
