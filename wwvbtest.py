@@ -1,5 +1,5 @@
 #!/usr/bin/python
-#    WWVB timecode generator
+#    WWVB timecode generator test harness
 #    Copyright (C) 2011 Jeff Epler <jepler@unpythonic.net>
 #
 #    This program is free software; you can redistribute it and/or modify
