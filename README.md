@@ -1,18 +1,16 @@
-Purpose
-=======
+# Purpose
 
 wwvbgen generates WWVB timecodes for any desired time.  These timecodes
-may be useful intesting WWVB decoder software.
+may be useful in testing WWVB decoder software.
 
 Where possible, wwvbgen uses existing facilities for calendar and time
 manipulation (datetime) and DST rules (time.localtime).  It uses DUT1/leap
 second data derived from IERS Bulletin "A".  With regular updates to
-iersdata.py, wwvbgen should be able to correctly encode the time anywhere
+`iersdata.py`, wwvbgen should be able to correctly encode the time anywhere
 within the 100-year WWVB epoch.  (yes, WWVB uses a 2-digit year!)
 
 
-WWVB Timecodes
-==============
+# WWVB Timecodes
 The National Institute of Standards and Technology operates the WWVB time
 signal service near Fort Collins, Colorado.  The signal can be received in most
 of the continental US.  Every minute seconds, the signal transmits the current
@@ -23,33 +21,36 @@ the current day of the year, while the 2s appear in fixed locations to allow a
 receiver to determine the start of a minute.
 
 
-Usage
-=====
-    Usage: wwvbgen.py [options] [year yday hour minute]
+# Usage
 
-    Options:
-      -h, --help            show this help message and exit
-      -i, --iers            use IERS data for DUT1 and LS [Default]
-      -I, --no-iers         do not use IERS data for DUT1 and LS
-      -m MINUTES, --minutes=MINUTES
-                            number of minutes to generate [Default: 10]
+~~~~
+Usage: wwvbgen.py [options] [year yday hour minute]
+
+Options:
+  -h, --help            show this help message and exit
+  -i, --iers            use IERS data for DUT1 and LS [Default]
+  -I, --no-iers         do not use IERS data for DUT1 and LS
+  -m MINUTES, --minutes=MINUTES
+                        number of minutes to generate [Default: 10]
+~~~~
 
 For example, to display the leap second that occurred at the end of 1998,
-    $ python wwvbgen.py -m 7 1998 365 23 56
-    WWVB timecode: year=98 days=365 hour=23 min=56 dst=0 ut1=-300 ly=0 ls=1
-    '98+365 23:56  210100110200100001120011001102010100010200110100121000001002
-    '98+365 23:57  210100111200100001120011001102010100010200110100121000001002
-    '98+365 23:58  210101000200100001120011001102010100010200110100121000001002
-    '98+365 23:59  2101010012001000011200110011020101000102001101001210000010022
-    '99+001 00:00  200000000200000000020000000002000100101201110100121001000002
-    '99+001 00:01  200000001200000000020000000002000100101201110100121001000002
-    '99+001 00:02  200000010200000000020000000002000100101201110100121001000002
+~~~~
+$ python wwvbgen.py -m 7 1998 365 23 56
+WWVB timecode: year=98 days=365 hour=23 min=56 dst=0 ut1=-300 ly=0 ls=1
+'98+365 23:56  210100110200100001120011001102010100010200110100121000001002
+'98+365 23:57  210100111200100001120011001102010100010200110100121000001002
+'98+365 23:58  210101000200100001120011001102010100010200110100121000001002
+'98+365 23:59  2101010012001000011200110011020101000102001101001210000010022
+'99+001 00:00  200000000200000000020000000002000100101201110100121001000002
+'99+001 00:01  200000001200000000020000000002000100101201110100121001000002
+'99+001 00:02  200000010200000000020000000002000100101201110100121001000002
+~~~~
 (the leap second is the extra digit at the end of the 23:59 line; that minute
 consists of 61 seconds, instead of the normal 60)
 
 
-Updating DUT1 data
-==================
+# Updating DUT1 data
 
 This program can get updated DUT1 data from a US Government-operated website.
 If the details of this website's operation have not changed, the current
@@ -76,7 +77,7 @@ http://www.nist.gov/pml/div688/grp50/leapsecond.cfm
 
 Leap seconds are inferred from the UERS UT1-UTC data as follows: If X
 and Y are the 1-digit-rounded DUT1 values for consecutive dates, and
-X*Y<0, then there is a leap second at the end of day X.  The direction of
+`X*Y<0`, then there is a leap second at the end of day X.  The direction of
 the leap second can be inferred from the sign of X, a positive leap
 second if X is positive.  As long as DUT1 changes slowly enough during
 other times that there is at least one day of DUT1=+0.0, no incorrect
@@ -84,9 +85,19 @@ other times that there is at least one day of DUT1=+0.0, no incorrect
 true for the next few centuries, until the length of the day is 100ms
 less than 86400 seconds)
 
+Unfortunately, because the DUT1 data is retrospective, this program
+will never correctly show an upcoming leap second even if `iersdata.py`
+is up to date.  If you like, you can manually edit the generated file
+e.g., to add an extra positive future offset; for the leap second at the end
+of 2016-12-31, for instance, I added a 'p' for DUT1-offset of +500ms:
+~~~~
+     +h*150+g*86+f*83+e*69+d*36+n*80+m*63+l*58+k*58+j*54+i*119    # 161116
+     +h*73+g*45                                                   # 161231
++    +p
+ )
+~~~~
 
-Testing wwvbgen
-===============
+# Testing wwvbgen
 
 A set of test timecodes, generated with another WWVB timecode generator,
 are in tests/.  To run the automatic self test (which does not use or
