@@ -10,6 +10,12 @@ second data derived from IERS Bulletin "A".  With regular updates to
 within the 100-year WWVB epoch.  (yes, WWVB uses a 2-digit year!)
 
 
+# Development status
+
+The author (@jepler) is not actively using or developing this project.
+Issues and pull requests are not likely to be acted on.
+I would be interested in passing this project to a new maintainer.
+
 # WWVB Timecodes
 The National Institute of Standards and Technology operates the WWVB time
 signal service near Fort Collins, Colorado.  The signal can be received in most
