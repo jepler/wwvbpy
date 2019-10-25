@@ -19,4 +19,4 @@
 
 # Retrieve IERS data from 1980 through the end of the current year
 # Human-interactive page at http://maia.usno.navy.mil/search/search.html
-wget -O iers-data.html --post-data='date1=12-31-1980&date2=12-31-'`date +%Y`'&Bull.AUT1=yes' http://maia.usno.navy.mil/cgi-bin/search.cgi
+wget -O iers-data.txt https://datacenter.iers.org/data/latestVersion/9_FINALS.ALL_IAU2000_V2013_019.txt

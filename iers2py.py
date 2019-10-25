@@ -18,22 +18,19 @@
 import datetime
 import itertools
 
-data = open("iers-data.html").read()
-mark1 = '<pre><font size=3>'
-mark2 = '</font></pre>'
-mark3 = '<br>'
-data = data.split(mark1, 1)[1]
-data = data.split(mark2, 1)[0]
-rows = data.split(mark3)
+with open("iers-data.txt") as f:
+    rows = f.readlines()
+
 offsets = []
 print "# File generated from public data - not subject to copyright"
 print "import datetime"
 for i, r in enumerate(rows):
-    if not r: continue
-    jd = float(r[26:34])
-    if i == 0:
+    if len(r) < 69: continue
+    if r[57] not in 'IP': continue
+    jd = float(r[7:12])
+    offs = int(round(float(r[58:68])*10))
+    if not offsets:
         start = datetime.datetime(1858,11,17) + datetime.timedelta(jd)
-    offs = int(round(float(r[45:55])*10))
     offsets.append(offs)
 print "__all__ = ['dut1_data_start, dut1_offsets']"
 print "dut1_data_start = %r" % start
@@ -49,8 +46,8 @@ for ch, it in itertools.groupby(offsets):
     ch = chr(ord('a') + ch + 10)
     sz = len(list(it))
     if j: part = part + "+"
-    if sz < 4:
-        part = part + "%s" % (ch * sz)
+    if sz < 2:
+        part = part + "%s" % ch
     else:
         part = part + "%s*%d" % (ch, sz)
     j += sz
