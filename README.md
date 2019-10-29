@@ -58,7 +58,7 @@ consists of 61 seconds, instead of the normal 60)
 
 # Updating DUT1 data
 
-This program can get updated DUT1 data from a US Government-operated website.
+This program can get updated DUT1 data from an IERS-operated website.
 If the details of this website's operation have not changed, the current
 information can be retrieved by running the shell script `get-iers.sh` and
 transformed into the compact representation `iersdata.py` by running
@@ -66,9 +66,9 @@ transformed into the compact representation `iersdata.py` by running
 for every day of IERS data retrieved.  For |UT1-UTC| < 0.05, it stores
 +0.0, not the actual sign of UT1-UTC.
 
-When invoked, `get-iers.sh` requests data for 1980 through the end of the
-current year.  Reportedly, IERS "Bulletin A" DUT1 estimates are available
-through 1 year from the current date.
+When invoked, `get-iers.sh` requests all available data.  Reportedly,
+IERS "Bulletin A" DUT1 estimates are available through 1 year from the
+current date.
 
 NIST does not update the value daily and does not seem to follow any
 specific rounding rule.  Rather, in WWVB "the resolution of the DUT1
@@ -91,11 +91,10 @@ other times that there is at least one day of DUT1=+0.0, no incorrect
 true for the next few centuries, until the length of the day is 100ms
 less than 86400 seconds)
 
-Unfortunately, because the DUT1 data is retrospective, this program
-will never correctly show an upcoming leap second even if `iersdata.py`
-is up to date.  If you like, you can manually edit the generated file
-e.g., to add an extra positive future offset; for the leap second at the end
-of 2016-12-31, for instance, I added a 'p' for DUT1-offset of +500ms:
+While up to a year of prospective data is available, you can also manually
+edit the generated file e.g., to add an extra positive future offset;
+for the leap second at the end of 2016-12-31, for instance, I added a 'p'
+for DUT1-offset of +500ms:
 ~~~~
      +h*150+g*86+f*83+e*69+d*36+n*80+m*63+l*58+k*58+j*54+i*119    # 161116
      +h*73+g*45                                                   # 161231
