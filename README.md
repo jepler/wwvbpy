@@ -56,19 +56,19 @@ WWVB timecode: year=98 days=365 hour=23 min=56 dst=0 ut1=-300 ly=0 ls=1
 consists of 61 seconds, instead of the normal 60)
 
 
-# Updating DUT1 data
+# How wwvbpy handles DUT1 data
 
-This program can get updated DUT1 data from an IERS-operated website.
-If the details of this website's operation have not changed, the current
-information can be retrieved by running the shell script `get-iers.sh` and
-transformed into the compact representation `iersdata.py` by running
-`iers2py.py > iersdata.py`.  `iersdata.py` has correctly-rounded data
-for every day of IERS data retrieved.  For |UT1-UTC| < 0.05, it stores
-+0.0, not the actual sign of UT1-UTC.
+wwvbpy stores a compact representation of DUT1 values in `iersdata.py`.
+In this representation, one value is used for one day (0000UTC through 2359UTC).
+The letters `a` through `u` represent offsets of -1.0s through +1.0s
+in 0.1s increments; `k` represents 0s.  (In practice, only a smaller range
+of values, typically -0.7s to +0.8s, is seen)
 
-When invoked, `get-iers.sh` requests all available data.  Reportedly,
-IERS "Bulletin A" DUT1 estimates are available through 1 year from the
-current date.
+For 2001 through present, NIST has published the actual DUT1 values broadcast,
+and the date of each change, though it in the format of an HTML
+table and not designed for machine readability:
+
+https://www.nist.gov/pml/time-and-frequency-division/atomic-standards/leap-second-and-ut1-utc-information
 
 NIST does not update the value daily and does not seem to follow any
 specific rounding rule.  Rather, in WWVB "the resolution of the DUT1
@@ -79,28 +79,28 @@ resolution and are updated weekly."  Like wwvbpy's compact
 representation of DUT1 values, the real WWVB does not appear to ever
 broadcast DUT1=-0.0.
 
-http://www.nist.gov/pml/div688/grp50/leapsecond.cfm
+For a larger range of dates spanning 1973 through approximately one year from
+now, IERS publishes historical and prospective UT1-UTC values to multiple
+decimal places, in a machine readable fixed length format.
 
-Leap seconds are inferred from the UERS UT1-UTC data as follows: If X
-and Y are the 1-digit-rounded DUT1 values for consecutive dates, and
-`X*Y<0`, then there is a leap second at the end of day X.  The direction of
-the leap second can be inferred from the sign of X, a positive leap
-second if X is positive.  As long as DUT1 changes slowly enough during
-other times that there is at least one day of DUT1=+0.0, no incorrect
-(negative) leapsecond will be inferred. (something that should remain
-true for the next few centuries, until the length of the day is 100ms
-less than 86400 seconds)
+wwvbpy merges the WWVB and IERS datasets, favoring the WWVB dataset for
+dates when it is available.
 
-While up to a year of prospective data is available, you can also manually
-edit the generated file e.g., to add an extra positive future offset;
-for the leap second at the end of 2016-12-31, for instance, I added a 'p'
-for DUT1-offset of +500ms:
-~~~~
-     +h*150+g*86+f*83+e*69+d*36+n*80+m*63+l*58+k*58+j*54+i*119    # 161116
-     +h*73+g*45                                                   # 161231
-+    +p
- )
-~~~~
+The process for updating `iersdata.py` has several steps:
+ * invoke get-iers.sh
+ * invoke get-wwvb.sh
+ * gut check the (non-committed) files `wwvb-data.txt` and `iers-data.txt`
+ * run `python iers2py.py > iersdata.py`
+ * gut check the iersdata.py file, commit, and push it out.
+
+Leap seconds are inferred from the DUT1 data as follows: If X and Y are the
+1-digit-rounded DUT1 values for consecutive dates, and `X*Y<0`, then there is a
+leap second at the end of day X.  The direction of the leap second can be
+inferred from the sign of X, a positive leap second if X is positive.  As long
+as DUT1 changes slowly enough during other times that there is at least one day
+of DUT1=+0.0, no incorrect (negative) leapsecond will be inferred. (something
+that should remain true for the next few centuries, until the length of the day
+is 100ms less than 86400 seconds)
 
 # Testing wwvbgen
 

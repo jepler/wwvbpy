@@ -1,5 +1,5 @@
 #!/bin/sh
-# Get IERS DUT1 data
+# Get WWVB DUT1 data
 #    WWVB timecode generator
 #    Copyright (C) 2011 Jeff Epler <jepler@unpythonic.net>
 #
@@ -17,5 +17,5 @@
 #    with this program; if not, write to the Free Software Foundation, Inc.,
 #    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-# Retrieve IERS data for all available dates, including prospective data
-wget -O iers-data.txt https://datacenter.iers.org/data/latestVersion/9_FINALS.ALL_IAU2000_V2013_019.txt
+# Retrieve WWVB data from NIST, if the details of the URL haven't changed
+wget -O wwvb-data.html https://www.nist.gov/pml/time-and-frequency-division/atomic-standards/leap-second-and-ut1-utc-information
