@@ -1,3 +1,4 @@
+# -*- python3 -*-
 # File generated from public data - not subject to copyright
 import datetime
 __all__ = ['dut1_data_start, dut1_offsets']

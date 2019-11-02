@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 #    WWVB timecode generator test harness
 #    Copyright (C) 2011 Jeff Epler <jepler@unpythonic.net>
 #
@@ -19,24 +19,24 @@ import wwvbgen
 import time
 import glob
 import os
-import StringIO
+import io
 
 def dotestcase(testname):
     inf = "tests/%s" % testname
     text = open(inf).read()
     lines = text.strip().split("\n")
     w = wwvbgen.WWVBMinute.fromstring(lines[0])
-    result = StringIO.StringIO()
-    print >>result, "WWVB timecode: %s" % str(w)
+    result = io.StringIO()
+    print("WWVB timecode: %s" % str(w), file=result)
     for i in range(1, len(lines)):
-        print >>result, "'%02d+%03d %02d:%02d  %s" % (
-            w.year % 100, w.days, w.hour, w.min, w.as_timecode())
+        print("'%02d+%03d %02d:%02d  %s" % (
+            w.year % 100, w.days, w.hour, w.min, w.as_timecode()), file=result)
         w = w.next_minute()
     result = result.getvalue()
     if result != text:
         outf = "out/%s" % testname
         open(outf, "w").write(result)
-        print "vimdiff %s %s" % (inf, outf)
+        print("vimdiff %s %s" % (inf, outf))
         return False
     else:
         return True
@@ -50,7 +50,7 @@ if __name__ == '__main__':
     for test in glob.glob("tests/*"):
         total += 1
         success += dotestcase(os.path.basename(test))
-    print "%d success (%d failures) out of %d tests" % (success, total-success, total)
+    print("%d success (%d failures) out of %d tests" % (success, total-success, total))
 #    w = WWVBMinute(2000, 366, 23, 58)
 #    print "WWVB timecode:", w
 #    for i in range(4):

@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 #    WWVB timecode generator
 #    Copyright (C) 2011 Jeff Epler <jepler@unpythonic.net>
 #
@@ -23,12 +23,13 @@ with open("iers-data.txt") as f:
     rows = f.readlines()
 
 with open("wwvb-data.html") as f:
-    wwvb_data = bs4.BeautifulSoup(f, features='lxml')
+    wwvb_data = bs4.BeautifulSoup(f, features='html.parser')
 wwvb_dut1_table = wwvb_data.findAll('table')[2]
 
 offsets = []
-print "# File generated from public data - not subject to copyright"
-print "import datetime"
+print("# -*- python3 -*-")
+print("# File generated from public data - not subject to copyright")
+print("import datetime")
 for i, r in enumerate(rows):
     if len(r) < 69: continue
     if r[57] not in 'IP': continue
@@ -69,11 +70,11 @@ if wwvb_dut1 is not None:
         offsets[off] = wwvb_dut1
         off += 1
 
-print "__all__ = ['dut1_data_start, dut1_offsets']"
-print "dut1_data_start = %r" % start
+print("__all__ = ['dut1_data_start, dut1_offsets']")
+print("dut1_data_start = %r" % start)
 c = sorted(chr(ord('a') + ch + 10) for ch in set(offsets))
-print "%s = '%s'" % (",".join(c), "".join(c))
-print "dut1_offsets = ( # %04d%02d%02d" % (start.year,start.month,start.day)
+print("%s = '%s'" % (",".join(c), "".join(c)))
+print("dut1_offsets = ( # %04d%02d%02d" % (start.year,start.month,start.day))
 line = ''
 now = start
 j = 0
@@ -90,10 +91,10 @@ for ch, it in itertools.groupby(offsets):
     j += sz
     if len(line + part) > 60:
         d = start + datetime.timedelta(j-1)
-        print "    %-60s # %04d%02d%02d" % (line, d.year, d.month, d.day)
+        print("    %-60s # %04d%02d%02d" % (line, d.year, d.month, d.day))
         line = part
     else:
         line = line + part
 d = start + datetime.timedelta(j-1)
-print "    %-60s # %04d%02d%02d" % (line, d.year, d.month, d.day)
-print ")"
+print("    %-60s # %04d%02d%02d" % (line, d.year, d.month, d.day))
+print(")")

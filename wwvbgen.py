@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 #    WWVB timecode generator
 #    Copyright (C) 2011 Jeff Epler <jepler@unpythonic.net>
 #
@@ -22,6 +22,7 @@ import math
 import optparse
 import time
 import iersdata
+import string
 
 def get_dut1(t):
     i = (t - iersdata.dut1_data_start).days
@@ -52,7 +53,7 @@ class WWVBMinute(_WWVBMinute):
         if ut1 is None and ls is None:
             ut1, ls = cls.get_dut1_info(year, days)
         elif ut1 is None or ls is None:
-            raise ValueError, "sepecify both ut1 and ls or neither one"
+            raise ValueError("sepecify both ut1 and ls or neither one")
         if year < 70: year = year + 2000
         elif year < 100: year = year + 1900
         return _WWVBMinute.__new__(cls, year, days, hour, min, dst, ut1, ls)
@@ -103,7 +104,7 @@ class WWVBMinute(_WWVBMinute):
         ut1_sign = self.ut1 >= 0
         t[36, 38] = ut1_sign
         t[37] = not ut1_sign
-        t.put_bcd(abs(self.ut1) / 100, 40, 41, 42, 43)
+        t.put_bcd(abs(self.ut1) // 100, 40, 41, 42, 43)
         t.put_bcd(self.year, 45, 46, 47, 48, 50, 51, 52, 53)
         t[55] = self.is_ly()
         t[56] = self.ls
@@ -158,8 +159,8 @@ def ilog10(v):
 
 def bcd(n, d):
     l = 10 ** ilog10(n)
-    n = (n / l) % 10
-    d = (d / l) % 10
+    n = (n // l) % 10
+    d = (d // l) % 10
     return int(bool(n & d))
 
 bcd_weights = [1, 2, 4, 8, 10, 20, 40, 80, 100, 200, 400, 800]
@@ -188,7 +189,7 @@ class WWVBTimecode:
     def __str__(self):
         undefined = [i for i in range(len(self.data)) if self.data[i] is None]
         if undefined:
-            print "Warning: Timecode%s is undefined" % undefined
+            print("Warning: Timecode%s is undefined" % undefined)
         def ch(c):
             if c in (0, 1, 2): return str(c)
             return '?'
@@ -206,14 +207,14 @@ if __name__ == '__main__':
         action="store_true", default=True)
     parser.add_option("-I", "--no-iers", dest="iers",
         help="do not use IERS data for DUT1 and LS", action="store_false")
-#   parser.add_option("-s", "--leap-second", dest="forcels",
-#       help="force a leap second  [Requires --no-iers]",
-#       action="store_true", default=None)
-#   parser.add_option("-S", "--no-leap-second", dest="forcels",
-#       help="force no leap second [Requires --no-iers]", action="store_false")
-#   parser.add_option("-d", "--dut1", dest="forcedut1",
-#       help="force dut1           [Requires --no-iers]",
-#       metavar="DUT1", default=None)
+    parser.add_option("-s", "--leap-second", dest="forcels",
+        help="force a leap second  [Requires --no-iers]",
+        action="store_true", default=None)
+    parser.add_option("-S", "--no-leap-second", dest="forcels",
+        help="force no leap second [Requires --no-iers]", action="store_false")
+    parser.add_option("-d", "--dut1", dest="forcedut1",
+        help="force dut1           [Requires --no-iers]",
+        metavar="DUT1", default=None)
     parser.add_option("-m", "--minutes", dest="minutes",
         help="number of minutes to generate [Default: 10]",
         metavar="MINUTES", type="int", default=10)
@@ -227,19 +228,19 @@ if __name__ == '__main__':
     if args:
         if len(args) != 4:
             parser.print_help()
-            raise SystemExit, "Expected 4 arguments, got %d" % len(args)
+            raise SystemExit("Expected 4 arguments, got %d" % len(args))
         try:
                 year, yday, hour, minute = map(int, args)
         except ValueError:
             parser.print_help()
-            raise SystemExit, "Arguments must be numeric"
+            raise SystemExit("Arguments must be numeric")
     else:
         now = datetime.datetime.utcnow().utctimetuple()
         year, yday, hour, minute = now.tm_year, now.tm_yday, now.tm_hour, now.tm_min
 
     w = constructor(year, yday, hour, minute)
-    print "WWVB timecode: %s" % str(w)
+    print("WWVB timecode: %s" % str(w))
     for i in range(options.minutes):
-        print "'%02d+%03d %02d:%02d  %s" % (
-            w.year % 100, w.days, w.hour, w.min, w.as_timecode())
+        print("'%02d+%03d %02d:%02d  %s" % (
+            w.year % 100, w.days, w.hour, w.min, w.as_timecode()))
         w = w.next_minute()
