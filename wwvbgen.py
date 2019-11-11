@@ -199,6 +199,16 @@ class WWVBTimecode:
     def __repr__(self):
         return "<WWVBTimecode " + str(self) + ">"
 
+    def to_string(self, map):
+        return "".join(map[i] for i in self.data)
+
+styles = {
+    'default': '012',
+    'duration': '258',
+    'cradek': '01-',
+    'unicode': ['▟█', '▄█', '▄▟'],
+}
+
 if __name__ == '__main__':
     import optparse
     parser = optparse.OptionParser(usage="Usage: %prog [options] [year yday hour minute]")
@@ -218,6 +228,9 @@ if __name__ == '__main__':
     parser.add_option("-m", "--minutes", dest="minutes",
         help="number of minutes to generate [Default: 10]",
         metavar="MINUTES", type="int", default=10)
+    parser.add_option("--style", dest="style",
+        help="Style of output (one of: %s)" % ", ".join(styles.keys()),
+        metavar="STYLE", type="str", default='default')
     options, args = parser.parse_args()
 
     if options.iers:
@@ -238,9 +251,11 @@ if __name__ == '__main__':
         now = datetime.datetime.utcnow().utctimetuple()
         year, yday, hour, minute = now.tm_year, now.tm_yday, now.tm_hour, now.tm_min
 
+    style = styles.get(options.style, "012")
     w = constructor(year, yday, hour, minute)
     print("WWVB timecode: %s" % str(w))
     for i in range(options.minutes):
         print("'%02d+%03d %02d:%02d  %s" % (
-            w.year % 100, w.days, w.hour, w.min, w.as_timecode()))
+            w.year % 100, w.days, w.hour, w.min,
+            w.as_timecode().to_string(style)))
         w = w.next_minute()
