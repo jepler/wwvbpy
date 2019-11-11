@@ -218,12 +218,12 @@ if __name__ == '__main__':
     parser.add_option("-I", "--no-iers", dest="iers",
         help="do not use IERS data for DUT1 and LS", action="store_false")
     parser.add_option("-s", "--leap-second", dest="forcels",
-        help="force a leap second  [Requires --no-iers]",
+        help="force a leap second  [Implies --no-iers]",
         action="store_true", default=None)
     parser.add_option("-S", "--no-leap-second", dest="forcels",
-        help="force no leap second [Requires --no-iers]", action="store_false")
+        help="force no leap second [Implies --no-iers]", action="store_false")
     parser.add_option("-d", "--dut1", dest="forcedut1",
-        help="force dut1           [Requires --no-iers]",
+        help="force dut1           [Implies --no-iers]",
         metavar="DUT1", default=None)
     parser.add_option("-m", "--minutes", dest="minutes",
         help="number of minutes to generate [Default: 10]",
@@ -233,10 +233,16 @@ if __name__ == '__main__':
         metavar="STYLE", type="str", default='default')
     options, args = parser.parse_args()
 
-    if options.iers:
+    extra_args = {}
+    if options.iers and options.forcedut1 is None and options.forcels is None:
         constructor = WWVBMinuteIERS
     else:
         constructor = WWVBMinute
+        if options.forcedut1 is None:
+            extra_args['ut1'] = -500 if options.forcels else 0
+        else:
+            extra_args['ut1'] = options.forcedut1
+        extra_args['ls'] = options.forcels
 
     if args:
         if len(args) != 4:
@@ -252,7 +258,7 @@ if __name__ == '__main__':
         year, yday, hour, minute = now.tm_year, now.tm_yday, now.tm_hour, now.tm_min
 
     style = styles.get(options.style, "012")
-    w = constructor(year, yday, hour, minute)
+    w = constructor(year, yday, hour, minute, **extra_args)
     print("WWVB timecode: %s" % str(w))
     for i in range(options.minutes):
         print("'%02d+%03d %02d:%02d  %s" % (
