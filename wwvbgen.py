@@ -211,7 +211,7 @@ styles = {
 
 if __name__ == '__main__':
     import optparse
-    parser = optparse.OptionParser(usage="Usage: %prog [options] [year yday hour minute]")
+    parser = optparse.OptionParser(usage="Usage: %prog [options] [year yday hour minute | year month day hour minute]")
     parser.add_option("-i", "--iers", dest="iers",
         help="use IERS data for DUT1 and LS [Default]",
         action="store_true", default=True)
@@ -245,14 +245,23 @@ if __name__ == '__main__':
         extra_args['ls'] = options.forcels
 
     if args:
-        if len(args) != 4:
-            parser.print_help()
-            raise SystemExit("Expected 4 arguments, got %d" % len(args))
-        try:
+        if len(args) == 4:
+            try:
                 year, yday, hour, minute = map(int, args)
-        except ValueError:
+            except ValueError:
+                parser.print_help()
+                raise SystemExit("Arguments must be numeric")
             parser.print_help()
-            raise SystemExit("Arguments must be numeric")
+        elif len(args) == 5:
+            try:
+                year, month, day, hour, minute = map(int, args)
+            except ValueError:
+                parser.print_help()
+                raise SystemExit("Arguments must be numeric")
+            yday = datetime.datetime(year, month, day, 0, 0).timetuple().tm_yday
+        else:
+            parser.print_help()
+            raise SystemExit("Expected 4 or 5 arguments, got %d" % len(args))
     else:
         now = datetime.datetime.utcnow().utctimetuple()
         year, yday, hour, minute = now.tm_year, now.tm_yday, now.tm_hour, now.tm_min
