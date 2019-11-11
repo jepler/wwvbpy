@@ -16,28 +16,34 @@ The author (@jepler) is not actively using or developing this project.
 Issues and pull requests are not likely to be acted on.
 I would be interested in passing this project to a new maintainer.
 
+
 # WWVB Timecodes
 The National Institute of Standards and Technology operates the WWVB time
 signal service near Fort Collins, Colorado.  The signal can be received in most
-of the continental US.  Every minute seconds, the signal transmits the current
-time, including information about leap years, daylight saving time, and leap
-seconds.  The signal can be visualized as a sequence of (usually) 60 symbols,
-which wwvbgen displays as 0, 1, or 2.  The 0s and 1s encode information like
-the current day of the year, while the 2s appear in fixed locations to allow a
-receiver to determine the start of a minute.
+of the continental US.  Each minute, the signal transmits the current time,
+including information about leap years, daylight saving time, and leap seconds.
+The signal can be visualized as a sequence of (usually) 60 symbols, which
+by default wwvbgen displays as 0, 1, or 2.  The 0s and 1s encode information
+like the current day of the year, while the 2s appear in fixed locations to
+allow a receiver to determine the start of a minute.
 
 
 # Usage
 
 ~~~~
-Usage: wwvbgen.py [options] [year yday hour minute]
+Usage: wwvbgen.py [options] [year yday hour minute | year month day hour minute]
 
 Options:
   -h, --help            show this help message and exit
   -i, --iers            use IERS data for DUT1 and LS [Default]
   -I, --no-iers         do not use IERS data for DUT1 and LS
+  -s, --leap-second     force a leap second  [Implies --no-iers]
+  -S, --no-leap-second  force no leap second [Implies --no-iers]
+  -d DUT1, --dut1=DUT1  force dut1           [Implies --no-iers]
   -m MINUTES, --minutes=MINUTES
                         number of minutes to generate [Default: 10]
+  --style=STYLE         Style of output (one of: default, duration, cradek,
+                        unicode)
 ~~~~
 
 For example, to display the leap second that occurred at the end of 1998,
@@ -102,8 +108,13 @@ of DUT1=+0.0, no incorrect (negative) leapsecond will be inferred. (something
 that should remain true for the next few centuries, until the length of the day
 is 100ms less than 86400 seconds)
 
+
 # Testing wwvbgen
 
-A set of test timecodes, generated with another WWVB timecode generator,
-are in tests/.  To run the automatic self test (which does not use or
-test IERS DUT1 data), `python wwvbtest.py`.
+A set of test timecodes, generated with [another WWVB timecode
+generator](http://www.leapsecond.com/notes/wwvb2.htm), are in tests/.  To run
+the automatic self test (which does not use or test IERS DUT1 data),
+`python wwvbtest.py`.
+
+A script `testls.py` prints all leap seconds represented in `iersdata.py`.
+Verification of this data is manual.
