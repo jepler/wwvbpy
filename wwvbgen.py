@@ -101,6 +101,29 @@ dsttable = [
          0b100000, 0b111000, 0b110100, 0b011100],
     ]
 ]
+
+# Generate the 127-bit sequence used in the extended 6-minute codes
+# except generate 255 bits so that we can simply use any range of [x:x+127]
+# bits
+def lfsr_gen(x):
+    x.append(x[-7] ^ x[-6] ^ x[-5] ^ x[-2])
+lfsr_seq = [1] * 7
+while len(lfsr_seq) < 255: lfsr_gen(lfsr_seq)
+
+# Table 12 - Fixed 106-bit timing word
+ftw = [int(c) for c in
+    '1101000111'
+    '0101100101'
+    '1001101110'
+    '0011000010'
+    '1101001110'
+    '1001010100'
+    '0010111000'
+    '1011010110'
+    '1101111111'
+    '1000000100'
+    '100100']
+
 def get_dst_next(d):
     dst_now = isdst(d)  # dst_on[1]
     dst_midwinter = isdst(datetime.datetime(d.year, 1, 1))
@@ -163,6 +186,8 @@ class WWVBMinute(_WWVBMinute):
     def __new__(cls, year, days, hour, min, dst=None, ut1=None, ls=None):
         if dst is None:
             dst = cls.get_dst(year, days)
+        if dst not in (0, 1, 2, 3):
+            raise ValueError("dst value should be 0..3")
         if ut1 is None and ls is None:
             ut1, ls = cls.get_dut1_info(year, days)
         elif ut1 is None or ls is None:
@@ -244,7 +269,43 @@ class WWVBMinute(_WWVBMinute):
         t.am[56] = AmplitudeModulation(self.ls)
         t.put_am_bcd(self.dst, 57, 58)
 
-    def fill_pm_timecode(self, t):
+    def fill_pm_timecode_extended(self, t):
+        assert 10 <= self.min < 16 or 40 <= self.min < 46
+        minno = self.min % 10
+        assert minno < 6
+
+        dst = self.dst
+        # Note that these are 1 different than Table 11
+        # because our LFSR sequence is zero-based
+        seqno = (self.min // 30) * 2
+        if dst == 0:
+            pass
+        elif dst == 3:
+            seqno = seqno + 1
+        elif dst == 2:
+            if self.min < 240:
+                pass
+            elif self.min < 660:
+                seqno = seqno + 90
+            else:
+                seqno = seqno + 1
+        elif dst == 1:
+            if self.min < 240:
+                seqno = seqno + 1
+            elif self.min < 660:
+                seqno = seqno + 91
+            else:
+                pass
+
+        info_seq = lfsr_seq[seqno:seqno+127]
+        full_seq = info_seq + ftw + info_seq[::-1]
+        assert len(full_seq) == 360
+
+        offset = minno * 60
+        for i in range(60):
+            t.put_pm_bit(i, full_seq[i+offset])
+
+    def fill_pm_timecode_regular(self, t):
         t.put_pm_bin(0, 13, sync1)
 
         moc = self.minute_of_century
@@ -297,6 +358,12 @@ class WWVBMinute(_WWVBMinute):
         if len(t.phase) > 59: t.put_pm_bit(59, PhaseModulation.ZERO)
         if len(t.phase) > 60: t.put_pm_bit(60, PhaseModulation.ZERO)
         pass
+
+    def fill_pm_timecode(self, t):
+        if 10 <= self.min < 16 or 40 <= self.min < 46:
+            self.fill_pm_timecode_extended(t)
+        else:
+            self.fill_pm_timecode_regular(t)
 
     def next_minute(self, newut1=None, newls=None):
         d = self.as_datetime() + datetime.timedelta(0,60)
