@@ -18,11 +18,15 @@
 
 import collections
 import datetime
+import enum
 import math
 import optparse
-import time
-import iersdata
 import string
+import time
+
+import iersdata
+
+from typing import Dict, List, Tuple
 
 def get_dut1(t):
     i = (t - iersdata.dut1_data_start).days
@@ -40,9 +44,118 @@ def isls(t):
 
 def isdst(t):
     t0 = datetime.datetime(1970,1,1)
+    if isinstance(t, datetime.date):
+        t = datetime.datetime(t.year, t.month, t.day)
     d = t - t0
     stamp = d.days * 86400 + d.seconds + d.microseconds * 1e-6
     return time.localtime(stamp).tm_isdst
+
+def first_sunday_in_month(y, m):
+    for md in range(1, 8):
+        d = datetime.date(y, m, md)
+        if d.weekday() == 6: return d
+
+def is_dst_change_day(t):
+    return isdst(t) != isdst(t + datetime.timedelta(1))
+
+def get_dst_change_hour(t):
+    lt0 = datetime.datetime(t.year, t.month, t.day).timetuple()
+    stamp = time.mktime(lt0)
+    dst0 = lt0.tm_isdst
+    for i in (1, 2, 3):
+        dst1 = time.localtime(stamp + i * 3600).tm_isdst
+        if dst0 != dst1: return i
+    return None
+
+def get_dst_change_date_and_row(d):
+    if isdst(d):
+        n = first_sunday_in_month(d.year, 11)
+        for offset in (-28, -21, -14, -7, 0, 7, 14, 21):
+            d1 = n + datetime.timedelta(days=offset)
+            if is_dst_change_day(d1):
+                return d1, (offset + 28) // 7
+    else:
+        m = first_sunday_in_month(d.year + (d.month > 3), 3)
+        for offset in (0, 7, 14, 21, 28, 35, 42, 49):
+            d1 = m + datetime.timedelta(days=offset)
+            if is_dst_change_day(d1):
+                return d1, offset // 7
+
+    return None, None
+
+# "Table 8", likely with transcrption errors
+dsttable = [
+    [
+        [0b110001, 0b100110, 0b100101, 0b010101,
+         0b111110, 0b010110, 0b110111, 0b111101],
+        [0b101010, 0b011011, 0b001110, 0b000001,
+         0b000010, 0b001000, 0b001101, 0b101001],
+        [0b000100, 0b100000, 0b110100, 0b101100,
+         0b111000, 0b010000, 0b110010, 0b011100],
+    ], [
+        [0b110111, 0b010101, 0b110001, 0b010110,
+         0b100110, 0b111110, 0b100101, 0b111101],
+        [0b001101, 0b000001, 0b101010, 0b001000,
+         0b011011, 0b000010, 0b001110, 0b101001],
+        [0b110010, 0b101100, 0b000100, 0b010000,
+         0b100000, 0b111000, 0b110100, 0b011100],
+    ]
+]
+def get_dst_next(d):
+    dst_now = isdst(d)  # dst_on[1]
+    dst_midwinter = isdst(datetime.datetime(d.year, 1, 1))
+    dst_midsummer = isdst(datetime.datetime(d.year, 7, 1))
+
+    if dst_midwinter and dst_midsummer:
+        return 0b101111
+    if not (dst_midwinter or dst_midsummer):
+        return 0b000111
+
+    # Are we in NZ or something?
+    if dst_midwinter or not dst_midsummer:
+        return 0b100011
+
+    dst_change_date, dst_next_row = get_dst_change_date_and_row(d)
+    if dst_change_date is None or dst_next_row is None:
+        return 0b100011
+
+    dst_change_hour = get_dst_change_hour(dst_change_date)
+    if dst_change_hour is None:
+        return 0b100011
+
+    return dsttable[dst_now][dst_change_hour][dst_next_row]
+
+hamming_weight = [
+    [23, 21, 20, 17, 16, 15, 14, 13,  9,  8,  6,  5,  4,  2,  0],
+    [24, 22, 21, 18, 17, 16, 15, 14, 10,  9,  7,  6,  5,  3,  1],
+    [25, 23, 22, 19, 18, 17, 16, 15, 11, 10,  8,  7,  6,  4,  2],
+    [24, 21, 19, 18, 15, 14, 13, 12, 11,  7,  6,  4,  3,  2,  0],
+    [25, 22, 20, 19, 16, 15, 14, 13, 12,  8,  7,  5,  4,  3,  1],
+]
+
+sync1 = 0x768
+sync2 = 0x1a3a
+
+# Extract bit 'p' from integer 'v' as a bool
+def BIT(v, p): return bool((v >> p) & 1)
+
+# Compute the "hamming parity" of a 26-bit number, such as the minute-of-century
+# [See Enhanced WWVB Broadcast Format 4.3]
+def hamming_parity(value: int):
+    parity = 0
+    for i in range(4, -1, -1):
+        bit = 0
+        for j in range(0, 15):
+            bit ^= BIT(value, hamming_weight[i][j])
+        parity = (parity << 1) | bit
+    return parity
+
+dst_ls_lut = [
+    0b01000, 0b10101, 0b10110, 0b00011,
+    0b01000, 0b10101, 0b10110, 0b00011,
+    0b00100, 0b01110, 0b10000, 0b01101,
+    0b11001, 0b11100, 0b11010, 0b11111,
+]
 
 _WWVBMinute = collections.namedtuple('_WWVBMinute',
     'year days hour min dst ut1 ls')
@@ -94,22 +207,96 @@ class WWVBMinute(_WWVBMinute):
 
     def as_timecode(self):
         t = WWVBTimecode(self.minute_length())
-        t[0, 9, 19, 29, 39, 49] = 2
-        if len(t.data) > 59: t[59] = 2
-        if len(t.data) > 60: t[60] = 2
-        t[4, 10, 11, 14, 20, 21, 24, 34, 35, 44, 54] = 0
-        t.put_bcd(self.min, 1, 2, 3, 5, 6, 7, 8)
-        t.put_bcd(self.hour, 12, 13, 15, 16, 17, 18)
-        t.put_bcd(self.days, 22, 23, 25, 26, 27, 28, 30, 31, 32, 33)
-        ut1_sign = self.ut1 >= 0
-        t[36, 38] = ut1_sign
-        t[37] = not ut1_sign
-        t.put_bcd(abs(self.ut1) // 100, 40, 41, 42, 43)
-        t.put_bcd(self.year, 45, 46, 47, 48, 50, 51, 52, 53)
-        t[55] = self.is_ly()
-        t[56] = self.ls
-        t.put_bcd(self.dst, 57, 58)
+
+        self.fill_am_timecode(t)
+        self.fill_pm_timecode(t)
+
         return t
+
+    # Return the 2-bit leap_sec value used by the PM code
+    @property
+    def leap_sec(self):
+        if not self.ls: return 0
+        elif self.ut1 < 0: return 3
+        else: return 2
+
+    @property
+    def minute_of_century(self):
+        century = (self.year // 100) * 100
+        #XXX This relies on timedelta seconds never including leapseconds!
+        return int((self.as_datetime() - datetime.datetime(century, 1, 1)
+            ).total_seconds()) // 60
+
+    def fill_am_timecode(self, t):
+        for i in [0, 9, 19, 29, 39, 49]: t.am[i] = AmplitudeModulation.MARK
+        if len(t.am) > 59: t.am[59] = AmplitudeModulation.MARK
+        if len(t.am) > 60: t.am[60] = AmplitudeModulation.MARK
+        for i in [4, 10, 11, 14, 20, 21, 24, 34, 35, 44, 54]: t.am[i] = AmplitudeModulation.ZERO
+        t.put_am_bcd(self.min, 1, 2, 3, 5, 6, 7, 8)
+        t.put_am_bcd(self.hour, 12, 13, 15, 16, 17, 18)
+        t.put_am_bcd(self.days, 22, 23, 25, 26, 27, 28, 30, 31, 32, 33)
+        ut1_sign = self.ut1 >= 0
+        t.am[36] = t.am[38] = AmplitudeModulation(ut1_sign)
+        t.am[37] = AmplitudeModulation(not ut1_sign)
+        t.put_am_bcd(abs(self.ut1) // 100, 40, 41, 42, 43)
+        t.put_am_bcd(self.year, 45, 46, 47, 48, 50, 51, 52, 53)
+        t.am[55] = AmplitudeModulation(self.is_ly())
+        t.am[56] = AmplitudeModulation(self.ls)
+        t.put_am_bcd(self.dst, 57, 58)
+
+    def fill_pm_timecode(self, t):
+        t.put_pm_bin(0, 13, sync1)
+
+        moc = self.minute_of_century
+        leap_sec = self.leap_sec
+        dst_on = self.dst
+        dst_ls = dst_ls_lut[dst_on | (leap_sec << 2)]
+        dst_next = get_dst_next(self.as_datetime())
+        t.put_pm_bin(13, 5, hamming_parity(moc))
+        t.put_pm_bit(18, BIT(moc, 25))
+        t.put_pm_bit(19, BIT(moc, 0))
+        t.put_pm_bit(20, BIT(moc, 24))
+        t.put_pm_bit(21, BIT(moc, 23))
+        t.put_pm_bit(22, BIT(moc, 22))
+        t.put_pm_bit(23, BIT(moc, 21))
+        t.put_pm_bit(24, BIT(moc, 20))
+        t.put_pm_bit(25, BIT(moc, 19))
+        t.put_pm_bit(26, BIT(moc, 18))
+        t.put_pm_bit(27, BIT(moc, 17))
+        t.put_pm_bit(28, BIT(moc, 16))
+        t.put_pm_bit(29, False) # Reserved
+        t.put_pm_bit(30, BIT(moc, 15))
+        t.put_pm_bit(31, BIT(moc, 14))
+        t.put_pm_bit(32, BIT(moc, 13))
+        t.put_pm_bit(33, BIT(moc, 12))
+        t.put_pm_bit(34, BIT(moc, 11))
+        t.put_pm_bit(35, BIT(moc, 10))
+        t.put_pm_bit(36, BIT(moc,  9))
+        t.put_pm_bit(37, BIT(moc,  8))
+        t.put_pm_bit(38, BIT(moc,  7))
+        t.put_pm_bit(39, True) # Reserved
+        t.put_pm_bit(40, BIT(moc,  6))
+        t.put_pm_bit(41, BIT(moc,  5))
+        t.put_pm_bit(42, BIT(moc,  4))
+        t.put_pm_bit(43, BIT(moc,  3))
+        t.put_pm_bit(44, BIT(moc,  2))
+        t.put_pm_bit(45, BIT(moc,  1))
+        t.put_pm_bit(46, BIT(moc,  0))
+        t.put_pm_bit(47, BIT(dst_ls, 4))
+        t.put_pm_bit(48, BIT(dst_ls, 3))
+        t.put_pm_bit(49, True) # Notice
+        t.put_pm_bit(50, BIT(dst_ls, 2))
+        t.put_pm_bit(51, BIT(dst_ls, 1))
+        t.put_pm_bit(52, BIT(dst_ls, 0))
+        t.put_pm_bit(53, BIT(dst_next, 5))
+        t.put_pm_bit(54, BIT(dst_next, 4))
+        t.put_pm_bit(55, BIT(dst_next, 3))
+        t.put_pm_bit(56, BIT(dst_next, 2))
+        t.put_pm_bit(57, BIT(dst_next, 1))
+        t.put_pm_bit(58, BIT(dst_next, 0))
+        if len(t.phase) > 59: t.put_pm_bit(59, PhaseModulation.ZERO)
+        if len(t.phase) > 60: t.put_pm_bit(60, PhaseModulation.ZERO)
+        pass
 
     def next_minute(self, newut1=None, newls=None):
         d = self.as_datetime() + datetime.timedelta(0,60)
@@ -165,48 +352,74 @@ def bcd(n, d):
 
 bcd_weights = [1, 2, 4, 8, 10, 20, 40, 80, 100, 200, 400, 800]
 
-class WWVBTimecode:
-    def __init__(self, sz):
-        self.data = [None] * sz
+@enum.unique
+class AmplitudeModulation(enum.IntEnum):
+    ZERO = 0
+    ONE = 1
+    MARK = 2
+    UNSET = -1
 
-    def put_bcd(self, v, *poslist):
+@enum.unique
+class PhaseModulation(enum.IntEnum):
+    ZERO = 0
+    ONE = 1
+    UNSET = -1
+
+class WWVBTimecode:
+    am: List[AmplitudeModulation]
+    phase: List[PhaseModulation]
+
+    def __init__(self, sz : int):
+        self.am = [AmplitudeModulation.UNSET] * sz
+        self.phase = [PhaseModulation.UNSET] * sz
+
+    @property
+    def data(self): return self.am
+
+    def put_am_bcd(self, v: int, *poslist : Tuple[int]):
         pos = list(poslist)[::-1]
         weights = bcd_weights[:len(pos)]
         for p, w in zip(pos, weights):
             b = bcd(w, v)
-            if b: self[p] = 1
-            else: self[p] = 0
+            if b: self.am[p] = AmplitudeModulation.ONE
+            else: self.am[p] = AmplitudeModulation.ZERO
 
-    def __setitem__(self, i, v):
-        assert v in (0, 1, 2)
-        v = int(v) # True -> 1
-        if isinstance(i, tuple):
-            for j in i:
-                self.data[j] = v
-        else:
-            self.data[i] = v
+    def put_pm_bit(self, i: int, v: bool):
+        self.phase[i] = PhaseModulation(v)
+
+    def put_pm_bin(self, st: int, n: int, v: bool):
+        for i in range(n):
+            self.put_pm_bit(st + i, BIT(v, (n - i - 1)))
 
     def __str__(self):
-        undefined = [i for i in range(len(self.data)) if self.data[i] is None]
+        undefined = [i for i in range(len(self.am)) if self.am[i] is None]
         if undefined:
             print("Warning: Timecode%s is undefined" % undefined)
-        def ch(c):
-            if c in (0, 1, 2): return str(c)
-            return '?'
+        def ch(am, phase):
+            if phase is PhaseModulation.UNSET:
+                return ['0', '1', '2', '?'][am]
+            elif phase:
+                return ['⁰', '¹', '²', '?'][am]
+            else:
+                return ['₀', '₁', '₂', '?'][am]
 
-        return "".join(ch(i) for i in self.data)
+        return "".join(ch(i, j) for i, j in zip(self.am, self.phase))
 
     def __repr__(self):
         return "<WWVBTimecode " + str(self) + ">"
 
-    def to_string(self, map):
-        return "".join(map[i] for i in self.data)
+    def to_am_string(self, map : List[List[str]]):
+        return "".join(map[i] for i in self.am)
+    to_string = to_am_string
+
+    def to_pm_string(self, map : List[List[str]]):
+        return "".join(map[i] for i in self.phase)
 
 styles = {
-    'default': '012',
-    'duration': '258',
-    'cradek': '01-',
-    'unicode': ['▟█', '▄█', '▄▟'],
+    'default': ['0', '1', '2'],
+    'duration': ['2', '5', '8'],
+    'cradek': ['0', '1', '-'],
+    'bar': ['▟█', '▄█', '▄▟'],
 }
 
 if __name__ == '__main__':
@@ -231,6 +444,9 @@ if __name__ == '__main__':
     parser.add_option("--style", dest="style",
         help="Style of output (one of: %s)" % ", ".join(styles.keys()),
         metavar="STYLE", type="str", default='default')
+    parser.add_option("--channel", dest="channel",
+        help="Modulation (amplitude, phase, both) to print",
+        metavar="MODULATION", type="str", default='amplitude')
     options, args = parser.parse_args()
 
     extra_args = {}
@@ -270,7 +486,13 @@ if __name__ == '__main__':
     w = constructor(year, yday, hour, minute, **extra_args)
     print("WWVB timecode: %s" % str(w))
     for i in range(options.minutes):
-        print("'%02d+%03d %02d:%02d  %s" % (
-            w.year % 100, w.days, w.hour, w.min,
-            w.as_timecode().to_string(style)))
+        pfx = "'%02d+%03d %02d:%02d " % (w.year % 100, w.days, w.hour, w.min)
+        tc = w.as_timecode()
+        if options.channel in ('amplitude', 'both'):
+            print("%s %s" % (pfx, tc.to_am_string(style)))
+            pfx = ' ' * len(pfx)
+        if options.channel in ('phase', 'both'):
+            print("%s %s" % (pfx, tc.to_pm_string(style)))
+        if options.channel == 'both':
+            print()
         w = w.next_minute()
