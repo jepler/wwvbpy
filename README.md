@@ -22,11 +22,19 @@ The National Institute of Standards and Technology operates the WWVB time
 signal service near Fort Collins, Colorado.  The signal can be received in most
 of the continental US.  Each minute, the signal transmits the current time,
 including information about leap years, daylight saving time, and leap seconds.
-The signal can be visualized as a sequence of (usually) 60 symbols, which
-by default wwvbgen displays as 0, 1, or 2.  The 0s and 1s encode information
-like the current day of the year, while the 2s appear in fixed locations to
-allow a receiver to determine the start of a minute.
+The signal is composed of an amplitude channel and a phase modulation channel.
 
+The amplitude channel can be visualized as a sequence of (usually) 60 symbols,
+which by default wwvbgen displays as 0, 1, or 2.  The 0s and 1s encode
+information like the current day of the year, while the 2s appear in fixed
+locations to allow a receiver to determine the start of a minute.
+
+The phase channel (which is displayed with `--channel=phase` or
+`--channel=both`) consists of the same number of symbols per minute.  This
+channel is substantially more complicated than the phase channel.  It encodes
+the current time as minute-of-the-century, provides extended DST information,
+and includes error-correction information not available in the amplitude
+channel.
 
 # Usage
 
@@ -43,7 +51,8 @@ Options:
   -m MINUTES, --minutes=MINUTES
                         number of minutes to generate [Default: 10]
   --style=STYLE         Style of output (one of: default, duration, cradek,
-                        unicode)
+                        bar)
+  --channel=MODULATION  Modulation (amplitude, phase, both) to print
 ~~~~
 
 For example, to display the leap second that occurred at the end of 1998,
@@ -109,6 +118,13 @@ that should remain true for the next few centuries, until the length of the day
 is 100ms less than 86400 seconds)
 
 
+# The phase modulation channel
+
+This should be considered more experimental than the AM channel, as the
+tests only cover a single reference minute.  Further tests could be informed
+by the [other implementation I know of](http://www.leapsecond.com/tools/wwvb_pm.c), except that implementation appears incomplete.
+
+
 # Testing wwvbgen
 
 A set of test timecodes, generated with [another WWVB timecode
@@ -118,3 +134,6 @@ the automatic self test (which does not use or test IERS DUT1 data),
 
 A script `testls.py` prints all leap seconds represented in `iersdata.py`.
 Verification of this data is manual.
+
+A script `pmtest.py` checks the single reference minute of phase modulation
+data.
