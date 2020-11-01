@@ -33,7 +33,7 @@ def get_dut1(t):
     if i < 0: v = iersdata.dut1_offsets[0]
     elif i >= len(iersdata.dut1_offsets): v = iersdata.dut1_offsets[-1]
     else: v = iersdata.dut1_offsets[i]
-    return (ord(v) - ord('k')) / 10.
+    return (v - ord('k')) / 10.
 
 def isls(t):
     dut1_today = get_dut1(t)

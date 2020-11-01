@@ -20,6 +20,8 @@ import bs4
 import requests
 import sys
 import os
+import base64
+import zlib
 
 IERS_URL = 'https://datacenter.iers.org/data/latestVersion/9_FINALS.ALL_IAU2000_V2013_019.txt'
 NIST_URL = 'https://www.nist.gov/pml/time-and-frequency-division/atomic-standards/leap-second-and-ut1-utc-information'
@@ -49,7 +51,7 @@ wwvb_data_stamp = datetime.datetime.fromisoformat(wwvb_data.find('meta', propert
 offsets = []
 print("# -*- python3 -*-")
 print("# File generated from public data - not subject to copyright")
-print("import datetime")
+print("import datetime, base64, zlib")
 for i, r in enumerate(rows):
     if len(r) < 69: continue
     if r[57] not in 'IP': continue
@@ -91,27 +93,14 @@ print("__all__ = ['dut1_data_start, dut1_offsets']")
 print("dut1_data_start = %r" % start)
 c = sorted(chr(ord('a') + ch + 10) for ch in set(offsets))
 print("%s = '%s'" % (",".join(c), "".join(c)))
-print("dut1_offsets = ( # %04d%02d%02d" % (start.year,start.month,start.day))
+print("dut1_offsets = zlib.decompress(base64.decodebytes(")
 line = ''
 now = start
 j = 0
 
-for ch, it in itertools.groupby(offsets):
-    part = ""
-    ch = chr(ord('a') + ch + 10)
-    sz = len(list(it))
-    if j: part = part + "+"
-    if sz < 2:
-        part = part + "%s" % ch
-    else:
-        part = part + "%s*%d" % (ch, sz)
-    j += sz
-    if len(line + part) > 60:
-        d = start + datetime.timedelta(j-1)
-        print("    %-60s # %04d%02d%02d" % (line, d.year, d.month, d.day))
-        line = part
-    else:
-        line = line + part
-d = start + datetime.timedelta(j-1)
-print("    %-60s # %04d%02d%02d" % (line, d.year, d.month, d.day))
-print(")")
+offsets = bytes(ord('k') + ch for ch in offsets)
+zoffsets = zlib.compress(offsets, zlib.Z_BEST_COMPRESSION)
+zoffsets64 = base64.encodebytes(zoffsets)
+for row in zoffsets64.split(b'\n'):
+    print(repr(row))
+print("))")
