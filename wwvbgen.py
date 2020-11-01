@@ -22,6 +22,7 @@ import math
 import optparse
 import string
 import time
+import sys
 
 import iersdata
 
@@ -488,6 +489,23 @@ styles = {
     'bar': ['▟█', '▄█', '▄▟'],
 }
 
+def print_timecodes(w, minutes, channel, style, file):
+    channel_text = '' if channel == 'amplitude' else ' --channel=%s' % channel
+    style_text = '' if style == 'default' else ' --style=%s' % style
+    style = styles.get(style, "012")
+    print("WWVB timecode: %s%s%s" % (str(w), channel_text, style_text), file=file)
+    for i in range(minutes):
+        pfx = "'%02d+%03d %02d:%02d " % (w.year % 100, w.days, w.hour, w.min)
+        tc = w.as_timecode()
+        if channel in ('amplitude', 'both'):
+            print("%s %s" % (pfx, tc.to_am_string(style)), file=file)
+            pfx = ' ' * len(pfx)
+        if channel in ('phase', 'both'):
+            print("%s %s" % (pfx, tc.to_pm_string(style)), file=file)
+        if channel == 'both':
+            print(file=file)
+        w = w.next_minute()
+
 if __name__ == '__main__':
     import optparse
     parser = optparse.OptionParser(usage="Usage: %prog [options] [year yday hour minute | year month day hour minute]")
@@ -548,17 +566,5 @@ if __name__ == '__main__':
         now = datetime.datetime.utcnow().utctimetuple()
         year, yday, hour, minute = now.tm_year, now.tm_yday, now.tm_hour, now.tm_min
 
-    style = styles.get(options.style, "012")
     w = constructor(year, yday, hour, minute, **extra_args)
-    print("WWVB timecode: %s" % str(w))
-    for i in range(options.minutes):
-        pfx = "'%02d+%03d %02d:%02d " % (w.year % 100, w.days, w.hour, w.min)
-        tc = w.as_timecode()
-        if options.channel in ('amplitude', 'both'):
-            print("%s %s" % (pfx, tc.to_am_string(style)))
-            pfx = ' ' * len(pfx)
-        if options.channel in ('phase', 'both'):
-            print("%s %s" % (pfx, tc.to_pm_string(style)))
-        if options.channel == 'both':
-            print()
-        w = w.next_minute()
+    print_timecodes(w, options.minutes, options.channel, options.style, file=sys.stdout)
