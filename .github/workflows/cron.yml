@@ -1,0 +1,40 @@
+name: Update DUT1 data
+
+on:
+  schedule:
+    - cron: '0 10 2 * *'
+  workflow_dispatch:
+
+jobs:
+  update-dut1:
+    runs-on: ubuntu-18.04
+    if: startswith(github.repository, 'jepler/')
+    steps:
+
+    - name: Dump GitHub context
+      env:
+        GITHUB_CONTEXT: ${{ toJson(github) }}
+      run: echo "$GITHUB_CONTEXT"
+
+    - uses: actions/checkout@v2.2.0
+
+    - name: Set up Python 3.7
+      uses: actions/setup-python@v1
+      with:
+        python-version: 3.7
+
+    - name: Install dependencies
+      run: pip install bs4 requests
+
+    - name: Update DUT1 data
+      run: python iers2py.py > iersdata.py
+
+    - name: Test (python 3.8)
+      run: python -munittest
+
+    - name: Commit updates
+      run: |
+        git config user.name "${GITHUB_ACTOR} (github actions cron)"
+        git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
+        git remote set-url --push origin https://${GITHUB_ACTOR}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
+        if git commit -m"update iersdata" iersdata.py; then git push origin HEAD:master; fi
