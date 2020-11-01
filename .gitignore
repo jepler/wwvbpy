@@ -1,1 +1,5 @@
+__pycache__
 *.py[co]
+/out
+/wwvb-data.html
+/iers-data.txt
