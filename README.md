@@ -104,7 +104,7 @@ dates when it is available.
 The process for updating `iersdata.py` has several steps:
  * invoke get-iers.sh
  * invoke get-wwvb.sh
- * gut check the (non-committed) files `wwvb-data.txt` and `iers-data.txt`
+ * gut check the (non-committed) files `wwvb-data.html` and `iers-data.txt`
  * run `python iers2py.py > iersdata.py`
  * gut check the iersdata.py file, commit, and push it out.
 
