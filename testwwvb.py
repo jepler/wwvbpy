@@ -36,6 +36,7 @@ class WWVBTestCase(unittest.TestCase):
             del os.environ['TZ']
         else:
             os.environ['TZ'] = cls._old_tz
+        time.tzset()
 
     def test_cases(self):
         for test in glob.glob("tests/*"):
