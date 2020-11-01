@@ -5,9 +5,10 @@ may be useful in testing WWVB decoder software.
 
 Where possible, wwvbgen uses existing facilities for calendar and time
 manipulation (datetime) and DST rules (time.localtime).  It uses DUT1/leap
-second data derived from IERS Bulletin "A".  With regular updates to
-`iersdata.py`, wwvbgen should be able to correctly encode the time anywhere
-within the 100-year WWVB epoch.  (yes, WWVB uses a 2-digit year!)
+second data derived from IERS Bulletin "A" and from NIST's "Leap second and
+UT1-UTC information" page.  With regular updates to `iersdata.py`, wwvbgen
+should be able to correctly encode the time anywhere within the 100-year WWVB
+epoch.  (yes, WWVB uses a 2-digit year!)
 
 
 # Development status
@@ -101,10 +102,9 @@ decimal places, in a machine readable fixed length format.
 wwvbpy merges the WWVB and IERS datasets, favoring the WWVB dataset for
 dates when it is available.
 
-The process for updating `iersdata.py` has several steps:
- * invoke get-iers.sh
- * invoke get-wwvb.sh
- * gut check the (non-committed) files `wwvb-data.html` and `iers-data.txt`
+The process for updating `iersdata.py` is intended to be executed monthly from
+github actions.  You can also do it manually:
+ * remove the cached `iersdata.txt` and `wwvbdata.html` files to get fresh data
  * run `python iers2py.py > iersdata.py`
  * gut check the iersdata.py file, commit, and push it out.
 

@@ -18,24 +18,39 @@ import datetime
 import itertools
 import bs4
 import requests
+import sys
+import os
 
 IERS_URL = 'https://datacenter.iers.org/data/latestVersion/9_FINALS.ALL_IAU2000_V2013_019.txt'
 NIST_URL = 'https://www.nist.gov/pml/time-and-frequency-division/atomic-standards/leap-second-and-ut1-utc-information'
-with requests.get(IERS_URL) as f:
-    rows = list(f.iter_lines())
+
+def get_url_with_cache(url, cache):
+    if not os.path.exists(cache):
+        with requests.get(url) as f:
+            text = f.text
+        with open(cache, "w") as f:
+            f.write(text)
+        return text
+    else:
+        with open(cache, "r") as f:
+            text = f.read()
+        return text
+        
+iers_text = get_url_with_cache(IERS_URL, "iersdata.txt")
+rows = iers_text.strip().split('\n')
 assert len(rows) > 100
 
-with requests.get(NIST_URL) as f:
-    wwvb_data = bs4.BeautifulSoup(f.text, features='html.parser')
+wwvb_text = get_url_with_cache(NIST_URL, "wwvbdata.html")
+wwvb_data = bs4.BeautifulSoup(wwvb_text, features='html.parser')
 wwvb_dut1_table = wwvb_data.findAll('table')[2]
 assert wwvb_dut1_table
+wwvb_data_stamp = datetime.datetime.fromisoformat(wwvb_data.find('meta', property='article:modified_time').attrs['content']).replace(tzinfo=None)
 
 offsets = []
 print("# -*- python3 -*-")
 print("# File generated from public data - not subject to copyright")
 print("import datetime")
 for i, r in enumerate(rows):
-    r = r.decode('ascii')
     if len(r) < 69: continue
     if r[57] not in 'IP': continue
     jd = float(r[7:12])
@@ -59,21 +74,18 @@ for row in wwvb_dut1_table.findAll('tr')[1:][::-1]:
 
 
 # this is the final (most recent) wwvb DUT1 value broadcast.  We want to
-# extend it some distance into the future, but how far?  It seems that
-# generally the wwvb change slightly anticipates the change in our rounded
-# bulletin B value, so slide the last wwvb data forward until bulletin B
-# catches up.  When I tested this, it involved sliding a single day.
+# extend it some distance into the future, but how far?  We will use the
+# modified timestamp of the NIST data.
 
 def better(off0, off1):
     if off0 < off1: return True
     if off1 < 0 and off0 > 0: return True
     return False
 
-if wwvb_dut1 is not None:
-    off = wwvb_off
-    while better(wwvb_dut1, offsets[off]):
-        offsets[off] = wwvb_dut1
-        off += 1
+off = wwvb_off
+while off < (wwvb_data_stamp - start).days:
+    offsets[off] = wwvb_dut1
+    off += 1
 
 print("__all__ = ['dut1_data_start, dut1_offsets']")
 print("dut1_data_start = %r" % start)
