@@ -23,6 +23,7 @@ import os
 import io
 
 class WWVBTestCase(unittest.TestCase):
+    maxDiff = 131072
     @classmethod
     def setUpClass(cls):
         cls._old_tz = os.environ.get('TZ')
@@ -42,14 +43,24 @@ class WWVBTestCase(unittest.TestCase):
                 with open(test) as f:
                     text = f.read()
                 lines = text.strip().split("\n")
-                w = wwvbgen.WWVBMinute.fromstring(lines[0])
+                header = lines[0].split()
+                timestamp = " ".join(header[:10])
+                options = header[10:]
+                channel = 'amplitude'
+                style = 'default'
+                for o in options:
+                    if o.startswith('--channel='):
+                        channel=o[10:]
+                    elif o.startswith('--style='):
+                        style=o[8:]
+                    else:
+                        raise ValueError("Unknown option %r" % o)
+                num_minutes = len(lines)-1
+                if channel == 'both':
+                    num_minutes = len(lines) // 3
+                w = wwvbgen.WWVBMinute.fromstring(timestamp)
                 result = io.StringIO()
-                print("WWVB timecode: %s" % str(w), file=result)
-                for i in range(1, len(lines)):
-                    tc = w.as_timecode()
-                    print("'%02d+%03d %02d:%02d  %s" % (
-                        w.year % 100, w.days, w.hour, w.min, w.as_timecode().to_am_string("012")), file=result)
-                    w = w.next_minute()
+                wwvbgen.print_timecodes(w, num_minutes, channel=channel, style=style, file=result)
                 result = result.getvalue()
                 self.assertEqual(text, result)
 
