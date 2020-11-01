@@ -55,17 +55,3 @@ class WWVBTestCase(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-###    import os
-###    import glob
-###    total = success = 0
-###    if not os.path.isdir("out"):
-###        os.mkdir("out")
-###    print("%d success (%d failures) out of %d tests" % (success, total-success, total))
-###    if success != total:
-###        raise SystemExit(1)
-####    w = WWVBMinute(2000, 366, 23, 58)
-####    print "WWVB timecode:", w
-####    for i in range(4):
-####        print "'%02d+%03d %02d:%02d  %s" % (
-####            w.year % 100, w.days, w.hour, w.min, w.as_timecode())
-#####        w = w.next_minute()
