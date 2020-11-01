@@ -47,6 +47,8 @@ if __name__ == '__main__':
     os.environ['TZ'] = ':America/Denver' # Home of WWVB
     time.tzset()
     total = success = 0
+    if not os.path.isdir("out"):
+        os.mkdir("out")
     for test in glob.glob("tests/*"):
         total += 1
         success += dotestcase(os.path.basename(test))
