@@ -15,11 +15,8 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #    WWVB timecode generator test for pulse modulated signal
+import unittest
 import wwvbgen
-import time
-import glob
-import os
-import io
 
 ref_minute = wwvbgen.WWVBMinuteIERS(2012, 186, 17, 30)
 ref_time = ref_minute.as_timecode()
@@ -42,8 +39,13 @@ ref_pm = (
     '0110110110'
 )
 
-test_am = ref_time.to_am_string('012')
-test_pm = ref_time.to_pm_string('01')
+class TestPhaseModulation(unittest.TestCase):
+    def test_pm(self):
+        test_am = ref_time.to_am_string('012')
+        test_pm = ref_time.to_pm_string('01')
 
-assert ref_am == test_am, (ref_am, test_am)
-assert ref_pm == test_pm, (ref_pm, test_pm)
+        self.assertEqual(ref_am, test_am)
+        self.assertEqual(ref_pm, test_pm)
+
+if __name__ == '__main__':
+    unittest.main()
