@@ -17,19 +17,25 @@
 import datetime
 import itertools
 import bs4
+import requests
 
-with open("iers-data.txt") as f:
-    rows = f.readlines()
+IERS_URL = 'https://datacenter.iers.org/data/latestVersion/9_FINALS.ALL_IAU2000_V2013_019.txt'
+NIST_URL = 'https://www.nist.gov/pml/time-and-frequency-division/atomic-standards/leap-second-and-ut1-utc-information'
+with requests.get(IERS_URL) as f:
+    rows = list(f.iter_lines())
+assert len(rows) > 100
 
-with open("wwvb-data.html") as f:
-    wwvb_data = bs4.BeautifulSoup(f, features='html.parser')
+with requests.get(NIST_URL) as f:
+    wwvb_data = bs4.BeautifulSoup(f.text, features='html.parser')
 wwvb_dut1_table = wwvb_data.findAll('table')[2]
+assert wwvb_dut1_table
 
 offsets = []
 print("# -*- python3 -*-")
 print("# File generated from public data - not subject to copyright")
 print("import datetime")
 for i, r in enumerate(rows):
+    r = r.decode('ascii')
     if len(r) < 69: continue
     if r[57] not in 'IP': continue
     jd = float(r[7:12])
