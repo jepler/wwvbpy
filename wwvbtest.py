@@ -22,14 +22,16 @@ import io
 
 def dotestcase(testname):
     inf = "tests/%s" % testname
-    text = open(inf).read()
+    with open(inf) as f:
+        text = f.read()
     lines = text.strip().split("\n")
     w = wwvbgen.WWVBMinute.fromstring(lines[0])
     result = io.StringIO()
     print("WWVB timecode: %s" % str(w), file=result)
     for i in range(1, len(lines)):
+        tc = w.as_timecode()
         print("'%02d+%03d %02d:%02d  %s" % (
-            w.year % 100, w.days, w.hour, w.min, w.as_timecode()), file=result)
+            w.year % 100, w.days, w.hour, w.min, w.as_timecode().to_am_string("012")), file=result)
         w = w.next_minute()
     result = result.getvalue()
     if result != text:
@@ -52,6 +54,8 @@ if __name__ == '__main__':
         total += 1
         success += dotestcase(os.path.basename(test))
     print("%d success (%d failures) out of %d tests" % (success, total-success, total))
+    if success != total:
+        raise SystemExit(1)
 #    w = WWVBMinute(2000, 366, 23, 58)
 #    print "WWVB timecode:", w
 #    for i in range(4):
