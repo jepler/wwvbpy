@@ -1,0 +1,45 @@
+name: Test wwvbgen
+
+on:
+  push:
+  pull_request:
+  release:
+    types: [published]
+  check_suite:
+    types: [rerequested]
+
+jobs:
+  test:
+    runs-on: ubuntu-18.04
+    steps:
+    - name: Dump GitHub context
+      env:
+        GITHUB_CONTEXT: ${{ toJson(github) }}
+      run: echo "$GITHUB_CONTEXT"
+
+    - uses: actions/checkout@v2.2.0
+
+    - name: Set up Python 3.7
+      uses: actions/setup-python@v1
+      with:
+        python-version: 3.7
+
+    - name: Test (python 3.7)
+      run: python -munittest
+
+
+    - name: Set up Python 3.8
+      uses: actions/setup-python@v1
+      with:
+        python-version: 3.8
+
+    - name: Test (python 3.8)
+      run: python -munittest
+
+    - name: Set up Python 3.9
+      uses: actions/setup-python@v1
+      with:
+        python-version: 3.9
+
+    - name: Test (python 3.9)
+      run: python -munittest
