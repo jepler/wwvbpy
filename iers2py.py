@@ -49,7 +49,7 @@ wwvb_data_stamp = datetime.datetime.fromisoformat(wwvb_data.find('meta', propert
 offsets = []
 print("# -*- python3 -*-")
 print("# File generated from public data - not subject to copyright")
-print("import datetime")
+print("import datetime, re")
 for i, r in enumerate(rows):
     if len(r) < 69: continue
     if r[57] not in 'IP': continue
@@ -89,9 +89,11 @@ while off < (wwvb_data_stamp - start).days:
 
 print("__all__ = ['dut1_data_start, dut1_offsets']")
 print("dut1_data_start = %r" % start)
-c = sorted(chr(ord('a') + ch + 10) for ch in set(offsets))
-print("%s = '%s'" % (",".join(c), "".join(c)))
-print("dut1_offsets = ( # %04d%02d%02d" % (start.year,start.month,start.day))
+print("""
+def expand(s):
+    return "".join(c * int(n or 1) for m in re.finditer(r"(\d*)?([a-z])", s) for (n, c) in [m.group(1, 2)])
+""")
+print("dut1_offsets = expand( # %04d%02d%02d" % (start.year,start.month,start.day))
 line = ''
 now = start
 j = 0
@@ -100,18 +102,17 @@ for ch, it in itertools.groupby(offsets):
     part = ""
     ch = chr(ord('a') + ch + 10)
     sz = len(list(it))
-    if j: part = part + "+"
     if sz < 2:
-        part = part + "%s" % ch
+        part = part + ch
     else:
-        part = part + "%s*%d" % (ch, sz)
+        part = part + "%d%s" % (sz,ch)
     j += sz
     if len(line + part) > 60:
         d = start + datetime.timedelta(j-1)
-        print("    %-60s # %04d%02d%02d" % (line, d.year, d.month, d.day))
+        print("    %-62s # %04d%02d%02d" % (repr(line), d.year, d.month, d.day))
         line = part
     else:
         line = line + part
 d = start + datetime.timedelta(j-1)
-print("    %-60s # %04d%02d%02d" % (line, d.year, d.month, d.day))
+print("    %-62s # %04d%02d%02d" % (repr(line), d.year, d.month, d.day))
 print(")")
