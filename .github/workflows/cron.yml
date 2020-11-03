@@ -37,4 +37,4 @@ jobs:
         git config user.name "${GITHUB_ACTOR} (github actions cron)"
         git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
         git remote set-url --push origin https://${GITHUB_ACTOR}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
-        if git commit -m"update iersdata" iersdata.py; then git push origin HEAD:master; fi
+        if git commit -m"update iersdata" iersdata.py; then git push origin HEAD:main; fi
