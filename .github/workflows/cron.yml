@@ -18,10 +18,10 @@ jobs:
 
     - uses: actions/checkout@v2.2.0
 
-    - name: Set up Python 3.7
+    - name: Set up Python 3.9
       uses: actions/setup-python@v1
       with:
-        python-version: 3.7
+        python-version: 3.9
 
     - name: Install dependencies
       run: pip install bs4 requests
@@ -29,7 +29,7 @@ jobs:
     - name: Update DUT1 data
       run: python iers2py.py > iersdata.py
 
-    - name: Test (python 3.8)
+    - name: Test (python 3.9)
       run: python -munittest
 
     - name: Commit updates
