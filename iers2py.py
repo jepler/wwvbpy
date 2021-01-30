@@ -55,6 +55,7 @@ wwvb_data_stamp = datetime.datetime.fromisoformat(
 offsets = []
 print("# -*- python3 -*-")
 print("# File generated from public data - not subject to copyright")
+print("# fmt: off")
 print("import datetime")
 for i, r in enumerate(rows):
     if len(r) < 69:
