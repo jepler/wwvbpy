@@ -22,20 +22,22 @@ import glob
 import os
 import io
 
+
 class WWVBTestCase(unittest.TestCase):
     maxDiff = 131072
+
     @classmethod
     def setUpClass(cls):
-        cls._old_tz = os.environ.get('TZ')
-        os.environ['TZ'] = ':America/Denver' # Home of WWVB
+        cls._old_tz = os.environ.get("TZ")
+        os.environ["TZ"] = ":America/Denver"  # Home of WWVB
         time.tzset()
 
     @classmethod
     def tearDownClass(cls):
         if cls._old_tz is None:
-            del os.environ['TZ']
+            del os.environ["TZ"]
         else:
-            os.environ['TZ'] = cls._old_tz
+            os.environ["TZ"] = cls._old_tz
         time.tzset()
 
     def test_cases(self):
@@ -47,23 +49,26 @@ class WWVBTestCase(unittest.TestCase):
                 header = lines[0].split()
                 timestamp = " ".join(header[:10])
                 options = header[10:]
-                channel = 'amplitude'
-                style = 'default'
+                channel = "amplitude"
+                style = "default"
                 for o in options:
-                    if o.startswith('--channel='):
-                        channel=o[10:]
-                    elif o.startswith('--style='):
-                        style=o[8:]
+                    if o.startswith("--channel="):
+                        channel = o[10:]
+                    elif o.startswith("--style="):
+                        style = o[8:]
                     else:
                         raise ValueError("Unknown option %r" % o)
-                num_minutes = len(lines)-1
-                if channel == 'both':
+                num_minutes = len(lines) - 1
+                if channel == "both":
                     num_minutes = len(lines) // 3
                 w = wwvbgen.WWVBMinute.fromstring(timestamp)
                 result = io.StringIO()
-                wwvbgen.print_timecodes(w, num_minutes, channel=channel, style=style, file=result)
+                wwvbgen.print_timecodes(
+                    w, num_minutes, channel=channel, style=style, file=result
+                )
                 result = result.getvalue()
                 self.assertEqual(text, result)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()
