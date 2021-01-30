@@ -1,0 +1,17 @@
+# SPDX-FileCopyrightText: 2020 Diego Elio Pettenò
+#
+# SPDX-License-Identifier: Unlicense
+
+repos:
+-   repo: https://github.com/python/black
+    rev: stable
+    hooks:
+    - id: black
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v2.3.0
+    hooks:
+    -   id: check-yaml
+    -   id: end-of-file-fixer
+        exclude: tests
+    -   id: trailing-whitespace
+        exclude: tests

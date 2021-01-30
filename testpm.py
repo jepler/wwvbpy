@@ -20,49 +20,51 @@ import wwvbgen
 import os
 import time
 
+
 class TestPhaseModulation(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls._old_tz = os.environ.get('TZ')
-        os.environ['TZ'] = ':America/Denver' # Home of WWVB
+        cls._old_tz = os.environ.get("TZ")
+        os.environ["TZ"] = ":America/Denver"  # Home of WWVB
         time.tzset()
 
     @classmethod
     def tearDownClass(cls):
         if cls._old_tz is None:
-            del os.environ['TZ']
+            del os.environ["TZ"]
         else:
-            os.environ['TZ'] = cls._old_tz
+            os.environ["TZ"] = cls._old_tz
         time.tzset()
 
     def test_pm(self):
 
         ref_am = (
-            '2011000002'
-            '0001001112'
-            '0001010002'
-            '0110001012'
-            '0100000012'
-            '0010010112'
+            "2011000002"
+            "0001001112"
+            "0001010002"
+            "0110001012"
+            "0100000012"
+            "0010010112"
         )
 
         ref_pm = (
-            '0011101101'
-            '0001001000'
-            '0011001000'
-            '0110001101'
-            '0011010001'
-            '0110110110'
+            "0011101101"
+            "0001001000"
+            "0011001000"
+            "0110001101"
+            "0011010001"
+            "0110110110"
         )
 
         ref_minute = wwvbgen.WWVBMinuteIERS(2012, 186, 17, 30, dst=3)
         ref_time = ref_minute.as_timecode()
 
-        test_am = ref_time.to_am_string('012')
-        test_pm = ref_time.to_pm_string('01')
+        test_am = ref_time.to_am_string("012")
+        test_pm = ref_time.to_pm_string("01")
 
         self.assertEqual(ref_am, test_am)
         self.assertEqual(ref_pm, test_pm)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()
