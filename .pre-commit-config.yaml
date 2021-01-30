@@ -12,4 +12,6 @@ repos:
     hooks:
     -   id: check-yaml
     -   id: end-of-file-fixer
+        exclude: tests
     -   id: trailing-whitespace
+        exclude: tests
