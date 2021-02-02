@@ -17,6 +17,7 @@
 
 from tkinter import *
 import time
+import sys
 
 import wwvbgen
 
@@ -39,6 +40,22 @@ def wwvbtick():
         timestamp = timestamp + 60
 
 
+def wwvbsmarttick():
+    # Deal with time progressing unexpectedly, such as when the computer is
+    # suspended or NTP steps the clock backwards
+    #
+    # When time goes backwards or advances by more than a minute, get a fresh
+    # wwvbtick object; otherwise, discard time signals more than 1s in the past.
+    while True:
+        for stamp, code in wwvbtick():
+            now = time.time()
+            if stamp < now - 60:
+                break
+            if stamp < now - 1:
+                continue
+            yield stamp, code
+
+
 app = Tk()
 canvas = Canvas(app, width=48, height=48)
 canvas.pack()
@@ -56,7 +73,7 @@ def led_off():
     canvas.itemconfigure(circle, fill=colors[0])
 
 
-for stamp, code in wwvbtick():
+for stamp, code in wwvbsmarttick():
     sleep_deadline(stamp)
     led_on(code)
     app.update()
