@@ -15,6 +15,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import threading
 from tkinter import *
 import time
 import sys
@@ -73,10 +74,16 @@ def led_off():
     canvas.itemconfigure(circle, fill=colors[0])
 
 
-for stamp, code in wwvbsmarttick():
-    sleep_deadline(stamp)
-    led_on(code)
-    app.update()
-    sleep_deadline(stamp + 0.2 + 0.3 * int(code))
-    led_off()
-    app.update()
+def thread_func():
+    for stamp, code in wwvbsmarttick():
+        sleep_deadline(stamp)
+        led_on(code)
+        app.update()
+        sleep_deadline(stamp + 0.2 + 0.3 * int(code))
+        led_off()
+        app.update()
+
+
+thread = threading.Thread(target=thread_func, daemon=True)
+thread.start()
+app.mainloop()
