@@ -57,13 +57,27 @@ def wwvbsmarttick():
             yield stamp, code
 
 
-app = Tk()
-canvas = Canvas(app, width=48, height=48)
-canvas.pack()
+def resize_canvas(event):
+    print(event.width, event.height)
+    sz = min(event.width, event.height) - 8
+    if sz < 0:
+        return
+    canvas.coords(
+        circle,
+        event.width // 2 - sz // 2,
+        event.height // 2 - sz // 2,
+        event.width // 2 + sz // 2,
+        event.height // 2 + sz // 2,
+    )
+
 
 colors = ["#3c3c3c", "#cc3c3c", "#88883c", "#3ccc3c"]
-
+app = Tk()
+app.wm_minsize(48, 48)
+canvas = Canvas(app, width=48, height=48, highlightthickness=0)
+canvas.pack(fill="both", expand=True)
 circle = canvas.create_oval(4, 4, 44, 44, outline="black", fill=colors[0])
+canvas.bind("<Configure>", resize_canvas)
 
 
 def led_on(i):
