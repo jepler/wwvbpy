@@ -58,7 +58,6 @@ def wwvbsmarttick():
 
 
 def resize_canvas(event):
-    print(event.width, event.height)
     sz = min(event.width, event.height) - 8
     if sz < 0:
         return
