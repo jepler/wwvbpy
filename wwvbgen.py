@@ -556,15 +556,15 @@ class WWVBTimecode:
     am: List[AmplitudeModulation]
     phase: List[PhaseModulation]
 
-    def __init__(self, sz: int):
+    def __init__(self, sz: int) -> None:
         self.am = [AmplitudeModulation.UNSET] * sz
         self.phase = [PhaseModulation.UNSET] * sz
 
     @property
-    def data(self):
+    def data(self) -> list:
         return self.am
 
-    def put_am_bcd(self, v: int, *poslist: Tuple[int]):
+    def put_am_bcd(self, v: int, *poslist: Tuple[int]) -> None:
         pos = list(poslist)[::-1]
         weights = bcd_weights[: len(pos)]
         for p, w in zip(pos, weights):
@@ -574,14 +574,14 @@ class WWVBTimecode:
             else:
                 self.am[p] = AmplitudeModulation.ZERO
 
-    def put_pm_bit(self, i: int, v: bool):
+    def put_pm_bit(self, i: int, v: bool) -> None:
         self.phase[i] = PhaseModulation(v)
 
-    def put_pm_bin(self, st: int, n: int, v: bool):
+    def put_pm_bin(self, st: int, n: int, v: bool) -> None:
         for i in range(n):
             self.put_pm_bit(st + i, BIT(v, (n - i - 1)))
 
-    def __str__(self):
+    def __str__(self) -> str:
         undefined = [i for i in range(len(self.am)) if self.am[i] is None]
         if undefined:
             print("Warning: Timecode%s is undefined" % undefined)
@@ -596,15 +596,15 @@ class WWVBTimecode:
 
         return "".join(ch(i, j) for i, j in zip(self.am, self.phase))
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "<WWVBTimecode " + str(self) + ">"
 
-    def to_am_string(self, map: List[List[str]]):
+    def to_am_string(self, map: List[List[str]]) -> str:
         return "".join(map[i] for i in self.am)
 
     to_string = to_am_string
 
-    def to_pm_string(self, map: List[List[str]]):
+    def to_pm_string(self, map: List[List[str]]) -> str:
         return "".join(map[i] for i in self.phase)
 
 
