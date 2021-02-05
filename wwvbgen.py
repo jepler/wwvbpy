@@ -226,8 +226,11 @@ hamming_weight = [
     [25, 22, 20, 19, 16, 15, 14, 13, 12, 8, 7, 5, 4, 3, 1],
 ]
 
-sync1 = 0x768
-sync2 = 0x1A3A
+# Identifies the phase data as a time signal (sync_T bits present)
+# or a message signal (sync_M bits present); No message signals are defined
+# by NIST at this time.
+sync_T = 0x768
+sync_M = 0x1A3A
 
 # Extract bit 'p' from integer 'v' as a bool
 def BIT(v, p):
@@ -414,7 +417,7 @@ class WWVBMinute(_WWVBMinute):
             t.put_pm_bit(i, full_seq[i + offset])
 
     def fill_pm_timecode_regular(self, t):
-        t.put_pm_bin(0, 13, sync1)
+        t.put_pm_bin(0, 13, sync_T)
 
         moc = self.minute_of_century
         leap_sec = self.leap_sec
