@@ -296,8 +296,8 @@ class WWVBMinute(_WWVBMinute):
         return dst1 * 2 + dst0
 
     def __str__(self):
-        return "year=%.2d days=%.3d hour=%.2d min=%.2d dst=%d ut1=%d ly=%d ls=%d" % (
-            self.year % 100,
+        return "year=%4d days=%.3d hour=%.2d min=%.2d dst=%d ut1=%d ly=%d ls=%d" % (
+            self.year,
             self.days,
             self.hour,
             self.min,
@@ -625,7 +625,7 @@ def print_timecodes(w, minutes, channel, style, file):
     style = styles.get(style, "012")
     print("WWVB timecode: %s%s%s" % (str(w), channel_text, style_text), file=file)
     for i in range(minutes):
-        pfx = "'%02d+%03d %02d:%02d " % (w.year % 100, w.days, w.hour, w.min)
+        pfx = "%04d-%03d %02d:%02d " % (w.year, w.days, w.hour, w.min)
         tc = w.as_timecode()
         if channel in ("amplitude", "both"):
             print("%s %s" % (pfx, tc.to_am_string(style)), file=file)
