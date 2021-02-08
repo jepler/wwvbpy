@@ -115,7 +115,6 @@ class WWVBRoundtrip(unittest.TestCase, TestSetup):
                 f"Checking equality of minute {minute}: [expected] {timecode} != [actual] {decoded}",
             )
             minute = minute.next_minute()
-            print(minute)
 
 
 if __name__ == "__main__":
