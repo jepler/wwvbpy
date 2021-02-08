@@ -14,18 +14,18 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+import datetime
 import unittest
 
 import wwvbgen
+import wwvbdec
 import time
 import glob
 import os
 import io
 
 
-class WWVBTestCase(unittest.TestCase):
-    maxDiff = 131072
-
+class TestSetup:
     @classmethod
     def setUpClass(cls):
         cls._old_tz = os.environ.get("TZ")
@@ -39,6 +39,10 @@ class WWVBTestCase(unittest.TestCase):
         else:
             os.environ["TZ"] = cls._old_tz
         time.tzset()
+
+
+class WWVBTestCase(unittest.TestCase, TestSetup):
+    maxDiff = 131072
 
     def test_cases(self):
         for test in glob.glob("tests/*"):
@@ -68,6 +72,50 @@ class WWVBTestCase(unittest.TestCase):
                 )
                 result = result.getvalue()
                 self.assertEqual(text, result)
+
+
+class WWVBRoundtrip(unittest.TestCase, TestSetup):
+    def test_decode(self):
+        minute = wwvbgen.WWVBMinuteIERS.from_datetime(
+            datetime.datetime(1992, 6, 30, 23, 50)
+        )
+        decoder = wwvbdec.wwvbreceive()
+        next(decoder)
+        decoder.send(wwvbgen.AmplitudeModulation.MARK)
+        any_leap_second = False
+        for i in range(20):
+            timecode = minute.as_timecode()
+            decoded = None
+            if len(timecode.am) == 61:
+                any_leap_second = True
+            for code in timecode.am:
+                decoded = decoder.send(code) or decoded
+            self.assertEqual(
+                timecode.am[:60],
+                decoded.am,
+                f"Checking equality of minute {minute}: [expected] {timecode.am} != [actual] {decoded.am}",
+            )
+            minute = minute.next_minute()
+        self.assertEqual(any_leap_second, True)
+
+    def test_roundtrip(self):
+        minute = wwvbgen.WWVBMinuteIERS.from_datetime(
+            datetime.datetime(1992, 1, 1, 0, 0)
+        )
+        while minute.days < 2:
+            timecode = minute.as_timecode().am
+            decoded = (
+                wwvbgen.WWVBMinuteIERS.from_timecode_am(minute.as_timecode())
+                .as_timecode()
+                .am
+            )
+            self.assertEqual(
+                timecode,
+                decoded,
+                f"Checking equality of minute {minute}: [expected] {timecode} != [actual] {decoded}",
+            )
+            minute = minute.next_minute()
+            print(minute)
 
 
 if __name__ == "__main__":
