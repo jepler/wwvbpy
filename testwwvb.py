@@ -103,10 +103,9 @@ class WWVBRoundtrip(unittest.TestCase):
         self.assertTrue(any_leap_second)
 
     def test_roundtrip(self):
-        minute = wwvbgen.WWVBMinuteIERS.from_datetime(
-            datetime.datetime(1992, 1, 1, 0, 0)
-        )
-        while minute.days < 2:
+        dt = datetime.datetime(1992, 1, 1, 0, 0)
+        while dt.year < 1993:
+            minute = wwvbgen.WWVBMinuteIERS.from_datetime(dt)
             timecode = minute.as_timecode().am
             decoded = (
                 wwvbgen.WWVBMinuteIERS.from_timecode_am(minute.as_timecode())
@@ -118,7 +117,7 @@ class WWVBRoundtrip(unittest.TestCase):
                 decoded,
                 f"Checking equality of minute {minute}: [expected] {timecode} != [actual] {decoded}",
             )
-            minute = minute.next_minute()
+            dt = dt + datetime.timedelta(minutes=915)
 
 
 if __name__ == "__main__":
