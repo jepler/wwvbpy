@@ -28,6 +28,8 @@ import io
 old_tz = None
 
 
+# It's impotant that the tests run in this time zone because information about
+# DST rules comes from it.
 def setUpModule():
     global old_tz
     old_tz = os.environ.get("TZ")
