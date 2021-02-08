@@ -25,23 +25,25 @@ import os
 import io
 
 
-class TestSetup:
-    @classmethod
-    def setUpClass(cls):
-        cls._old_tz = os.environ.get("TZ")
-        os.environ["TZ"] = ":America/Denver"  # Home of WWVB
-        time.tzset()
-
-    @classmethod
-    def tearDownClass(cls):
-        if cls._old_tz is None:
-            del os.environ["TZ"]
-        else:
-            os.environ["TZ"] = cls._old_tz
-        time.tzset()
+old_tz = None
 
 
-class WWVBTestCase(unittest.TestCase, TestSetup):
+def setUpModule():
+    global old_tz
+    old_tz = os.environ.get("TZ")
+    os.environ["TZ"] = ":America/Denver"  # Home of WWVB
+    time.tzset()
+
+
+def tearDownModule():
+    if old_tz is None:
+        del os.environ["TZ"]
+    else:
+        os.environ["TZ"] = old_tz
+    time.tzset()
+
+
+class WWVBTestCase(unittest.TestCase):
     maxDiff = 131072
 
     def test_cases(self):
@@ -74,7 +76,7 @@ class WWVBTestCase(unittest.TestCase, TestSetup):
                 self.assertEqual(text, result)
 
 
-class WWVBRoundtrip(unittest.TestCase, TestSetup):
+class WWVBRoundtrip(unittest.TestCase):
     def test_decode(self):
         minute = wwvbgen.WWVBMinuteIERS.from_datetime(
             datetime.datetime(1992, 6, 30, 23, 50)
