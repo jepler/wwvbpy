@@ -100,7 +100,7 @@ class WWVBRoundtrip(unittest.TestCase):
                 f"Checking equality of minute {minute}: [expected] {timecode.am} != [actual] {decoded.am}",
             )
             minute = minute.next_minute()
-        self.assertEqual(any_leap_second, True)
+        self.assertTrue(any_leap_second)
 
     def test_roundtrip(self):
         minute = wwvbgen.WWVBMinuteIERS.from_datetime(
