@@ -521,6 +521,31 @@ class WWVBMinute(_WWVBMinute):
             newut1, newls = cls.get_dut1_info(u.tm_year, u.tm_yday, old_time)
         return cls(u.tm_year, u.tm_yday, u.tm_hour, u.tm_min, ut1=newut1, ls=newls)
 
+    @classmethod
+    def from_timecode_am(cls, t):
+        for i in (0, 9, 19, 29, 39, 49, 59):
+            if t.am[i] != AmplitudeModulation.MARK:
+                return None
+        for i in (4, 10, 11, 14, 20, 21, 24, 34, 35, 44, 54):
+            if t.am[i] != AmplitudeModulation.ZERO:
+                return None
+        if t.am[36] == t.am[37]:
+            return None
+        if t.am[36] != t.am[38]:
+            return None
+        minute = t.get_am_bcd(1, 2, 3, 5, 6, 7, 8)
+        hour = t.get_am_bcd(12, 13, 15, 16, 17, 18)
+        days = t.get_am_bcd(22, 23, 25, 26, 27, 28, 30, 31, 32, 33)
+        abs_ut1 = t.get_am_bcd(40, 41, 42, 43) * 100
+        ut1_sign = t.am[38]
+        ut1 = abs_ut1 if ut1_sign else -abs_ut1
+        year = t.get_am_bcd(45, 46, 47, 48, 50, 51, 52, 53)
+        is_ly = t.am[55]
+        ls = t.am[56]
+        dst = t.get_am_bcd(57, 58)
+
+        return cls(year, days, hour, minute, dst, ut1, ls)
+
 
 class WWVBMinuteIERS(WWVBMinute):
     @classmethod
@@ -572,6 +597,15 @@ class WWVBTimecode:
     @property
     def data(self) -> list:
         return self.am
+
+    def get_am_bcd(self, *poslist: Tuple[int]) -> int:
+        pos = list(poslist)[::-1]
+        weights = bcd_weights[: len(pos)]
+        result = 0
+        for p, w in zip(pos, weights):
+            if self.am[p]:
+                result += w
+        return result
 
     def put_am_bcd(self, v: int, *poslist: Tuple[int]) -> None:
         pos = list(poslist)[::-1]
