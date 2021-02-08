@@ -479,13 +479,12 @@ class WWVBMinute(_WWVBMinute):
             self.fill_pm_timecode_regular(t)
 
     def next_minute(self, newut1=None, newls=None):
-        d = self.as_datetime() + datetime.timedelta(0, 60)
-        u = d.utctimetuple()
-        if newls is None and newut1 is None:
-            newut1, newls = self.get_dut1_info(u.tm_year, u.tm_yday, self)
-        return type(self)(
-            u.tm_year, u.tm_yday, u.tm_hour, u.tm_min, ut1=newut1, ls=newls
-        )
+        d = self.as_datetime() + datetime.timedelta(minutes=1)
+        return self.from_datetime(d, newut1, newls, self)
+
+    def previous_minute(self, newut1=None, newls=None):
+        d = self.as_datetime() - datetime.timedelta(minutes=1)
+        return self.from_datetime(d, newut1, newls, self)
 
     @classmethod
     def get_dut1_info(cls, year, days, old_time=None):
@@ -514,6 +513,13 @@ class WWVBMinute(_WWVBMinute):
         if "ly" in d:
             d.pop("ly")
         return cls(**d)
+
+    @classmethod
+    def from_datetime(cls, d, newut1=None, newls=None, old_time=None):
+        u = d.utctimetuple()
+        if newls is None and newut1 is None:
+            newut1, newls = cls.get_dut1_info(u.tm_year, u.tm_yday, old_time)
+        return cls(u.tm_year, u.tm_yday, u.tm_hour, u.tm_min, ut1=newut1, ls=newls)
 
 
 class WWVBMinuteIERS(WWVBMinute):
