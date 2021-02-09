@@ -15,3 +15,7 @@ repos:
         exclude: tests
     -   id: trailing-whitespace
         exclude: tests
+-   repo: https://github.com/fsfe/reuse-tool
+    rev: v0.12.1
+    hooks:
+    - id: reuse
