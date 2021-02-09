@@ -11,14 +11,13 @@ import enum
 import math
 import optparse
 import string
-import time
 import sys
 
 import iersdata
 
 from typing import Dict, List, Tuple
 
-from tzinfo_us import Mountain
+from tzinfo_us import Mountain, HOUR
 
 
 def get_dut1(t):
@@ -41,10 +40,10 @@ def isls(t):
     return dut1_today * dut1_next_month < 0
 
 
-def isdst(t):
+def isdst(t, tz=Mountain):
     if isinstance(t, datetime.date):
         t = datetime.datetime(t.year, t.month, t.day)
-    return bool(t.astimezone(Mountain).dst())
+    return bool(t.astimezone(tz).dst())
 
 
 def first_sunday_in_month(y, m):
@@ -58,14 +57,14 @@ def is_dst_change_day(t):
     return isdst(t) != isdst(t + datetime.timedelta(1))
 
 
-def get_dst_change_hour(t):
-    lt0 = datetime.datetime(t.year, t.month, t.day).timetuple()
-    stamp = time.mktime(lt0)
-    dst0 = lt0.tm_isdst
-    for i in (1, 2, 3):
-        dst1 = time.localtime(stamp + i * 3600).tm_isdst
+def get_dst_change_hour(t, tz=Mountain):
+    lt0 = datetime.datetime(t.year, t.month, t.day, hour=0, tzinfo=tz)
+    dst0 = lt0.dst()
+    for i in (1, 2, 3, 4):
+        lt1 = (lt0.astimezone(datetime.timezone.utc) + HOUR * i).astimezone(tz)
+        dst1 = lt1.dst()
         if dst0 != dst1:
-            return i
+            return i - 1
     return None
 
 
@@ -182,7 +181,7 @@ ftw = [
 ]
 
 
-def get_dst_next(d):
+def get_dst_next(d, tz=Mountain):
     dst_now = isdst(d)  # dst_on[1]
     dst_midwinter = isdst(datetime.datetime(d.year, 1, 1))
     dst_midsummer = isdst(datetime.datetime(d.year, 7, 1))
@@ -200,7 +199,7 @@ def get_dst_next(d):
     if dst_change_date is None or dst_next_row is None:
         return 0b100011
 
-    dst_change_hour = get_dst_change_hour(dst_change_date)
+    dst_change_hour = get_dst_change_hour(dst_change_date, tz)
     if dst_change_hour is None:
         return 0b100011
 

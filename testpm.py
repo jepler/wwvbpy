@@ -8,7 +8,6 @@
 import unittest
 import wwvbgen
 import os
-import time
 
 
 class TestPhaseModulation(unittest.TestCase):

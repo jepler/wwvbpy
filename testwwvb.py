@@ -10,7 +10,6 @@ import unittest
 
 import wwvbgen
 import wwvbdec
-import time
 import glob
 import os
 import io
