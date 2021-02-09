@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2021 Jeff Epler
+
+SPDX-License-Identifier: GPL-3.0-or-later
+-->
+
 # Purpose
 
 wwvbgen generates WWVB timecodes for any desired time.  These timecodes

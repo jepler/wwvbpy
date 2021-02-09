@@ -1,20 +1,10 @@
 #!/usr/bin/python3
-#    WWVB timecode generator test for pulse modulated signal
-#    Copyright (C) 2011-2020 Jeff Epler <jepler@gmail.com.net>
+
+# Copyright (C) 2011-2020 Jeff Epler <jepler@gmail.com>
+# SPDX-FileCopyrightText: 2021 Jeff Epler
 #
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
-#
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public License for more details.
-#
-#    You should have received a copy of the GNU General Public License
-#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#    WWVB timecode generator test for pulse modulated signal
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 import unittest
 import wwvbgen
 import os

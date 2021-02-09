@@ -1,5 +1,7 @@
 # -*- python3 -*-
 # File generated from public data - not subject to copyright
+# SPDX-FileCopyrightText: Public domain
+# SPDX-License-Identifier: CC0-1.0
 # fmt: off
 import datetime
 __all__ = ['dut1_data_start, dut1_offsets']
@@ -30,5 +32,5 @@ dut1_offsets = str( # 19730102
     +l*119+k*84+j*217+i*126+h*176+g*97+f*91+e*52+o*116+n*98+m*70 # 20130821
     +l*133+k*91+j*91+i*77+h*140+g*91+f*84+e*70+d*34+n*72+m*76    # 20160130
     +l*66+k*53+j*56+i*105+h*77+g*45+q*25+p*63+o*91+n*154+m*105   # 20180920
-    +l*190+k*118+j*105+i*796+j*215                               # 20220205
+    +l*190+k*118+j*105+i*799+j*219                               # 20220212
 )
