@@ -16,26 +16,6 @@ import os
 import io
 
 
-old_tz = None
-
-
-# It's impotant that the tests run in this time zone because information about
-# DST rules comes from it.
-def setUpModule():
-    global old_tz
-    old_tz = os.environ.get("TZ")
-    os.environ["TZ"] = ":America/Denver"  # Home of WWVB
-    time.tzset()
-
-
-def tearDownModule():
-    if old_tz is None:
-        del os.environ["TZ"]
-    else:
-        os.environ["TZ"] = old_tz
-    time.tzset()
-
-
 class WWVBTestCase(unittest.TestCase):
     maxDiff = 131072
 

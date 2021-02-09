@@ -12,20 +12,6 @@ import time
 
 
 class TestPhaseModulation(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        cls._old_tz = os.environ.get("TZ")
-        os.environ["TZ"] = ":America/Denver"  # Home of WWVB
-        time.tzset()
-
-    @classmethod
-    def tearDownClass(cls):
-        if cls._old_tz is None:
-            del os.environ["TZ"]
-        else:
-            os.environ["TZ"] = cls._old_tz
-        time.tzset()
-
     def test_pm(self):
 
         ref_am = (

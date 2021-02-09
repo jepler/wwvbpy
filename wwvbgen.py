@@ -18,6 +18,8 @@ import iersdata
 
 from typing import Dict, List, Tuple
 
+from tzinfo_us import Mountain
+
 
 def get_dut1(t):
     i = (t - iersdata.dut1_data_start).days
@@ -40,12 +42,9 @@ def isls(t):
 
 
 def isdst(t):
-    t0 = datetime.datetime(1970, 1, 1)
     if isinstance(t, datetime.date):
         t = datetime.datetime(t.year, t.month, t.day)
-    d = t - t0
-    stamp = d.days * 86400 + d.seconds + d.microseconds * 1e-6
-    return time.localtime(stamp).tm_isdst
+    return bool(t.astimezone(Mountain).dst())
 
 
 def first_sunday_in_month(y, m):
