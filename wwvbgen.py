@@ -295,9 +295,30 @@ class WWVBMinute(_WWVBMinute):
             self.ls,
         )
 
-    def as_datetime(self):
+    def as_datetime_utc(self):
         d = datetime.datetime(self.year, 1, 1)
         d += datetime.timedelta(self.days - 1, self.hour * 3600 + self.min * 60)
+        return d
+
+    as_datetime = as_datetime_utc
+
+    def as_datetime_local(self, standard_time_offset=7 * 3600, dst_observed=True):
+        u = self.as_datetime_utc()
+        d = u - datetime.timedelta(seconds=standard_time_offset)
+        if not dst_observed:
+            dst = False
+        elif self.dst == 0b10:
+            transition_time = u.replace(hour=2)
+            dst = d >= transition_time
+        elif self.dst == 0b11:
+            dst = True
+        elif self.dst == 0b01:
+            transition_time = u.replace(hour=1)
+            dst = d < transition_time
+        else:  # self.dst == 0b00
+            dst = False
+        if dst:
+            d += datetime.timedelta(seconds=3600)
         return d
 
     def is_ly(self):
