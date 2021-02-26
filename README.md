@@ -10,18 +10,26 @@ wwvbgen generates WWVB timecodes for any desired time.  These timecodes
 may be useful in testing WWVB decoder software.
 
 Where possible, wwvbgen uses existing facilities for calendar and time
-manipulation (datetime) and DST rules (time.localtime).  It uses DUT1/leap
-second data derived from IERS Bulletin "A" and from NIST's "Leap second and
-UT1-UTC information" page.  With regular updates to `iersdata.py`, wwvbgen
-should be able to correctly encode the time anywhere within the 100-year WWVB
-epoch.  (yes, WWVB uses a 2-digit year!)
+manipulation (datetime).  It uses code adapted from standard Python
+documentation for the US DST rules (tzinfo\_us) regardless of the operating
+system's time zone.
 
+It uses DUT1/leap second data derived from IERS Bulletin "A" and from NIST's
+"Leap second and UT1-UTC information" page.  With regular updates to
+`iersdata.py`, wwvbgen should be able to correctly encode the time anywhere
+within the 100-year WWVB epoch.  (yes, WWVB uses a 2-digit year! In order to
+work with historical data, the epoch is arbitrarily assumed to run from 1970 to
+2069.)
+
+wwvbdec contains a generator-based state machine for decoding wwvb timecodes
+(amplitude modulation only), and uwwvb contains a version of the code intended
+for use on constrained environments such as [CircuitPython](https://circuitpython.org).
 
 # Development status
 
-The author (@jepler) is not actively using or developing this project.
-Issues and pull requests are not likely to be acted on.
-I would be interested in passing this project to a new maintainer.
+The author (@jepler) occasionally develops and maintains this project, but
+issues and pull requests are not likely to be acted on.  They would be
+interested in adding co-maintainer(s).
 
 
 # WWVB Timecodes
