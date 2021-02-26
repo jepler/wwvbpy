@@ -22,9 +22,9 @@ from tzinfo_us import Mountain, HOUR
 
 def get_dut1(t):
     i = (t - iersdata.dut1_data_start).days
-    if i < 0:
+    if i < 0:  # pragma no cover
         v = iersdata.dut1_offsets[0]
-    elif i >= len(iersdata.dut1_offsets):
+    elif i >= len(iersdata.dut1_offsets):  # pragma no cover
         v = iersdata.dut1_offsets[-1]
     else:
         v = iersdata.dut1_offsets[i]
@@ -65,7 +65,7 @@ def get_dst_change_hour(t, tz=Mountain):
         dst1 = lt1.dst()
         if dst0 != dst1:
             return i - 1
-    return None
+    return None  # pragma no cover
 
 
 def get_dst_change_date_and_row(d):
@@ -82,7 +82,7 @@ def get_dst_change_date_and_row(d):
             if is_dst_change_day(d1):
                 return d1, offset // 7
 
-    return None, None
+    return None, None  # pragma no coverage
 
 
 # "Table 8", likely with transcrption errors
@@ -186,21 +186,21 @@ def get_dst_next(d, tz=Mountain):
     dst_midwinter = isdst(datetime.datetime(d.year, 1, 1))
     dst_midsummer = isdst(datetime.datetime(d.year, 7, 1))
 
-    if dst_midwinter and dst_midsummer:
+    if dst_midwinter and dst_midsummer:  # pragma no coverage
         return 0b101111
-    if not (dst_midwinter or dst_midsummer):
+    if not (dst_midwinter or dst_midsummer):  # pragma no coverage
         return 0b000111
 
     # Are we in NZ or something?
-    if dst_midwinter or not dst_midsummer:
+    if dst_midwinter or not dst_midsummer:  # pragma no coverage
         return 0b100011
 
     dst_change_date, dst_next_row = get_dst_change_date_and_row(d)
-    if dst_change_date is None or dst_next_row is None:
+    if dst_change_date is None or dst_next_row is None:  # pragma no coverage
         return 0b100011
 
     dst_change_hour = get_dst_change_hour(dst_change_date, tz)
-    if dst_change_hour is None:
+    if dst_change_hour is None:  # pragma no coverage
         return 0b100011
 
     return dsttable[dst_now][dst_change_hour][dst_next_row]
@@ -263,13 +263,13 @@ class WWVBMinute(_WWVBMinute):
     def __new__(cls, year, days, hour, min, dst=None, ut1=None, ls=None):
         if dst is None:
             dst = cls.get_dst(year, days)
-        if dst not in (0, 1, 2, 3):
+        if dst not in (0, 1, 2, 3):  # pragma no coverage
             raise ValueError("dst value should be 0..3")
         if ut1 is None and ls is None:
             ut1, ls = cls.get_dut1_info(year, days)
-        elif ut1 is None or ls is None:
+        elif ut1 is None or ls is None:  # pragma no coverage
             raise ValueError("sepecify both ut1 and ls or neither one")
-        if year < 70:
+        if year < 70:  # pragma no coverage
             year = year + 2000
         elif year < 100:
             year = year + 1900
@@ -296,7 +296,7 @@ class WWVBMinute(_WWVBMinute):
         )
 
     def as_datetime_utc(self):
-        d = datetime.datetime(self.year, 1, 1)
+        d = datetime.datetime(self.year, 1, 1, tzinfo=datetime.timezone.utc)
         d += datetime.timedelta(self.days - 1, self.hour * 3600 + self.min * 60)
         return d
 
@@ -305,7 +305,7 @@ class WWVBMinute(_WWVBMinute):
     def as_datetime_local(self, standard_time_offset=7 * 3600, dst_observed=True):
         u = self.as_datetime_utc()
         d = u - datetime.timedelta(seconds=standard_time_offset)
-        if not dst_observed:
+        if not dst_observed:  # pragma no coverage
             dst = False
         elif self.dst == 0b10:
             transition_time = u.replace(hour=2)
@@ -364,7 +364,12 @@ class WWVBMinute(_WWVBMinute):
         century = (self.year // 100) * 100
         # XXX This relies on timedelta seconds never including leapseconds!
         return (
-            int((self.as_datetime() - datetime.datetime(century, 1, 1)).total_seconds())
+            int(
+                (
+                    self.as_datetime()
+                    - datetime.datetime(century, 1, 1, tzinfo=datetime.timezone.utc)
+                ).total_seconds()
+            )
             // 60
         )
 
@@ -403,16 +408,16 @@ class WWVBMinute(_WWVBMinute):
         elif dst == 3:
             seqno = seqno + 1
         elif dst == 2:
-            if self.min < 240:
+            if self.hour < 4:
                 pass
-            elif self.min < 660:
+            elif self.hour < 11:
                 seqno = seqno + 90
             else:
                 seqno = seqno + 1
         elif dst == 1:
-            if self.min < 240:
+            if self.hour < 4:
                 seqno = seqno + 1
-            elif self.min < 660:
+            elif self.hour < 10:
                 seqno = seqno + 91
             else:
                 pass
@@ -532,15 +537,15 @@ class WWVBMinute(_WWVBMinute):
 
     @classmethod
     def from_timecode_am(cls, t):
-        for i in (0, 9, 19, 29, 39, 49, 59):
+        for i in (0, 9, 19, 29, 39, 49, 59):  # pragma no coverage
             if t.am[i] != AmplitudeModulation.MARK:
                 return None
         for i in (4, 10, 11, 14, 20, 21, 24, 34, 35, 44, 54):
-            if t.am[i] != AmplitudeModulation.ZERO:
+            if t.am[i] != AmplitudeModulation.ZERO:  # pragma no coverage
                 return None
-        if t.am[36] == t.am[37]:
+        if t.am[36] == t.am[37]:  # pragma no coverage
             return None
-        if t.am[36] != t.am[38]:
+        if t.am[36] != t.am[38]:  # pragma no coverage
             return None
         minute = t.get_am_bcd(1, 2, 3, 5, 6, 7, 8)
         hour = t.get_am_bcd(12, 13, 15, 16, 17, 18)
@@ -565,7 +570,7 @@ class WWVBMinuteIERS(WWVBMinute):
 
 def ilog10(v):
     i = int(math.floor(math.log(v) / math.log(10)))
-    if 10 ** i > 10 * v:
+    if 10 ** i > 10 * v:  # pragma no coverage
         return i - 1
     return i
 
@@ -635,7 +640,7 @@ class WWVBTimecode:
 
     def __str__(self) -> str:
         undefined = [i for i in range(len(self.am)) if self.am[i] is None]
-        if undefined:
+        if undefined:  # pragma no coverage
             print("Warning: Timecode%s is undefined" % undefined)
 
         def ch(am, phase):
@@ -686,7 +691,7 @@ def print_timecodes(w, minutes, channel, style, file):
         w = w.next_minute()
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma no cover
     import optparse
 
     parser = optparse.OptionParser(
@@ -760,7 +765,7 @@ if __name__ == "__main__":
     extra_args = {}
     if options.iers and options.forcedut1 is None and options.forcels is None:
         constructor = WWVBMinuteIERS
-    else:
+    else:  # pragma no coverage
         constructor = WWVBMinute
         if options.forcedut1 is None:
             extra_args["ut1"] = -500 if options.forcels else 0

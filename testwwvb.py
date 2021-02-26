@@ -6,6 +6,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import datetime
+import random
 import unittest
 
 import wwvbgen
@@ -37,7 +38,7 @@ class WWVBTestCase(unittest.TestCase):
                         channel = o[10:]
                     elif o.startswith("--style="):
                         style = o[8:]
-                    else:
+                    else:  # pragma: no cover
                         raise ValueError("Unknown option %r" % o)
                 num_minutes = len(lines) - 2
                 if channel == "both":
@@ -92,6 +93,63 @@ class WWVBRoundtrip(unittest.TestCase):
             )
             dt = dt + datetime.timedelta(minutes=915)
 
+    def test_noise(self):
+        minute = wwvbgen.WWVBMinuteIERS.from_datetime(
+            datetime.datetime(1992, 6, 30, 23, 50)
+        )
+        r = random.Random(408)
+        junk = [
+            r.choice(
+                [
+                    wwvbgen.AmplitudeModulation.MARK,
+                    wwvbgen.AmplitudeModulation.ONE,
+                    wwvbgen.AmplitudeModulation.ZERO,
+                ]
+            )
+            for _ in range(480)
+        ]
+        timecode = minute.as_timecode()
+        test_input = junk + [wwvbgen.AmplitudeModulation.MARK] + timecode.am
+        decoder = wwvbdec.wwvbreceive()
+        next(decoder)
+        for code in test_input[:-1]:
+            decoded = decoder.send(code)
+            self.assertIsNone(decoded)
+        decoded = decoder.send(wwvbgen.AmplitudeModulation.MARK)
+        self.assertIsNotNone(decoded)
+        self.assertEqual(
+            timecode.am[:60],
+            decoded.am,
+            f"Checking equality of minute {minute}: [expected] {timecode.am} != [actual] {decoded.am}",
+        )
 
-if __name__ == "__main__":
+    def test_previous_next_minute(self):
+        minute = wwvbgen.WWVBMinuteIERS.from_datetime(
+            datetime.datetime(1992, 6, 30, 23, 50)
+        )
+        self.assertEqual(minute, minute.next_minute().previous_minute())
+
+    def test_data_next_minute(self):
+        minute = wwvbgen.WWVBMinuteIERS.from_datetime(
+            datetime.datetime(1992, 6, 30, 23, 50)
+        )
+        self.assertEqual(minute.as_timecode().data, minute.as_timecode().am)
+
+    def test_timecode_str(self):
+        minute = wwvbgen.WWVBMinuteIERS.from_datetime(
+            datetime.datetime(1992, 6, 30, 23, 50)
+        )
+        timecode = minute.as_timecode()
+        self.assertEqual(
+            str(timecode),
+            "₂₁⁰¹⁰₀⁰⁰₀²₀₀₁₀₀⁰₀¹¹₂₀⁰⁰¹₀₁⁰⁰₀₂₀⁰₁⁰₀₀⁰₁⁰²⁰¹¹₀⁰¹₀⁰¹²⁰⁰¹₀₀¹₁₁₁₂",
+        )
+        timecode.phase = [wwvbgen.PhaseModulation.UNSET] * 60
+        self.assertEqual(
+            repr(timecode),
+            "<WWVBTimecode 210100000200100001120001010002001000010201100100120010011112>",
+        )
+
+
+if __name__ == "__main__":  # pragma no cover
     unittest.main()

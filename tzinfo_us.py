@@ -50,9 +50,9 @@ def us_dst_range(year):
         dststart, dstend = DSTSTART_2007, DSTEND_2007
     elif 1986 < year < 2007:
         dststart, dstend = DSTSTART_1987_2006, DSTEND_1987_2006
-    elif 1966 < year < 1987:
+    elif 1966 < year < 1987:  # pragma no cover
         dststart, dstend = DSTSTART_1967_1986, DSTEND_1967_1986
-    else:
+    else:  # pragma no cover
         return (datetime(year, 1, 1),) * 2
 
     start = first_sunday_on_or_after(dststart.replace(year=year))
@@ -67,10 +67,10 @@ class USTimeZone(tzinfo):
         self.stdname = stdname
         self.dstname = dstname
 
-    def __repr__(self):
+    def __repr__(self):  # pragma no cover
         return self.reprname
 
-    def tzname(self, dt):
+    def tzname(self, dt):  # pragma no cover
         if self.dst(dt):
             return self.dstname
         else:
@@ -80,7 +80,7 @@ class USTimeZone(tzinfo):
         return self.stdoffset + self.dst(dt)
 
     def dst(self, dt):
-        if dt is None or dt.tzinfo is None:
+        if dt is None or dt.tzinfo is None:  # pragma no cover
             # An exception may be sensible here, in one or both cases.
             # It depends on how you want to treat them.  The default
             # fromutc() implementation (called by the default astimezone()
@@ -97,7 +97,7 @@ class USTimeZone(tzinfo):
         if end - HOUR <= dt < end:
             # Fold (an ambiguous hour): use dt.fold to disambiguate.
             return ZERO if dt.fold else HOUR
-        if start <= dt < start + HOUR:
+        if start <= dt < start + HOUR:  # pragma no cover
             # Gap (a non-existent hour): reverse the fold rule.
             return HOUR if dt.fold else ZERO
         # DST is off.

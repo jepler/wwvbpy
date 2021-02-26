@@ -70,7 +70,7 @@ def wwvbreceive():
                 value = yield None
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     timestamp = wwvbgen.WWVBMinuteIERS(1970, 1, 23, 59)
     decoder = wwvbreceive()
     next(decoder)
