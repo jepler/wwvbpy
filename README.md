@@ -21,9 +21,10 @@ within the 100-year WWVB epoch.  (yes, WWVB uses a 2-digit year! In order to
 work with historical data, the epoch is arbitrarily assumed to run from 1970 to
 2069.)
 
-wwvbdec contains a generator-based state machine for decoding wwvb timecodes
-(amplitude modulation only), and uwwvb contains a version of the code intended
-for use on constrained environments such as [CircuitPython](https://circuitpython.org).
+Other components include:
+ * wwvbdec, a generator-based state machine for decoding wwvb timecodes (amplitude modulation only)
+ * uwwvb contains a version of the code intended for use on constrained environments such as [CircuitPython](https://circuitpython.org).
+ * wwvbtk visualizes the simulated WWVB signal in real-time using Tkinter
 
 # Development status
 
