@@ -69,14 +69,14 @@ def get_am_bcd(seq, *poslist):
 def decode_wwvb(t):
     if not t:
         return None
-    if not all(t[i] == MARK for i in always_mark):  # pragma no cover
+    if not all(t[i] == MARK for i in always_mark):
         return None
-    if not all(t[i] == ZERO for i in always_zero):  # pragma no cover
+    if not all(t[i] == ZERO for i in always_zero):
         return None
     # Checking redundant DUT1 sign bits
-    if t[36] == t[37]:  # pragma no cover
+    if t[36] == t[37]:
         return None
-    if t[36] != t[38]:  # pragma no cover
+    if t[36] != t[38]:
         return None
     minute = get_am_bcd(t, 1, 2, 3, 5, 6, 7, 8)
     hour = get_am_bcd(t, 12, 13, 15, 16, 17, 18)
@@ -134,23 +134,3 @@ def as_datetime_local(
     if is_dst:
         d += datetime.timedelta(seconds=3600)
     return d
-
-
-if __name__ == "__main__":  # pragma no cover
-    data = map(
-        int,
-        "210101001200100000020000001002010100010200100001020001000002"
-        "200000000200100000120000001002010100010200100001020001000002"
-        "200000001200100000120000001002010100010200100001020001000002",
-    )
-    print(data)
-    decoder = WWVBDecoder()
-    for d in data:
-        minute_maybe = decoder.update(d)
-        if minute_maybe:
-            decoded = decode_wwvb(minute_maybe)
-            print(decoded)
-            if decoded:
-                print(as_datetime_utc(*decoded))
-                print(as_datetime_local(*decoded))
-                print()

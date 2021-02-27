@@ -17,6 +17,10 @@ import io
 import sys
 
 
+def decode_test_minute(data):
+    return uwwvb.decode_wwvb(data)
+
+
 class WWVBRoundtrip(unittest.TestCase):
     def test_decode(self):
         minute = wwvbgen.WWVBMinuteIERS.from_datetime(
@@ -105,6 +109,35 @@ class WWVBRoundtrip(unittest.TestCase):
             minute.as_datetime_local().replace(tzinfo=None),
             uwwvb.as_datetime_local(*decoded),
         )
+
+    def test_noise2(self):
+        minute = wwvbgen.WWVBMinuteIERS.from_datetime(
+            datetime.datetime(2012, 6, 30, 23, 50)
+        )
+        timecode = minute.as_timecode()
+        decoded = decode_test_minute(timecode.am)
+        self.assertIsNotNone(decoded)
+        for position in uwwvb.always_mark:
+            test_input = timecode.am[:]
+            for noise in (0, 1):
+                test_input[position] = noise
+                decoded = decode_test_minute(test_input)
+                self.assertIsNone(decoded)
+        for position in uwwvb.always_zero:
+            test_input = timecode.am[:]
+            for noise in (1, 2):
+                test_input[position] = noise
+                decoded = decode_test_minute(test_input)
+                self.assertIsNone(decoded)
+        for i in range(8):
+            if i == 0b101 or i == 0b010:
+                continue
+            test_input = timecode.am[:]
+            test_input[36] = i & 1
+            test_input[37] = (i >> 1) & 1
+            test_input[38] = (i >> 2) & 1
+            decoded = decode_test_minute(test_input)
+            self.assertIsNone(decoded)
 
 
 if __name__ == "__main__":  # pragma no cover
