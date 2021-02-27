@@ -1,0 +1,111 @@
+#!/usr/bin/python3
+
+# Copyright (C) 2011-2020 Jeff Epler <jepler@gmail.com>
+# SPDX-FileCopyrightText: 2021 Jeff Epler
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+import datetime
+import random
+import unittest
+
+import wwvbgen
+import uwwvb
+import glob
+import os
+import io
+import sys
+
+
+class WWVBRoundtrip(unittest.TestCase):
+    def test_decode(self):
+        minute = wwvbgen.WWVBMinuteIERS.from_datetime(
+            datetime.datetime(2012, 6, 30, 23, 50)
+        )
+        decoder = uwwvb.WWVBDecoder()
+        decoder.update(uwwvb.MARK)
+        any_leap_second = False
+        for i in range(20):
+            timecode = minute.as_timecode()
+            decoded = None
+            if len(timecode.am) == 61:
+                any_leap_second = True
+            for code in timecode.am:
+                decoded = uwwvb.decode_wwvb(decoder.update(int(code))) or decoded
+            self.assertIsNotNone(decoded)
+            self.assertEqual(
+                minute.as_datetime_utc().replace(tzinfo=None),
+                uwwvb.as_datetime_utc(*decoded),
+            )
+            minute = minute.next_minute()
+        self.assertTrue(any_leap_second)
+
+    def test_roundtrip(self):
+        dt = datetime.datetime(2002, 1, 1, 0, 0)
+        while dt.year < 2013:
+            minute = wwvbgen.WWVBMinuteIERS.from_datetime(dt)
+            timecode = minute.as_timecode().am
+            decoded = uwwvb.as_datetime_utc(*uwwvb.decode_wwvb(minute.as_timecode().am))
+            self.assertEqual(
+                minute.as_datetime_utc().replace(tzinfo=None),
+                decoded,
+            )
+            dt = dt + datetime.timedelta(minutes=7182)
+
+    def test_dst(self):
+        for dt in (
+            datetime.datetime(2021, 3, 14, 8, 59),
+            datetime.datetime(2021, 3, 14, 9, 00),
+            datetime.datetime(2021, 3, 14, 9, 1),
+            datetime.datetime(2021, 11, 7, 8, 59),
+            datetime.datetime(2021, 11, 7, 9, 00),
+            datetime.datetime(2021, 11, 7, 9, 1),
+            datetime.datetime(2021, 12, 7, 9, 1),
+            datetime.datetime(2021, 7, 7, 9, 1),
+        ):
+            minute = wwvbgen.WWVBMinuteIERS.from_datetime(dt)
+            timecode = minute.as_timecode().am
+            decoded = uwwvb.as_datetime_local(
+                *uwwvb.decode_wwvb(minute.as_timecode().am)
+            )
+            self.assertEqual(
+                minute.as_datetime_local().replace(tzinfo=None),
+                decoded,
+            )
+
+    def test_noise(self):
+        minute = wwvbgen.WWVBMinuteIERS.from_datetime(
+            datetime.datetime(2012, 6, 30, 23, 50)
+        )
+        r = random.Random(408)
+        junk = [
+            r.choice(
+                [
+                    wwvbgen.AmplitudeModulation.MARK,
+                    wwvbgen.AmplitudeModulation.ONE,
+                    wwvbgen.AmplitudeModulation.ZERO,
+                ]
+            )
+            for _ in range(480)
+        ]
+        timecode = minute.as_timecode()
+        test_input = junk + [wwvbgen.AmplitudeModulation.MARK] + timecode.am
+        decoder = uwwvb.WWVBDecoder()
+        for code in test_input[:-1]:
+            decoded = decoder.update(code)
+            self.assertIsNone(decoded)
+        minute_maybe = decoder.update(wwvbgen.AmplitudeModulation.MARK)
+        self.assertIsNotNone(minute_maybe)
+        decoded = uwwvb.decode_wwvb(minute_maybe)
+        self.assertEqual(
+            minute.as_datetime_utc().replace(tzinfo=None),
+            uwwvb.as_datetime_utc(*decoded),
+        )
+        self.assertEqual(
+            minute.as_datetime_local().replace(tzinfo=None),
+            uwwvb.as_datetime_local(*decoded),
+        )
+
+
+if __name__ == "__main__":  # pragma no cover
+    unittest.main()

@@ -4,7 +4,7 @@
 
 try:
     import datetime
-except:
+except:  # pragma no cover
     import adafruit_datetime as datetime
 
 ZERO, ONE, MARK = range(3)
@@ -20,7 +20,6 @@ class WWVBDecoder:
         self.state = 1
 
     def update(self, value):
-        # print(state, value, len(minute), "".join(str(int(i)) for i in minute))
         result = None
         if self.state == 1:
             self.minute = []
@@ -30,26 +29,30 @@ class WWVBDecoder:
         elif self.state == 2:
             if value == MARK:
                 self.state = 3
-                self.minute = [MARK]
             else:
                 self.state = 1
 
         elif self.state == 3:
+            if value != MARK:
+                self.minute = [MARK, value]
+                self.state = 4
+
+        elif self.state == 4:
             idx = len(self.minute)
             self.minute.append(value)
             if (idx in always_mark) != (value == MARK):
                 self.state = 1
-                print("->1 (mark problem)", idx, idx in always_mark, value)
             elif idx in always_zero and value != ZERO:
                 self.state = 1
-                print("->1 (zero problem)")
 
             elif idx == 59:
                 result = self.minute
                 self.minute = []
+                self.state = 2
+
         return result
 
-    def __str__(self):
+    def __str__(self):  # pragma no cover
         return f"<WWVBDecoder {self.state} {self.minute}>"
 
 
@@ -64,15 +67,16 @@ def get_am_bcd(seq, *poslist):
 
 
 def decode_wwvb(t):
-    for i in (0, 9, 19, 29, 39, 49, 59):
-        if t[i] != MARK:
-            return None
-    for i in always_zero:
-        if t[i] != ZERO:
-            return None
-    if t[36] == t[37]:
+    if not t:
         return None
-    if t[36] != t[38]:
+    if not all(t[i] == MARK for i in always_mark):  # pragma no cover
+        return None
+    if not all(t[i] == ZERO for i in always_zero):  # pragma no cover
+        return None
+    # Checking redundant DUT1 sign bits
+    if t[36] == t[37]:  # pragma no cover
+        return None
+    if t[36] != t[38]:  # pragma no cover
         return None
     minute = get_am_bcd(t, 1, 2, 3, 5, 6, 7, 8)
     hour = get_am_bcd(t, 12, 13, 15, 16, 17, 18)
@@ -82,9 +86,10 @@ def decode_wwvb(t):
     ut1 = abs_ut1 if ut1_sign else -abs_ut1
     year = get_am_bcd(t, 45, 46, 47, 48, 50, 51, 52, 53)
     is_ly = t[55]
-    if days > 366 or (not is_ly and days > 365):
+    if days > 366 or (not is_ly and days > 365):  # pragma no cover
         return None
     ls = t[56]
+    # With just two bits, bcd and binary are the same
     dst = get_am_bcd(t, 57, 58)
 
     return (year, days, hour, minute, dst, ut1, ls)
@@ -114,7 +119,7 @@ def as_datetime_local(
 ):
     u = as_datetime_utc(year, days, hours, minute, dst, ut1, ls)
     d = u - datetime.timedelta(seconds=standard_time_offset)
-    if not dst_observed:
+    if not dst_observed:  # pragma no cover
         is_dst = False
     elif dst == 0b10:
         transition_time = u.replace(hour=2)
@@ -131,7 +136,7 @@ def as_datetime_local(
     return d
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma no cover
     data = map(
         int,
         "210101001200100000020000001002010100010200100001020001000002"
