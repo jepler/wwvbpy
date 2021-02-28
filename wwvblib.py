@@ -322,7 +322,7 @@ class WWVBMinute(_WWVBMinute):
         """Convert to a local datetime according to the DST bits"""
         u = self.as_datetime_utc()
         d = u - datetime.timedelta(seconds=standard_time_offset)
-        if not dst_observed:  # pragma no coverage
+        if not dst_observed:
             dst = False
         elif self.dst == 0b10:
             transition_time = u.replace(hour=2)
