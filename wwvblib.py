@@ -9,13 +9,10 @@ import collections
 import datetime
 import enum
 import math
-import optparse
-import string
-import sys
 
 import iersdata
 
-from typing import Dict, List, Tuple
+from typing import List, Tuple
 
 from tzinfo_us import Mountain, HOUR
 
@@ -51,6 +48,7 @@ def first_sunday_in_month(y, m):
         d = datetime.date(y, m, md)
         if d.weekday() == 6:
             return d
+    raise RuntimeError("Impossible week without Sunday")
 
 
 def is_dst_change_day(t):
@@ -260,7 +258,7 @@ _WWVBMinute = collections.namedtuple("_WWVBMinute", "year days hour min dst ut1 
 
 
 class WWVBMinute(_WWVBMinute):
-    def __new__(cls, year, days, hour, min, dst=None, ut1=None, ls=None):
+    def __new__(cls, year, days, hour, minute, dst=None, ut1=None, ls=None):
         if dst is None:
             dst = cls.get_dst(year, days)
         if dst not in (0, 1, 2, 3):  # pragma no coverage
@@ -273,7 +271,7 @@ class WWVBMinute(_WWVBMinute):
             year = year + 2000
         elif year < 100:
             year = year + 1900
-        return _WWVBMinute.__new__(cls, year, days, hour, min, dst, ut1, ls)
+        return _WWVBMinute.__new__(cls, year, days, hour, minute, dst, ut1, ls)
 
     @staticmethod
     def get_dst(year, days):
@@ -362,7 +360,7 @@ class WWVBMinute(_WWVBMinute):
     @property
     def minute_of_century(self):
         century = (self.year // 100) * 100
-        # XXX This relies on timedelta seconds never including leapseconds!
+        # note: This relies on timedelta seconds never including leapseconds!
         return (
             int(
                 (
@@ -430,7 +428,7 @@ class WWVBMinute(_WWVBMinute):
         for i in range(60):
             t.put_pm_bit(i, full_seq[i + offset])
 
-    def fill_pm_timecode_regular(self, t):
+    def fill_pm_timecode_regular(self, t):  # pylint: disable=too-many-statements
         t.put_pm_bin(0, 13, sync_T)
 
         moc = self.minute_of_century
@@ -484,7 +482,6 @@ class WWVBMinute(_WWVBMinute):
             t.put_pm_bit(59, PhaseModulation.ZERO)
         if len(t.phase) > 60:
             t.put_pm_bit(60, PhaseModulation.ZERO)
-        pass
 
     def fill_pm_timecode(self, t):
         if 10 <= self.min < 16 or 40 <= self.min < 46:
@@ -501,7 +498,9 @@ class WWVBMinute(_WWVBMinute):
         return self.from_datetime(d, newut1, newls, self)
 
     @classmethod
-    def get_dut1_info(cls, year, days, old_time=None):
+    def get_dut1_info(
+        cls, year, days, old_time=None
+    ):  # pylint: disable=unused-argument
         if old_time is not None:
             if old_time.minute_length() != 60:
                 newls = 0
@@ -523,6 +522,8 @@ class WWVBMinute(_WWVBMinute):
         d = {}
         for part in s.split():
             k, v = part.split("=")
+            if k == "min":
+                k = "minute"
             d[k] = int(v)
         if "ly" in d:
             d.pop("ly")
@@ -554,7 +555,7 @@ class WWVBMinute(_WWVBMinute):
         ut1_sign = t.am[38]
         ut1 = abs_ut1 if ut1_sign else -abs_ut1
         year = t.get_am_bcd(45, 46, 47, 48, 50, 51, 52, 53)
-        is_ly = t.am[55]
+        # is_ly = t.am[55]
         ls = t.am[56]
         dst = t.get_am_bcd(57, 58)
 
@@ -656,13 +657,13 @@ class WWVBTimecode:
     def __repr__(self) -> str:
         return "<WWVBTimecode " + str(self) + ">"
 
-    def to_am_string(self, map: List[List[str]]) -> str:
-        return "".join(map[i] for i in self.am)
+    def to_am_string(self, charset: List[List[str]]) -> str:
+        return "".join(charset[i] for i in self.am)
 
     to_string = to_am_string
 
-    def to_pm_string(self, map: List[List[str]]) -> str:
-        return "".join(map[i] for i in self.phase)
+    def to_pm_string(self, charset: List[List[str]]) -> str:
+        return "".join(charset[i] for i in self.phase)
 
 
 styles = {
@@ -678,7 +679,7 @@ def print_timecodes(w, minutes, channel, style, file):
     style_text = "" if style == "default" else " --style=%s" % style
     style = styles.get(style, "012")
     print("WWVB timecode: %s%s%s" % (str(w), channel_text, style_text), file=file)
-    for i in range(minutes):
+    for _ in range(minutes):
         pfx = "%04d-%03d %02d:%02d " % (w.year, w.days, w.hour, w.min)
         tc = w.as_timecode()
         if channel in ("amplitude", "both"):

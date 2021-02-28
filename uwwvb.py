@@ -4,7 +4,7 @@
 
 try:
     import datetime
-except:  # pragma no cover
+except ImportError:  # pragma no cover
     import adafruit_datetime as datetime
 
 ZERO, ONE, MARK = range(3)
@@ -66,7 +66,7 @@ def get_am_bcd(seq, *poslist):
     return result
 
 
-def decode_wwvb(t):
+def decode_wwvb(t):  # pylint: disable=too-many-return-statements
     if not t:
         return None
     if not all(t[i] == MARK for i in always_mark):
@@ -95,7 +95,9 @@ def decode_wwvb(t):
     return (year, days, hour, minute, dst, ut1, ls)
 
 
-def as_datetime_utc(year, days, hours, minute, dst, ut1, ls):
+def as_datetime_utc(
+    year, days, hours, minute, dst, ut1, ls
+):  # pylint: disable=unused-argument
     if year < 2000:
         year = 2000 + year
     d = datetime.datetime(year, 1, 1)

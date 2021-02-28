@@ -7,7 +7,6 @@
 
 import unittest
 import wwvblib
-import os
 
 
 class TestPhaseModulation(unittest.TestCase):

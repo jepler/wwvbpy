@@ -5,10 +5,18 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from wwvblib import *
+from wwvblib import (
+    print_timecodes,
+    WWVBMinute,
+    WWVBMinuteIERS,
+    styles,
+)
+
+import datetime
+import sys
 
 if __name__ == "__main__":  # pragma no cover
-    import optparse
+    import optparse  # pylint: disable=deprecated-module
 
     parser = optparse.OptionParser(
         usage="Usage: %prog [options] [year yday hour minute | year month day hour minute]"
@@ -93,16 +101,16 @@ if __name__ == "__main__":  # pragma no cover
         if len(args) == 4:
             try:
                 year, yday, hour, minute = map(int, args)
-            except ValueError:
+            except ValueError as e:
                 parser.print_help()
-                raise SystemExit("Arguments must be numeric")
+                raise SystemExit("Arguments must be numeric") from e
             parser.print_help()
         elif len(args) == 5:
             try:
                 year, month, day, hour, minute = map(int, args)
-            except ValueError:
+            except ValueError as e:
                 parser.print_help()
-                raise SystemExit("Arguments must be numeric")
+                raise SystemExit("Arguments must be numeric") from e
             yday = datetime.datetime(year, month, day, 0, 0).timetuple().tm_yday
         else:
             parser.print_help()

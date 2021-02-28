@@ -11,10 +11,6 @@ import unittest
 
 import wwvblib
 import uwwvb
-import glob
-import os
-import io
-import sys
 
 
 def decode_test_minute(data):
@@ -29,7 +25,7 @@ class WWVBRoundtrip(unittest.TestCase):
         decoder = uwwvb.WWVBDecoder()
         decoder.update(uwwvb.MARK)
         any_leap_second = False
-        for i in range(20):
+        for _ in range(20):
             timecode = minute.as_timecode()
             decoded = None
             if len(timecode.am) == 61:
@@ -48,7 +44,6 @@ class WWVBRoundtrip(unittest.TestCase):
         dt = datetime.datetime(2002, 1, 1, 0, 0)
         while dt.year < 2013:
             minute = wwvblib.WWVBMinuteIERS.from_datetime(dt)
-            timecode = minute.as_timecode().am
             decoded = uwwvb.as_datetime_utc(*uwwvb.decode_wwvb(minute.as_timecode().am))
             self.assertEqual(
                 minute.as_datetime_utc().replace(tzinfo=None),
@@ -68,7 +63,6 @@ class WWVBRoundtrip(unittest.TestCase):
             datetime.datetime(2021, 7, 7, 9, 1),
         ):
             minute = wwvblib.WWVBMinuteIERS.from_datetime(dt)
-            timecode = minute.as_timecode().am
             decoded = uwwvb.as_datetime_local(
                 *uwwvb.decode_wwvb(minute.as_timecode().am)
             )
@@ -139,7 +133,7 @@ class WWVBRoundtrip(unittest.TestCase):
                 decoded = decode_test_minute(test_input)
                 self.assertIsNone(decoded)
         for i in range(8):
-            if i == 0b101 or i == 0b010:
+            if i in (0b101, 0b010):  # Test the 6 impossible bit-combos
                 continue
             test_input = timecode.am[:]
             test_input[36] = i & 1

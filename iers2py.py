@@ -9,7 +9,6 @@ import datetime
 import itertools
 import bs4
 import requests
-import sys
 import os
 
 IERS_URL = (
@@ -83,7 +82,7 @@ for row in wwvb_dut1_table.findAll("tr")[1:][::-1]:
 def better(off0, off1):
     if off0 < off1:
         return True
-    if off1 < 0 and off0 > 0:
+    if off1 < 0 and off0 > 0:  # pylint: disable=chained-comparison
         return True
     return False
 
@@ -93,7 +92,7 @@ while off < (wwvb_data_stamp - start).days:
     offsets[off] = wwvb_dut1
     off += 1
 
-print("__all__ = ['dut1_data_start, dut1_offsets']")
+print("__all__ = ['dut1_data_start', 'dut1_offsets']")
 print("dut1_data_start = %r" % start)
 c = sorted(chr(ord("a") + ch + 10) for ch in set(offsets))
 print("%s = '%s'" % (",".join(c), "".join(c)))

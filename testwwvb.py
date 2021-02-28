@@ -12,7 +12,6 @@ import unittest
 import wwvblib
 import wwvbdec
 import glob
-import os
 import io
 
 
@@ -61,7 +60,7 @@ class WWVBRoundtrip(unittest.TestCase):
         next(decoder)
         decoder.send(wwvblib.AmplitudeModulation.MARK)
         any_leap_second = False
-        for i in range(20):
+        for _ in range(20):
             timecode = minute.as_timecode()
             decoded = None
             if len(timecode.am) == 61:

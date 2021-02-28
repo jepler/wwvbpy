@@ -19,7 +19,7 @@ import wwvblib
 always_zero = set((4, 10, 11, 14, 20, 21, 34, 35, 44, 54))
 
 
-def wwvbreceive():
+def wwvbreceive():  # pylint: disable=too-many-branches
     minute = []
     state = 1
 

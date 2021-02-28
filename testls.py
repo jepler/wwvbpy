@@ -7,7 +7,6 @@
 
 import wwvblib
 import datetime
-import iersdata
 import unittest
 
 

@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: CC0-1.0
 # fmt: off
 import datetime
-__all__ = ['dut1_data_start, dut1_offsets']
+__all__ = ['dut1_data_start', 'dut1_offsets']
 dut1_data_start = datetime.datetime(1973, 1, 2, 0, 0)
 d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s = 'defghijklmnopqrs'
 dut1_offsets = str( # 19730102

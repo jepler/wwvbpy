@@ -46,7 +46,7 @@ DSTEND_1967_1986 = DSTEND_1987_2006
 def us_dst_range(year):
     # Find start and end times for US DST. For years before 1967, return
     # start = end for no DST.
-    if 2006 < year:
+    if 2006 < year:  # pylint: disable=misplaced-comparison-constant
         dststart, dstend = DSTSTART_2007, DSTEND_2007
     elif 1986 < year < 2007:
         dststart, dstend = DSTSTART_1987_2006, DSTEND_1987_2006
@@ -113,10 +113,10 @@ class USTimeZone(tzinfo):
         if end <= dst_time < end + HOUR:
             # Repeated hour
             return std_time.replace(fold=1)
-        if std_time < start or dst_time >= end:
+        elif std_time < start or dst_time >= end:
             # Standard time
             return std_time
-        if start <= std_time < end - HOUR:
+        else:
             # Daylight saving time
             return dst_time
 

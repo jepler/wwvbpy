@@ -6,7 +6,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import threading
-from tkinter import *
+from tkinter import *  # pylint: disable=unused-wildcard-import, wildcard-import
 import time
 import sys
 

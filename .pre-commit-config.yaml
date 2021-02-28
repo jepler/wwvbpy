@@ -19,3 +19,17 @@ repos:
     rev: v0.12.1
     hooks:
     - id: reuse
+-   repo: https://github.com/pycqa/pylint
+    rev: pylint-2.6.0
+    hooks:
+    -   id: pylint
+        args:
+        - --ignore-imports=yes
+        - -d missing-docstring
+        - -d too-many-arguments
+        - -d invalid-name
+        - -d wrong-import-order
+        - -d duplicate-code
+        - -d line-too-long
+        - -d no-else-return
+        - -d import-error
