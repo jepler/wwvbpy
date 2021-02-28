@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2021 Jeff Epler
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
+"""A stateful decoder of WWVB signals"""
 
 import wwvblib
 
@@ -20,6 +21,7 @@ always_zero = set((4, 10, 11, 14, 20, 21, 34, 35, 44, 54))
 
 
 def wwvbreceive():  # pylint: disable=too-many-branches
+    """A stateful decoder of WWVB signals"""
     minute = []
     state = 1
 

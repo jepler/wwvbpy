@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2021 Alexander Belopolsky, Christian Heimes, Georg Brandl, Marco Buttu, Raymond Hettinger, Sergey Fedoseev, Jeff Epler
 #
 # SPDX-License-Identifier: Python-2.0
+"""Time zone routines for US zones"""
 
 from datetime import tzinfo, timedelta, datetime
 
@@ -11,6 +12,7 @@ HOUR = timedelta(hours=1)
 
 
 def first_sunday_on_or_after(dt):
+    """Return the first sunday on or after the reference time"""
     days_to_go = 6 - dt.weekday()
     if days_to_go:
         dt += timedelta(days_to_go)
@@ -44,8 +46,8 @@ DSTEND_1967_1986 = DSTEND_1987_2006
 
 
 def us_dst_range(year):
-    # Find start and end times for US DST. For years before 1967, return
-    # start = end for no DST.
+    """Find start and end times for US DST. For years before 1967, return
+    start = end for no DST."""
     if 2006 < year:  # pylint: disable=misplaced-comparison-constant
         dststart, dstend = DSTSTART_2007, DSTEND_2007
     elif 1986 < year < 2007:
@@ -61,32 +63,33 @@ def us_dst_range(year):
 
 
 class USTimeZone(tzinfo):
+    """tzinfo subclass for US time zones"""
+
     def __init__(self, hours, reprname, stdname, dstname):
+        """Construct a USTimeZone"""
         self.stdoffset = timedelta(hours=hours)
         self.reprname = reprname
         self.stdname = stdname
         self.dstname = dstname
 
     def __repr__(self):  # pragma no cover
+        """implement repr()"""
         return self.reprname
 
     def tzname(self, dt):  # pragma no cover
+        """Return the tzname"""
         if self.dst(dt):
             return self.dstname
         else:
             return self.stdname
 
     def utcoffset(self, dt):
+        """Return the UTC offset for a particular moment"""
         return self.stdoffset + self.dst(dt)
 
     def dst(self, dt):
-        if dt is None or dt.tzinfo is None:  # pragma no cover
-            # An exception may be sensible here, in one or both cases.
-            # It depends on how you want to treat them.  The default
-            # fromutc() implementation (called by the default astimezone()
-            # implementation) passes a datetime with dt.tzinfo is self.
-            return ZERO
-        assert dt.tzinfo is self
+        """Return true if dst is in effect for a particular moment"""
+        assert dt and dt.tzinfo is self
         start, end = us_dst_range(dt.year)
         # Can't compare naive to aware objects, so strip the timezone from
         # dt first.
@@ -104,6 +107,7 @@ class USTimeZone(tzinfo):
         return ZERO
 
     def fromutc(self, dt):
+        """Convert the given dt from its zone to our zone"""
         assert dt.tzinfo is self
         start, end = us_dst_range(dt.year)
         start = start.replace(tzinfo=self)

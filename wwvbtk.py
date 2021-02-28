@@ -1,4 +1,5 @@
 #!/usr/bin/python3
+"""Visualize the WWVB signal in realtime"""
 
 # Copyright (C) 2011-2020 Jeff Epler <jepler@gmail.com>
 # SPDX-FileCopyrightText: 2021 Jeff Epler
@@ -14,12 +15,14 @@ import wwvblib
 
 
 def sleep_deadline(deadline):
+    """Sleep until a deadline"""
     now = time.time()
     if deadline > now:
         time.sleep(deadline - now)
 
 
 def wwvbtick():
+    """Yield consecutive values of the WWVB amplitude signal, going from minute to minute"""
     timestamp = time.time() // 60 * 60
 
     while True:
@@ -32,11 +35,12 @@ def wwvbtick():
 
 
 def wwvbsmarttick():
-    # Deal with time progressing unexpectedly, such as when the computer is
-    # suspended or NTP steps the clock backwards
-    #
-    # When time goes backwards or advances by more than a minute, get a fresh
-    # wwvbtick object; otherwise, discard time signals more than 1s in the past.
+    """Yield consecutive values of the WWVB amplitude signal but deal with time
+    progressing unexpectedly, such as when the computer is suspended or NTP steps
+    the clock backwards
+
+    When time goes backwards or advances by more than a minute, get a fresh
+    wwvbtick object; otherwise, discard time signals more than 1s in the past."""
     while True:
         for stamp, code in wwvbtick():
             now = time.time()
@@ -48,6 +52,7 @@ def wwvbsmarttick():
 
 
 def resize_canvas(event):
+    """Keep the circle filling the window when it is resized"""
     sz = min(event.width, event.height) - 8
     if sz < 0:
         return
@@ -70,14 +75,17 @@ canvas.bind("<Configure>", resize_canvas)
 
 
 def led_on(i):
+    """Turn the canvas's virtual LED on"""
     canvas.itemconfigure(circle, fill=colors[i + 1])
 
 
 def led_off():
+    """Turn the canvas's virtual LED off"""
     canvas.itemconfigure(circle, fill=colors[0])
 
 
 def thread_func():
+    """Update the canvas virtual LED"""
     for stamp, code in wwvbsmarttick():
         sleep_deadline(stamp)
         led_on(code)

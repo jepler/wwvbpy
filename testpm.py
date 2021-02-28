@@ -1,4 +1,5 @@
 #!/usr/bin/python3
+"""Test Phase Modulation Signal"""
 
 # Copyright (C) 2011-2020 Jeff Epler <jepler@gmail.com>
 # SPDX-FileCopyrightText: 2021 Jeff Epler
@@ -10,8 +11,10 @@ import wwvblib
 
 
 class TestPhaseModulation(unittest.TestCase):
-    def test_pm(self):
+    """Test Phase Modulation Signal"""
 
+    def test_pm(self):
+        """Compare the generated signal from a reference minute in NIST docs"""
         ref_am = (
             "2011000002"
             "0001001112"

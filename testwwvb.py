@@ -1,4 +1,5 @@
 #!/usr/bin/python3
+"""Test most wwvblib functionality"""
 
 # Copyright (C) 2011-2020 Jeff Epler <jepler@gmail.com>
 # SPDX-FileCopyrightText: 2021 Jeff Epler
@@ -16,9 +17,12 @@ import wwvbdec
 
 
 class WWVBTestCase(unittest.TestCase):
+    """Test each expected output in tests/.  Some outputs are from another program, some are from us"""
+
     maxDiff = 131072
 
     def test_cases(self):
+        """Generate a test case for each expected output in tests/"""
         for test in glob.glob("tests/*"):
             with self.subTest(test=test):
                 with open(test) as f:
@@ -52,7 +56,10 @@ class WWVBTestCase(unittest.TestCase):
 
 
 class WWVBRoundtrip(unittest.TestCase):
+    """Round-trip tests"""
+
     def test_decode(self):
+        """Test that a range of minutes including a leap second are correctly decoded by the state-based decoder"""
         minute = wwvblib.WWVBMinuteIERS.from_datetime(
             datetime.datetime(1992, 6, 30, 23, 50)
         )
@@ -76,6 +83,7 @@ class WWVBRoundtrip(unittest.TestCase):
         self.assertTrue(any_leap_second)
 
     def test_roundtrip(self):
+        """Test that a wide of minutes are correctly decoded by the state-based decoder"""
         dt = datetime.datetime(1992, 1, 1, 0, 0)
         while dt.year < 1993:
             minute = wwvblib.WWVBMinuteIERS.from_datetime(dt)
@@ -93,6 +101,7 @@ class WWVBRoundtrip(unittest.TestCase):
             dt = dt + datetime.timedelta(minutes=915)
 
     def test_noise(self):
+        """Test against pseudorandom noise"""
         minute = wwvblib.WWVBMinuteIERS.from_datetime(
             datetime.datetime(1992, 6, 30, 23, 50)
         )
@@ -123,18 +132,21 @@ class WWVBRoundtrip(unittest.TestCase):
         )
 
     def test_previous_next_minute(self):
+        """Test that previous minute and next minute are inverses"""
         minute = wwvblib.WWVBMinuteIERS.from_datetime(
             datetime.datetime(1992, 6, 30, 23, 50)
         )
         self.assertEqual(minute, minute.next_minute().previous_minute())
 
-    def test_data_next_minute(self):
+    def test_data(self):
+        """Test that the .data property is the same as .am (strictly for coverage)"""
         minute = wwvblib.WWVBMinuteIERS.from_datetime(
             datetime.datetime(1992, 6, 30, 23, 50)
         )
         self.assertEqual(minute.as_timecode().data, minute.as_timecode().am)
 
     def test_timecode_str(self):
+        """Test the str() and repr() methods"""
         minute = wwvblib.WWVBMinuteIERS.from_datetime(
             datetime.datetime(1992, 6, 30, 23, 50)
         )

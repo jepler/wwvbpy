@@ -1,0 +1,5 @@
+#SPDX-FileCopyrightText: 2021 Jeff Epler
+#
+#SPDX-License-Identifier: GPL-3.0-or-later
+[MESSAGES CONTROL]
+disable=invalid-name,duplicate-code,line-too-long,no-else-return,import-error

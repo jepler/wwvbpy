@@ -5,6 +5,8 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+"""Update the content of 'iersdata.py' based on online sources"""
+
 import datetime
 import itertools
 import os
@@ -18,6 +20,7 @@ NIST_URL = "https://www.nist.gov/pml/time-and-frequency-division/atomic-standard
 
 
 def get_url_with_cache(url, cache):
+    """Fetch the content of a URL, storing it in a cache"""
     if not os.path.exists(cache):
         with requests.get(url) as f:
             text = f.text
@@ -72,15 +75,6 @@ for row in wwvb_dut1_table.findAll("tr")[1:][::-1]:
 # extend it some distance into the future, but how far?  We will use the
 # modified timestamp of the NIST data.
 
-
-def better(off0, off1):
-    if off0 < off1:
-        return True
-    if off1 < 0 and off0 > 0:  # pylint: disable=chained-comparison
-        return True
-    return False
-
-
 off = wwvb_off
 while off < (wwvb_data_stamp - start).days:
     offsets[off] = wwvb_dut1
@@ -89,12 +83,14 @@ while off < (wwvb_data_stamp - start).days:
 with open("iersdata.py", "wt") as output:
 
     def code(*args):
+        """Print to the output file"""
         print(*args, file=output)
 
     code("# -*- python3 -*-")
-    code("# File generated from public data - not subject to copyright")
+    code("'''File generated from public data - not subject to copyright'''")
     code("# SPDX" "-FileCopyrightText: Public domain")
     code("# SPDX" "-License-Identifier: CC0-1.0")
+    code("# fmt: off")
     code("# fmt: off")
     code("import datetime")
 

@@ -1,4 +1,5 @@
 #!/usr/bin/python3
+"""Leap seconds tests"""
 
 # Copyright (C) 2012-2020 Jeff Epler <jepler@gmail.com>
 # SPDX-FileCopyrightText: 2021 Jeff Epler
@@ -11,7 +12,10 @@ import wwvblib
 
 
 class TestLeapSecond(unittest.TestCase):
+    """Leap second tests"""
+
     def test_leap(self):
+        """Tests that the expected leap seconds all occur."""
         d = datetime.datetime(1973, 1, 2, 0, 0)
         e = datetime.datetime(2020, 1, 1, 0, 0)
         leap = []

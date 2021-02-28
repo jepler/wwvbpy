@@ -23,10 +23,3 @@ repos:
     rev: pylint-2.6.0
     hooks:
     -   id: pylint
-        args:
-        - -d missing-docstring
-        - -d invalid-name
-        - -d duplicate-code
-        - -d line-too-long
-        - -d no-else-return
-        - -d import-error

@@ -2,6 +2,8 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+"""Implementation of a WWVB state machine & decoder for resource-constrained systems"""
+
 try:
     import datetime
 except ImportError:  # pragma no cover
@@ -21,11 +23,15 @@ WWVBMinute = namedtuple(
 
 
 class WWVBDecoder:
+    """A state machine for receiving WWVB timecodes."""
+
     def __init__(self):
+        """Construct a WWVBDecoder"""
         self.minute = []
         self.state = 1
 
     def update(self, value):
+        """Update the _state machine when a new symbol is received.  If a possible complete _minute is received, return it; otherwise, return None"""
         result = None
         if self.state == 1:
             self.minute = []
@@ -59,10 +65,12 @@ class WWVBDecoder:
         return result
 
     def __str__(self):  # pragma no cover
+        """Return a string representation of self"""
         return f"<WWVBDecoder {self.state} {self.minute}>"
 
 
 def get_am_bcd(seq, *poslist):
+    """Convert the bits seq[positions[0]], ... seq[positions[len(positions-1)]] [in MSB order] from BCD to decimal"""
     pos = list(poslist)[::-1]
     weights = bcd_weights[: len(pos)]
     result = 0
@@ -73,6 +81,7 @@ def get_am_bcd(seq, *poslist):
 
 
 def decode_wwvb(t):  # pylint: disable=too-many-return-statements
+    """Convert a received minute of wwvb symbols to a WWVBMinute.  Returns None if any error is detected."""
     if not t:
         return None
     if not all(t[i] == MARK for i in always_mark):
@@ -102,6 +111,7 @@ def decode_wwvb(t):  # pylint: disable=too-many-return-statements
 
 
 def as_datetime_utc(decoded_timestamp):
+    """Convert a WWVBMinute to a UTC datetime"""
     year = decoded_timestamp.year
     if year < 2000:
         year = 2000 + year
@@ -113,14 +123,12 @@ def as_datetime_utc(decoded_timestamp):
     return d
 
 
-as_datetime = as_datetime_utc
-
-
 def as_datetime_local(
     decoded_timestamp,
     standard_time_offset=7 * 3600,
     dst_observed=True,
 ):
+    """Convert a WWVBMinute to a local datetime with tzinfo=None"""
     u = as_datetime_utc(decoded_timestamp)
     d = u - datetime.timedelta(seconds=standard_time_offset)
     dst = decoded_timestamp.dst

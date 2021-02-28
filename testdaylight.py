@@ -1,4 +1,5 @@
 #!/usr/bin/python3
+"""Test of daylight saving time calculations"""
 
 # Copyright (C) 2011-2020 Jeff Epler <jepler@gmail.com>
 # SPDX-FileCopyrightText: 2021 Jeff Epler
@@ -12,7 +13,10 @@ from tzinfo_us import Mountain
 
 
 class TestDaylight(unittest.TestCase):
+    """Test of daylight saving time calculations"""
+
     def test_onset(self):
+        """Test that the onset of DST is the same in Mountain and WWVBMinute (which uses ls bits)"""
         for h in [8, 9, 10]:
             for dm in (-1, 0, 1):
                 d = datetime.datetime(
@@ -25,6 +29,7 @@ class TestDaylight(unittest.TestCase):
                 )
 
     def test_end(self):
+        """Test that the end of DST is the same in Mountain and WWVBMinute (which uses ls bits)"""
         for h in [7, 8, 9]:
             for dm in (-1, 0, 1):
                 d = datetime.datetime(
@@ -37,6 +42,7 @@ class TestDaylight(unittest.TestCase):
                 )
 
     def test_midsummer(self):
+        """Test that middle of DST is the same in Mountain and WWVBMinute (which uses ls bits)"""
         for h in [7, 8, 9]:
             for dm in (-1, 0, 1):
                 d = datetime.datetime(
@@ -49,6 +55,7 @@ class TestDaylight(unittest.TestCase):
                 )
 
     def test_midwinter(self):
+        """Test that middle of standard time is the same in Mountain and WWVBMinute (which uses ls bits)"""
         for h in [7, 8, 9]:
             for dm in (-1, 0, 1):
                 d = datetime.datetime(

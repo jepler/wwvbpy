@@ -1,7 +1,8 @@
 # -*- python3 -*-
-# File generated from public data - not subject to copyright
+"""File generated from public data - not subject to copyright"""
 # SPDX-FileCopyrightText: Public domain
 # SPDX-License-Identifier: CC0-1.0
+# fmt: off
 # fmt: off
 import datetime
 __all__ = ['dut1_data_start', 'dut1_offsets']

@@ -1,4 +1,5 @@
 #!/usr/bin/python3
+"""A command-line program for generating wwvb timecodes"""
 
 # Copyright (C) 2011-2020 Jeff Epler <jepler@gmail.com>
 # SPDX-FileCopyrightText: 2021 Jeff Epler
