@@ -28,7 +28,7 @@ jobs:
         python-version: 3.9
 
     - name: Install dependencies
-      run: pip install bs4 requests
+      run: pip install -r requirements-dev.txt
 
     - name: Update DUT1 data
       run: python iers2py.py > iersdata.py
