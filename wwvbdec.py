@@ -68,16 +68,3 @@ def wwvbreceive():
                 value = yield tc
             else:
                 value = yield None
-
-
-if __name__ == "__main__":  # pragma: no cover
-    timestamp = wwvbgen.WWVBMinuteIERS(1970, 1, 23, 59)
-    decoder = wwvbreceive()
-    next(decoder)
-    for i in range(3):
-        timecode = timestamp.as_timecode()
-        for code in timecode.am:
-            minute_maybe = decoder.send(code)
-            if minute_maybe:
-                assert minute_maybe.am == timecode.am[:60]
-        timestamp = timestamp.next_minute()
