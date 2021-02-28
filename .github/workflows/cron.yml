@@ -31,7 +31,7 @@ jobs:
       run: pip install -r requirements-dev.txt
 
     - name: Update DUT1 data
-      run: python iers2py.py > iersdata.py
+      run: python iers2py.py
 
     - name: Test (python 3.9)
       run: python -munittest

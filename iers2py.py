@@ -43,12 +43,6 @@ wwvb_data_stamp = datetime.datetime.fromisoformat(
 ).replace(tzinfo=None)
 
 offsets = []
-print("# -*- python3 -*-")
-print("# File generated from public data - not subject to copyright")
-print("# SPDX" "-FileCopyrightText: Public domain")
-print("# SPDX" "-License-Identifier: CC0-1.0")
-print("# fmt: off")
-print("import datetime")
 for i, r in enumerate(rows):
     if len(r) < 69:
         continue
@@ -92,32 +86,44 @@ while off < (wwvb_data_stamp - start).days:
     offsets[off] = wwvb_dut1
     off += 1
 
-print("__all__ = ['dut1_data_start', 'dut1_offsets']")
-print("dut1_data_start = %r" % start)
-c = sorted(chr(ord("a") + ch + 10) for ch in set(offsets))
-print("%s = '%s'" % (",".join(c), "".join(c)))
-print("dut1_offsets = str( # %04d%02d%02d" % (start.year, start.month, start.day))
-line = ""
-now = start
-j = 0
+with open("iersdata.py", "wt") as output:
 
-for ch, it in itertools.groupby(offsets):
-    part = ""
-    ch = chr(ord("a") + ch + 10)
-    sz = len(list(it))
-    if j:
-        part = part + "+"
-    if sz < 2:
-        part = part + "%s" % ch
-    else:
-        part = part + "%s*%d" % (ch, sz)
-    j += sz
-    if len(line + part) > 60:
-        d = start + datetime.timedelta(j - 1)
-        print("    %-60s # %04d%02d%02d" % (line, d.year, d.month, d.day))
-        line = part
-    else:
-        line = line + part
-d = start + datetime.timedelta(j - 1)
-print("    %-60s # %04d%02d%02d" % (line, d.year, d.month, d.day))
-print(")")
+    def code(*args):
+        print(*args, file=output)
+
+    code("# -*- python3 -*-")
+    code("# File generated from public data - not subject to copyright")
+    code("# SPDX" "-FileCopyrightText: Public domain")
+    code("# SPDX" "-License-Identifier: CC0-1.0")
+    code("# fmt: off")
+    code("import datetime")
+
+    code("__all__ = ['dut1_data_start', 'dut1_offsets']")
+    code("dut1_data_start = %r" % start)
+    c = sorted(chr(ord("a") + ch + 10) for ch in set(offsets))
+    code("%s = '%s'" % (",".join(c), "".join(c)))
+    code("dut1_offsets = str( # %04d%02d%02d" % (start.year, start.month, start.day))
+    line = ""
+    now = start
+    j = 0
+
+    for ch, it in itertools.groupby(offsets):
+        part = ""
+        ch = chr(ord("a") + ch + 10)
+        sz = len(list(it))
+        if j:
+            part = part + "+"
+        if sz < 2:
+            part = part + "%s" % ch
+        else:
+            part = part + "%s*%d" % (ch, sz)
+        j += sz
+        if len(line + part) > 60:
+            d = start + datetime.timedelta(j - 1)
+            code("    %-60s # %04d%02d%02d" % (line, d.year, d.month, d.day))
+            line = part
+        else:
+            line = line + part
+    d = start + datetime.timedelta(j - 1)
+    code("    %-60s # %04d%02d%02d" % (line, d.year, d.month, d.day))
+    code(")")
