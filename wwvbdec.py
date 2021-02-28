@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-import wwvbgen
+import wwvblib
 
 # State 1: Unsync'd
 #  Marker: State 2
@@ -28,40 +28,40 @@ def wwvbreceive():
         # print(state, value, len(minute), "".join(str(int(i)) for i in minute))
         if state == 1:
             minute = []
-            if value == wwvbgen.AmplitudeModulation.MARK:
+            if value == wwvblib.AmplitudeModulation.MARK:
                 state = 2
             value = yield None
 
         elif state == 2:
-            if value == wwvbgen.AmplitudeModulation.MARK:
+            if value == wwvblib.AmplitudeModulation.MARK:
                 state = 3
             else:
                 state = 1
             value = yield None
 
         elif state == 3:
-            if value != wwvbgen.AmplitudeModulation.MARK:
+            if value != wwvblib.AmplitudeModulation.MARK:
                 state = 4
-                minute = [wwvbgen.AmplitudeModulation.MARK, value]
+                minute = [wwvblib.AmplitudeModulation.MARK, value]
             value = yield None
 
         elif state == 4:
             minute.append(value)
-            if len(minute) % 10 == 0 and value != wwvbgen.AmplitudeModulation.MARK:
+            if len(minute) % 10 == 0 and value != wwvblib.AmplitudeModulation.MARK:
                 # print("MISSING MARK", len(minute), "".join(str(int(i)) for i in minute))
                 state = 1
-            elif len(minute) % 10 and value == wwvbgen.AmplitudeModulation.MARK:
+            elif len(minute) % 10 and value == wwvblib.AmplitudeModulation.MARK:
                 # print("UNEXPECTED MARK")
                 state = 1
             elif (
                 len(minute) - 1 in always_zero
-                and value != wwvbgen.AmplitudeModulation.ZERO
+                and value != wwvblib.AmplitudeModulation.ZERO
             ):
                 # print("UNEXPECTED NONZERO")
                 state = 1
             elif len(minute) == 60:
                 # print("FULL MINUTE")
-                tc = wwvbgen.WWVBTimecode(60)
+                tc = wwvblib.WWVBTimecode(60)
                 tc.am[:] = minute
                 minute = []
                 state = 2

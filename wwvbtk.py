@@ -10,7 +10,7 @@ from tkinter import *
 import time
 import sys
 
-import wwvbgen
+import wwvblib
 
 
 def sleep_deadline(deadline):
@@ -25,7 +25,7 @@ def wwvbtick():
     while True:
         tt = time.gmtime(timestamp)
         key = tt.tm_year, tt.tm_yday, tt.tm_hour, tt.tm_min
-        timecode = wwvbgen.WWVBMinuteIERS(*key).as_timecode()
+        timecode = wwvblib.WWVBMinuteIERS(*key).as_timecode()
         for i, code in enumerate(timecode.am):
             yield timestamp + i, code
         timestamp = timestamp + 60

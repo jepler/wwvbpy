@@ -5,7 +5,7 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-import wwvbgen
+import wwvblib
 import datetime
 import unittest
 from tzinfo_us import Mountain
@@ -18,7 +18,7 @@ class TestDaylight(unittest.TestCase):
                 d = datetime.datetime(
                     2021, 3, 14, h, 0, tzinfo=datetime.timezone.utc
                 ) + datetime.timedelta(minutes=dm)
-                m = wwvbgen.WWVBMinute.from_datetime(d)
+                m = wwvblib.WWVBMinute.from_datetime(d)
                 self.assertEqual(
                     m.as_datetime_local().replace(tzinfo=Mountain),
                     d.astimezone(Mountain),
@@ -30,7 +30,7 @@ class TestDaylight(unittest.TestCase):
                 d = datetime.datetime(
                     2021, 11, 7, h, 0, tzinfo=datetime.timezone.utc
                 ) + datetime.timedelta(minutes=dm)
-                m = wwvbgen.WWVBMinute.from_datetime(d)
+                m = wwvblib.WWVBMinute.from_datetime(d)
                 self.assertEqual(
                     m.as_datetime_local().replace(tzinfo=Mountain),
                     d.astimezone(Mountain),
@@ -42,7 +42,7 @@ class TestDaylight(unittest.TestCase):
                 d = datetime.datetime(
                     2021, 7, 7, h, 0, tzinfo=datetime.timezone.utc
                 ) + datetime.timedelta(minutes=dm)
-                m = wwvbgen.WWVBMinute.from_datetime(d)
+                m = wwvblib.WWVBMinute.from_datetime(d)
                 self.assertEqual(
                     m.as_datetime_local().replace(tzinfo=Mountain),
                     d.astimezone(Mountain),
@@ -54,7 +54,7 @@ class TestDaylight(unittest.TestCase):
                 d = datetime.datetime(
                     2021, 12, 25, h, 0, tzinfo=datetime.timezone.utc
                 ) + datetime.timedelta(minutes=dm)
-                m = wwvbgen.WWVBMinute.from_datetime(d)
+                m = wwvblib.WWVBMinute.from_datetime(d)
                 self.assertEqual(
                     m.as_datetime_local().replace(tzinfo=Mountain),
                     d.astimezone(Mountain),

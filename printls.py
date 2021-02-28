@@ -5,15 +5,15 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-import wwvbgen
+import wwvblib
 import datetime
 import iersdata
 
 d = iersdata.dut1_data_start
 e = d + datetime.timedelta(len(iersdata.dut1_offsets))
 while d < e:
-    if wwvbgen.isls(d):
-        sense = wwvbgen.get_dut1(d) > 0
+    if wwvblib.isls(d):
+        sense = wwvblib.get_dut1(d) > 0
         print(
             "%s leap second in %s"
             % (("positive", "negative")[sense], d.strftime("%b %Y"))

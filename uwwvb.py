@@ -86,7 +86,7 @@ def decode_wwvb(t):
     ut1 = abs_ut1 if ut1_sign else -abs_ut1
     year = get_am_bcd(t, 45, 46, 47, 48, 50, 51, 52, 53)
     is_ly = t[55]
-    if days > 366 or (not is_ly and days > 365):  # pragma no cover
+    if days > 366 or (not is_ly and days > 365):
         return None
     ls = t[56]
     # With just two bits, bcd and binary are the same
@@ -119,7 +119,7 @@ def as_datetime_local(
 ):
     u = as_datetime_utc(year, days, hours, minute, dst, ut1, ls)
     d = u - datetime.timedelta(seconds=standard_time_offset)
-    if not dst_observed:  # pragma no cover
+    if not dst_observed:
         is_dst = False
     elif dst == 0b10:
         transition_time = u.replace(hour=2)

@@ -9,7 +9,7 @@ import datetime
 import random
 import unittest
 
-import wwvbgen
+import wwvblib
 import uwwvb
 import glob
 import os
@@ -23,7 +23,7 @@ def decode_test_minute(data):
 
 class WWVBRoundtrip(unittest.TestCase):
     def test_decode(self):
-        minute = wwvbgen.WWVBMinuteIERS.from_datetime(
+        minute = wwvblib.WWVBMinuteIERS.from_datetime(
             datetime.datetime(2012, 6, 30, 23, 50)
         )
         decoder = uwwvb.WWVBDecoder()
@@ -47,7 +47,7 @@ class WWVBRoundtrip(unittest.TestCase):
     def test_roundtrip(self):
         dt = datetime.datetime(2002, 1, 1, 0, 0)
         while dt.year < 2013:
-            minute = wwvbgen.WWVBMinuteIERS.from_datetime(dt)
+            minute = wwvblib.WWVBMinuteIERS.from_datetime(dt)
             timecode = minute.as_timecode().am
             decoded = uwwvb.as_datetime_utc(*uwwvb.decode_wwvb(minute.as_timecode().am))
             self.assertEqual(
@@ -67,7 +67,7 @@ class WWVBRoundtrip(unittest.TestCase):
             datetime.datetime(2021, 12, 7, 9, 1),
             datetime.datetime(2021, 7, 7, 9, 1),
         ):
-            minute = wwvbgen.WWVBMinuteIERS.from_datetime(dt)
+            minute = wwvblib.WWVBMinuteIERS.from_datetime(dt)
             timecode = minute.as_timecode().am
             decoded = uwwvb.as_datetime_local(
                 *uwwvb.decode_wwvb(minute.as_timecode().am)
@@ -77,28 +77,37 @@ class WWVBRoundtrip(unittest.TestCase):
                 decoded,
             )
 
+            decoded = uwwvb.as_datetime_local(
+                *uwwvb.decode_wwvb(minute.as_timecode().am),
+                dst_observed=False,
+            )
+            self.assertEqual(
+                minute.as_datetime_local(dst_observed=False).replace(tzinfo=None),
+                decoded,
+            )
+
     def test_noise(self):
-        minute = wwvbgen.WWVBMinuteIERS.from_datetime(
+        minute = wwvblib.WWVBMinuteIERS.from_datetime(
             datetime.datetime(2012, 6, 30, 23, 50)
         )
         r = random.Random(408)
         junk = [
             r.choice(
                 [
-                    wwvbgen.AmplitudeModulation.MARK,
-                    wwvbgen.AmplitudeModulation.ONE,
-                    wwvbgen.AmplitudeModulation.ZERO,
+                    wwvblib.AmplitudeModulation.MARK,
+                    wwvblib.AmplitudeModulation.ONE,
+                    wwvblib.AmplitudeModulation.ZERO,
                 ]
             )
             for _ in range(480)
         ]
         timecode = minute.as_timecode()
-        test_input = junk + [wwvbgen.AmplitudeModulation.MARK] + timecode.am
+        test_input = junk + [wwvblib.AmplitudeModulation.MARK] + timecode.am
         decoder = uwwvb.WWVBDecoder()
         for code in test_input[:-1]:
             decoded = decoder.update(code)
             self.assertIsNone(decoded)
-        minute_maybe = decoder.update(wwvbgen.AmplitudeModulation.MARK)
+        minute_maybe = decoder.update(wwvblib.AmplitudeModulation.MARK)
         self.assertIsNotNone(minute_maybe)
         decoded = uwwvb.decode_wwvb(minute_maybe)
         self.assertEqual(
@@ -111,7 +120,7 @@ class WWVBRoundtrip(unittest.TestCase):
         )
 
     def test_noise2(self):
-        minute = wwvbgen.WWVBMinuteIERS.from_datetime(
+        minute = wwvblib.WWVBMinuteIERS.from_datetime(
             datetime.datetime(2012, 6, 30, 23, 50)
         )
         timecode = minute.as_timecode()
@@ -138,6 +147,15 @@ class WWVBRoundtrip(unittest.TestCase):
             test_input[38] = (i >> 2) & 1
             decoded = decode_test_minute(test_input)
             self.assertIsNone(decoded)
+        # Invalid year-day
+        test_input = timecode.am[:]
+        test_input[22] = 1
+        test_input[23] = 1
+        test_input[25] = 1
+        test_input[26] = 1
+        test_input[27] = 1
+        decoded = decode_test_minute(test_input)
+        self.assertIsNone(decoded)
 
 
 if __name__ == "__main__":  # pragma no cover

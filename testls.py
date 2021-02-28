@@ -5,7 +5,7 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-import wwvbgen
+import wwvblib
 import datetime
 import iersdata
 import unittest
@@ -17,8 +17,8 @@ class TestLeapSecond(unittest.TestCase):
         e = datetime.datetime(2020, 1, 1, 0, 0)
         leap = []
         while d < e:
-            if wwvbgen.isls(d):
-                sense = wwvbgen.get_dut1(d) > 0
+            if wwvblib.isls(d):
+                sense = wwvblib.get_dut1(d) > 0
                 assert not sense
                 leap.append(d.strftime("%b %Y"))
             m = d.utctimetuple().tm_mon

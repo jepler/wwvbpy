@@ -9,7 +9,7 @@ import datetime
 import random
 import unittest
 
-import wwvbgen
+import wwvblib
 import wwvbdec
 import glob
 import os
@@ -43,9 +43,9 @@ class WWVBTestCase(unittest.TestCase):
                 num_minutes = len(lines) - 2
                 if channel == "both":
                     num_minutes = len(lines) // 3
-                w = wwvbgen.WWVBMinute.fromstring(timestamp)
+                w = wwvblib.WWVBMinute.fromstring(timestamp)
                 result = io.StringIO()
-                wwvbgen.print_timecodes(
+                wwvblib.print_timecodes(
                     w, num_minutes, channel=channel, style=style, file=result
                 )
                 result = result.getvalue()
@@ -54,12 +54,12 @@ class WWVBTestCase(unittest.TestCase):
 
 class WWVBRoundtrip(unittest.TestCase):
     def test_decode(self):
-        minute = wwvbgen.WWVBMinuteIERS.from_datetime(
+        minute = wwvblib.WWVBMinuteIERS.from_datetime(
             datetime.datetime(1992, 6, 30, 23, 50)
         )
         decoder = wwvbdec.wwvbreceive()
         next(decoder)
-        decoder.send(wwvbgen.AmplitudeModulation.MARK)
+        decoder.send(wwvblib.AmplitudeModulation.MARK)
         any_leap_second = False
         for i in range(20):
             timecode = minute.as_timecode()
@@ -79,10 +79,10 @@ class WWVBRoundtrip(unittest.TestCase):
     def test_roundtrip(self):
         dt = datetime.datetime(1992, 1, 1, 0, 0)
         while dt.year < 1993:
-            minute = wwvbgen.WWVBMinuteIERS.from_datetime(dt)
+            minute = wwvblib.WWVBMinuteIERS.from_datetime(dt)
             timecode = minute.as_timecode().am
             decoded = (
-                wwvbgen.WWVBMinuteIERS.from_timecode_am(minute.as_timecode())
+                wwvblib.WWVBMinuteIERS.from_timecode_am(minute.as_timecode())
                 .as_timecode()
                 .am
             )
@@ -94,28 +94,28 @@ class WWVBRoundtrip(unittest.TestCase):
             dt = dt + datetime.timedelta(minutes=915)
 
     def test_noise(self):
-        minute = wwvbgen.WWVBMinuteIERS.from_datetime(
+        minute = wwvblib.WWVBMinuteIERS.from_datetime(
             datetime.datetime(1992, 6, 30, 23, 50)
         )
         r = random.Random(408)
         junk = [
             r.choice(
                 [
-                    wwvbgen.AmplitudeModulation.MARK,
-                    wwvbgen.AmplitudeModulation.ONE,
-                    wwvbgen.AmplitudeModulation.ZERO,
+                    wwvblib.AmplitudeModulation.MARK,
+                    wwvblib.AmplitudeModulation.ONE,
+                    wwvblib.AmplitudeModulation.ZERO,
                 ]
             )
             for _ in range(480)
         ]
         timecode = minute.as_timecode()
-        test_input = junk + [wwvbgen.AmplitudeModulation.MARK] + timecode.am
+        test_input = junk + [wwvblib.AmplitudeModulation.MARK] + timecode.am
         decoder = wwvbdec.wwvbreceive()
         next(decoder)
         for code in test_input[:-1]:
             decoded = decoder.send(code)
             self.assertIsNone(decoded)
-        decoded = decoder.send(wwvbgen.AmplitudeModulation.MARK)
+        decoded = decoder.send(wwvblib.AmplitudeModulation.MARK)
         self.assertIsNotNone(decoded)
         self.assertEqual(
             timecode.am[:60],
@@ -124,19 +124,19 @@ class WWVBRoundtrip(unittest.TestCase):
         )
 
     def test_previous_next_minute(self):
-        minute = wwvbgen.WWVBMinuteIERS.from_datetime(
+        minute = wwvblib.WWVBMinuteIERS.from_datetime(
             datetime.datetime(1992, 6, 30, 23, 50)
         )
         self.assertEqual(minute, minute.next_minute().previous_minute())
 
     def test_data_next_minute(self):
-        minute = wwvbgen.WWVBMinuteIERS.from_datetime(
+        minute = wwvblib.WWVBMinuteIERS.from_datetime(
             datetime.datetime(1992, 6, 30, 23, 50)
         )
         self.assertEqual(minute.as_timecode().data, minute.as_timecode().am)
 
     def test_timecode_str(self):
-        minute = wwvbgen.WWVBMinuteIERS.from_datetime(
+        minute = wwvblib.WWVBMinuteIERS.from_datetime(
             datetime.datetime(1992, 6, 30, 23, 50)
         )
         timecode = minute.as_timecode()
@@ -144,7 +144,7 @@ class WWVBRoundtrip(unittest.TestCase):
             str(timecode),
             "₂₁⁰¹⁰₀⁰⁰₀²₀₀₁₀₀⁰₀¹¹₂₀⁰⁰¹₀₁⁰⁰₀₂₀⁰₁⁰₀₀⁰₁⁰²⁰¹¹₀⁰¹₀⁰¹²⁰⁰¹₀₀¹₁₁₁₂",
         )
-        timecode.phase = [wwvbgen.PhaseModulation.UNSET] * 60
+        timecode.phase = [wwvblib.PhaseModulation.UNSET] * 60
         self.assertEqual(
             repr(timecode),
             "<WWVBTimecode 210100000200100001120001010002001000010201100100120010011112>",
