@@ -7,3 +7,6 @@ __pycache__
 /iersdata.txt
 /wwvbdata.html
 /.coverage
+/.reuse
+/htmlcov
+*.py,cover
