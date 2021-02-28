@@ -24,11 +24,9 @@ repos:
     hooks:
     -   id: pylint
         args:
-        - --ignore-imports=yes
         - -d missing-docstring
         - -d too-many-arguments
         - -d invalid-name
-        - -d wrong-import-order
         - -d duplicate-code
         - -d line-too-long
         - -d no-else-return

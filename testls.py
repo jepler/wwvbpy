@@ -5,9 +5,9 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-import wwvblib
 import datetime
 import unittest
+import wwvblib
 
 
 class TestLeapSecond(unittest.TestCase):

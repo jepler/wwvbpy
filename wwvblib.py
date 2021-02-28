@@ -9,10 +9,10 @@ import collections
 import datetime
 import enum
 import math
+from typing import List, Tuple
 
 import iersdata
 
-from typing import List, Tuple
 
 from tzinfo_us import Mountain, HOUR
 

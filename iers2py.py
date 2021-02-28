@@ -7,9 +7,9 @@
 
 import datetime
 import itertools
+import os
 import bs4
 import requests
-import os
 
 IERS_URL = (
     "https://datacenter.iers.org/data/latestVersion/9_FINALS.ALL_IAU2000_V2013_019.txt"

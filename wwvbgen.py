@@ -5,15 +5,15 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+import datetime
+import sys
+
 from wwvblib import (
     print_timecodes,
     WWVBMinute,
     WWVBMinuteIERS,
     styles,
 )
-
-import datetime
-import sys
 
 if __name__ == "__main__":  # pragma no cover
     import optparse  # pylint: disable=deprecated-module
