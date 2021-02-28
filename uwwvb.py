@@ -7,11 +7,17 @@ try:
 except ImportError:  # pragma no cover
     import adafruit_datetime as datetime
 
+from collections import namedtuple
+
 ZERO, ONE, MARK = range(3)
 
 always_mark = set((0, 9, 19, 29, 39, 49, 59))
 always_zero = set((4, 10, 11, 14, 20, 21, 34, 35, 44, 54))
 bcd_weights = (1, 2, 4, 8, 10, 20, 40, 80, 100, 200, 400, 800)
+
+WWVBMinute = namedtuple(
+    "WWVBMinute", ["year", "days", "hour", "minute", "dst", "ut1", "ls"]
+)
 
 
 class WWVBDecoder:
@@ -92,16 +98,18 @@ def decode_wwvb(t):  # pylint: disable=too-many-return-statements
     # With just two bits, bcd and binary are the same
     dst = get_am_bcd(t, 57, 58)
 
-    return (year, days, hour, minute, dst, ut1, ls)
+    return WWVBMinute(year, days, hour, minute, dst, ut1, ls)
 
 
-def as_datetime_utc(
-    year, days, hours, minute, dst, ut1, ls
-):  # pylint: disable=unused-argument
+def as_datetime_utc(decoded_timestamp):
+    year = decoded_timestamp.year
     if year < 2000:
         year = 2000 + year
     d = datetime.datetime(year, 1, 1)
-    d += datetime.timedelta(days - 1, hours * 3600 + minute * 60)
+    d += datetime.timedelta(
+        decoded_timestamp.days - 1,
+        decoded_timestamp.hour * 3600 + decoded_timestamp.minute * 60,
+    )
     return d
 
 
@@ -109,18 +117,13 @@ as_datetime = as_datetime_utc
 
 
 def as_datetime_local(
-    year,
-    days,
-    hours,
-    minute,
-    dst,
-    ut1,
-    ls,
+    decoded_timestamp,
     standard_time_offset=7 * 3600,
     dst_observed=True,
 ):
-    u = as_datetime_utc(year, days, hours, minute, dst, ut1, ls)
+    u = as_datetime_utc(decoded_timestamp)
     d = u - datetime.timedelta(seconds=standard_time_offset)
+    dst = decoded_timestamp.dst
     if not dst_observed:
         is_dst = False
     elif dst == 0b10:

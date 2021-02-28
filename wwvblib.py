@@ -48,7 +48,7 @@ def first_sunday_in_month(y, m):
         d = datetime.date(y, m, md)
         if d.weekday() == 6:
             return d
-    raise RuntimeError("Impossible week without Sunday")
+    raise RuntimeError("Impossible week without Sunday")  # pragma no cover
 
 
 def is_dst_change_day(t):
@@ -258,7 +258,9 @@ _WWVBMinute = collections.namedtuple("_WWVBMinute", "year days hour min dst ut1 
 
 
 class WWVBMinute(_WWVBMinute):
-    def __new__(cls, year, days, hour, minute, dst=None, ut1=None, ls=None):
+    def __new__(
+        cls, year, days, hour, minute, dst=None, ut1=None, ls=None
+    ):  # pylint: disable=too-many-arguments
         if dst is None:
             dst = cls.get_dst(year, days)
         if dst not in (0, 1, 2, 3):  # pragma no coverage

@@ -25,7 +25,6 @@ repos:
     -   id: pylint
         args:
         - -d missing-docstring
-        - -d too-many-arguments
         - -d invalid-name
         - -d duplicate-code
         - -d line-too-long

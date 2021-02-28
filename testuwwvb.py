@@ -35,7 +35,7 @@ class WWVBRoundtrip(unittest.TestCase):
             self.assertIsNotNone(decoded)
             self.assertEqual(
                 minute.as_datetime_utc().replace(tzinfo=None),
-                uwwvb.as_datetime_utc(*decoded),
+                uwwvb.as_datetime_utc(decoded),
             )
             minute = minute.next_minute()
         self.assertTrue(any_leap_second)
@@ -44,7 +44,7 @@ class WWVBRoundtrip(unittest.TestCase):
         dt = datetime.datetime(2002, 1, 1, 0, 0)
         while dt.year < 2013:
             minute = wwvblib.WWVBMinuteIERS.from_datetime(dt)
-            decoded = uwwvb.as_datetime_utc(*uwwvb.decode_wwvb(minute.as_timecode().am))
+            decoded = uwwvb.as_datetime_utc(uwwvb.decode_wwvb(minute.as_timecode().am))
             self.assertEqual(
                 minute.as_datetime_utc().replace(tzinfo=None),
                 decoded,
@@ -64,7 +64,7 @@ class WWVBRoundtrip(unittest.TestCase):
         ):
             minute = wwvblib.WWVBMinuteIERS.from_datetime(dt)
             decoded = uwwvb.as_datetime_local(
-                *uwwvb.decode_wwvb(minute.as_timecode().am)
+                uwwvb.decode_wwvb(minute.as_timecode().am)
             )
             self.assertEqual(
                 minute.as_datetime_local().replace(tzinfo=None),
@@ -72,7 +72,7 @@ class WWVBRoundtrip(unittest.TestCase):
             )
 
             decoded = uwwvb.as_datetime_local(
-                *uwwvb.decode_wwvb(minute.as_timecode().am),
+                uwwvb.decode_wwvb(minute.as_timecode().am),
                 dst_observed=False,
             )
             self.assertEqual(
@@ -106,11 +106,11 @@ class WWVBRoundtrip(unittest.TestCase):
         decoded = uwwvb.decode_wwvb(minute_maybe)
         self.assertEqual(
             minute.as_datetime_utc().replace(tzinfo=None),
-            uwwvb.as_datetime_utc(*decoded),
+            uwwvb.as_datetime_utc(decoded),
         )
         self.assertEqual(
             minute.as_datetime_local().replace(tzinfo=None),
-            uwwvb.as_datetime_local(*decoded),
+            uwwvb.as_datetime_local(decoded),
         )
 
     def test_noise2(self):
