@@ -155,6 +155,10 @@ class WWVBRoundtrip(unittest.TestCase):
         decoded = uwwvb.decode_wwvb(test_input)
         self.assertIsNone(decoded)
 
+    def test_str(self):
+        """Test the str() of a WWVBDecoder"""
+        self.assertEqual(str(uwwvb.WWVBDecoder()), "<WWVBDecoder 1 []>")
+
 
 if __name__ == "__main__":  # pragma no cover
     unittest.main()

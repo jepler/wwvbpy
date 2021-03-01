@@ -64,7 +64,7 @@ class WWVBDecoder:
 
         return result
 
-    def __str__(self):  # pragma no cover
+    def __str__(self):
         """Return a string representation of self"""
         return f"<WWVBDecoder {self.state} {self.minute}>"
 
