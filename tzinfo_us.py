@@ -80,8 +80,7 @@ class USTimeZone(tzinfo):
         """Return the tzname"""
         if self.dst(dt):
             return self.dstname
-        else:
-            return self.stdname
+        return self.stdname
 
     def utcoffset(self, dt):
         """Return the UTC offset for a particular moment"""
@@ -117,12 +116,11 @@ class USTimeZone(tzinfo):
         if end <= dst_time < end + HOUR:
             # Repeated hour
             return std_time.replace(fold=1)
-        elif std_time < start or dst_time >= end:
+        if std_time < start or dst_time >= end:
             # Standard time
             return std_time
-        else:
-            # Daylight saving time
-            return dst_time
+        # Daylight saving time
+        return dst_time
 
 
 Eastern = USTimeZone(-5, "Eastern", "EST", "EDT")

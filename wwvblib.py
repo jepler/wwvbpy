@@ -42,8 +42,7 @@ def isls(t):
 
 def isdst(t, tz=Mountain):
     """Return true if daylight saving time is active at the given moment"""
-    if isinstance(t, datetime.date):
-        t = datetime.datetime(t.year, t.month, t.day)
+    t = datetime.datetime(t.year, t.month, t.day)
     return bool(t.astimezone(tz).dst())
 
 
@@ -375,10 +374,9 @@ class WWVBMinute(_WWVBMinute):
         """Return the 2-bit leap_sec value used by the PM code"""
         if not self.ls:
             return 0
-        elif self.ut1 < 0:
+        if self.ut1 < 0:
             return 3
-        else:
-            return 2
+        return 2
 
     @property
     def minute_of_century(self):
@@ -438,13 +436,11 @@ class WWVBMinute(_WWVBMinute):
                 seqno = seqno + 90
             else:
                 seqno = seqno + 1
-        elif dst == 1:
+        else:  # dst == 1
             if self.hour < 4:
                 seqno = seqno + 1
-            elif self.hour < 10:
+            elif self.hour < 11:
                 seqno = seqno + 91
-            else:
-                pass
 
         info_seq = lfsr_seq[seqno : seqno + 127]
         full_seq = info_seq + ftw + info_seq[::-1]
@@ -543,8 +539,7 @@ class WWVBMinute(_WWVBMinute):
                 newls = old_time.ls
                 newut1 = old_time.ut1
             return newut1, newls
-        else:
-            return 0, 0
+        return 0, 0
 
     @classmethod
     def fromstring(cls, s):
@@ -697,10 +692,9 @@ class WWVBTimecode:
         def convert_one(am, phase):
             if phase is PhaseModulation.UNSET:
                 return ["0", "1", "2", "?"][am]
-            elif phase:
+            if phase:
                 return ["⁰", "¹", "²", "?"][am]
-            else:
-                return ["₀", "₁", "₂", "?"][am]
+            return ["₀", "₁", "₂", "?"][am]
 
         return "".join(convert_one(i, j) for i, j in zip(self.am, self.phase))
 

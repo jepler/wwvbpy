@@ -26,11 +26,10 @@ def get_url_with_cache(url, cache):
             text = f.text
         with open(cache, "w") as f:
             f.write(text)
-        return text
     else:
         with open(cache, "r") as f:
             text = f.read()
-        return text
+    return text
 
 
 def main():  # pylint: disable=too-many-locals, too-many-branches, too-many-statements

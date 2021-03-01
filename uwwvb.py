@@ -45,7 +45,7 @@ class WWVBDecoder:
                 self.minute = [MARK, value]
                 self.state = 4
 
-        elif self.state == 4:
+        else:  # self.state == 4:
             idx = len(self.minute)
             self.minute.append(value)
             if (idx in always_mark) != (value == MARK):
@@ -108,10 +108,7 @@ def decode_wwvb(t):  # pylint: disable=too-many-return-statements
 
 def as_datetime_utc(decoded_timestamp):
     """Convert a WWVBMinute to a UTC datetime"""
-    year = decoded_timestamp.year
-    if year < 2000:
-        year = 2000 + year
-    d = datetime.datetime(year, 1, 1)
+    d = datetime.datetime(decoded_timestamp.year + 2000, 1, 1)
     d += datetime.timedelta(
         decoded_timestamp.days - 1,
         decoded_timestamp.hour * 3600 + decoded_timestamp.minute * 60,
