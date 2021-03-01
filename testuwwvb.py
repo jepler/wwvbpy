@@ -16,6 +16,13 @@ import uwwvb
 class WWVBRoundtrip(unittest.TestCase):
     """tests of uwwvb.py"""
 
+    def assertDateTimeEqualExceptTzInfo(self, a, b):  # pylint: disable=invalid-name
+        """Test two datetime objects for equality, excluding tzinfo, and allowing adafruit_datetime and core datetime modules to compare equal"""
+        self.assertEqual(
+            (a.year, a.month, a.day, a.hour, a.minute, a.second, a.microsecond),
+            (b.year, b.month, b.day, b.hour, b.minute, b.second, b.microsecond),
+        )
+
     def test_decode(self):
         """Test decoding of some minutes including a leap second.
         Each minute must decode and match the primary decoder."""
@@ -33,8 +40,8 @@ class WWVBRoundtrip(unittest.TestCase):
             for code in timecode.am:
                 decoded = uwwvb.decode_wwvb(decoder.update(int(code))) or decoded
             self.assertIsNotNone(decoded)
-            self.assertEqual(
-                minute.as_datetime_utc().replace(tzinfo=None),
+            self.assertDateTimeEqualExceptTzInfo(
+                minute.as_datetime_utc(),
                 uwwvb.as_datetime_utc(decoded),
             )
             minute = minute.next_minute()
@@ -46,8 +53,8 @@ class WWVBRoundtrip(unittest.TestCase):
         while dt.year < 2013:
             minute = wwvblib.WWVBMinuteIERS.from_datetime(dt)
             decoded = uwwvb.as_datetime_utc(uwwvb.decode_wwvb(minute.as_timecode().am))
-            self.assertEqual(
-                minute.as_datetime_utc().replace(tzinfo=None),
+            self.assertDateTimeEqualExceptTzInfo(
+                minute.as_datetime_utc(),
                 decoded.replace(tzinfo=None),
             )
             dt = dt + datetime.timedelta(minutes=7182)
@@ -68,8 +75,8 @@ class WWVBRoundtrip(unittest.TestCase):
             decoded = uwwvb.as_datetime_local(
                 uwwvb.decode_wwvb(minute.as_timecode().am)
             )
-            self.assertEqual(
-                minute.as_datetime_local().replace(tzinfo=None),
+            self.assertDateTimeEqualExceptTzInfo(
+                minute.as_datetime_local(),
                 decoded.replace(tzinfo=None),
             )
 
@@ -77,8 +84,8 @@ class WWVBRoundtrip(unittest.TestCase):
                 uwwvb.decode_wwvb(minute.as_timecode().am),
                 dst_observed=False,
             )
-            self.assertEqual(
-                minute.as_datetime_local(dst_observed=False).replace(tzinfo=None),
+            self.assertDateTimeEqualExceptTzInfo(
+                minute.as_datetime_local(dst_observed=False),
                 decoded.replace(tzinfo=None),
             )
 
@@ -107,11 +114,11 @@ class WWVBRoundtrip(unittest.TestCase):
         minute_maybe = decoder.update(wwvblib.AmplitudeModulation.MARK)
         self.assertIsNotNone(minute_maybe)
         decoded = uwwvb.decode_wwvb(minute_maybe)
-        self.assertEqual(
+        self.assertDateTimeEqualExceptTzInfo(
             minute.as_datetime_utc().replace(tzinfo=None),
             uwwvb.as_datetime_utc(decoded),
         )
-        self.assertEqual(
+        self.assertDateTimeEqualExceptTzInfo(
             minute.as_datetime_local().replace(tzinfo=None),
             uwwvb.as_datetime_local(decoded),
         )

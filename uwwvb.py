@@ -4,12 +4,8 @@
 
 """Implementation of a WWVB state machine & decoder for resource-constrained systems"""
 
-try:
-    import datetime
-except ImportError:  # pragma no cover
-    import adafruit_datetime as datetime
-
 from collections import namedtuple
+import adafruit_datetime as datetime
 
 ZERO, ONE, MARK = range(3)
 
