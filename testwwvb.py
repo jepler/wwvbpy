@@ -226,6 +226,31 @@ class WWVBRoundtrip(unittest.TestCase):
         n = wwvblib.WWVBMinute(1970, 1, 1, 0, 0)
         self.assertEqual(m, n)
 
+    def test_fromstring(self):
+        """Test the fromstring() classmethod"""
+
+        s = "WWVB timecode: year=1998 days=365 hour=23 min=56 dst=0 ut1=-300 ly=0 ls=1"
+        t = "year=1998 days=365 hour=23 min=56 dst=0 ut1=-300 ly=0 ls=1"
+        self.assertEqual(
+            wwvblib.WWVBMinuteIERS.fromstring(s), wwvblib.WWVBMinuteIERS.fromstring(t)
+        )
+        t = "year=1998 days=365 hour=23 min=56 dst=0 ut1=-300 ls=1"
+        self.assertEqual(
+            wwvblib.WWVBMinuteIERS.fromstring(s), wwvblib.WWVBMinuteIERS.fromstring(t)
+        )
+        t = "year=1998 days=365 hour=23 min=56 dst=0"
+        self.assertEqual(
+            wwvblib.WWVBMinuteIERS.fromstring(s), wwvblib.WWVBMinuteIERS.fromstring(t)
+        )
+
+    def test_from_datetime(self):
+        """Test the from_datetime() classmethod"""
+        d = datetime.datetime(1998, 12, 31, 23, 56, 0)
+        self.assertEqual(
+            wwvblib.WWVBMinuteIERS.from_datetime(d),
+            wwvblib.WWVBMinuteIERS.from_datetime(d, newls=1, newut1=-300),
+        )
+
 
 if __name__ == "__main__":  # pragma no cover
     unittest.main()

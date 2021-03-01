@@ -47,7 +47,7 @@ def wwvbreceive():  # pylint: disable=too-many-branches
                 minute = [wwvblib.AmplitudeModulation.MARK, value]
             value = yield None
 
-        elif state == 4:
+        else:  #  state == 4:
             minute.append(value)
             if len(minute) % 10 == 0 and value != wwvblib.AmplitudeModulation.MARK:
                 # print("MISSING MARK", len(minute), "".join(str(int(i)) for i in minute))
