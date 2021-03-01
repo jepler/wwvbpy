@@ -2,7 +2,7 @@
 #
 #SPDX-License-Identifier: GPL-3.0-or-later
 [MESSAGES CONTROL]
-disable=duplicate-code,line-too-long,no-else-return,import-error
+disable=duplicate-code,line-too-long,no-else-return
 
 [BASIC]
 argument-rgx=[a-z][a-z0-9_]*
