@@ -18,15 +18,15 @@ import iersdata
 from tzinfo_us import Mountain, HOUR
 
 
-def get_dut1(t):
+def get_dut1(dt):
     """Return the DUT1 number for the given timestamp"""
-    i = (t - iersdata.dut1_data_start).days
+    i = (dt - iersdata.DUT1_DATA_START).days
     if i < 0:  # pragma no cover
-        v = iersdata.dut1_offsets[0]
-    elif i >= len(iersdata.dut1_offsets):  # pragma no cover
-        v = iersdata.dut1_offsets[-1]
+        v = iersdata.DUT1_OFFSETS[0]
+    elif i >= len(iersdata.DUT1_OFFSETS):  # pragma no cover
+        v = iersdata.DUT1_OFFSETS[-1]
     else:
-        v = iersdata.dut1_offsets[i]
+        v = iersdata.DUT1_OFFSETS[i]
     return (ord(v) - ord("k")) / 10.0
 
 
@@ -222,14 +222,14 @@ hamming_weight = [
     [25, 22, 20, 19, 16, 15, 14, 13, 12, 8, 7, 5, 4, 3, 1],
 ]
 
-# Identifies the phase data as a time signal (sync_T bits present)
-# or a message signal (sync_M bits present); No message signals are defined
+# Identifies the phase data as a time signal (SYNC_T bits present)
+# or a message signal (SYNC_M bits present); No message signals are defined
 # by NIST at this time.
-sync_T = 0x768
-sync_M = 0x1A3A
+SYNC_T = 0x768
+SYNC_M = 0x1A3A
 
 
-def BIT(v, p):
+def extract_bit(v, p):
     """Extract bit 'p' from integer 'v' as a bool"""
     return bool((v >> p) & 1)
 
@@ -240,7 +240,7 @@ def hamming_parity(value: int):
     for i in range(4, -1, -1):
         bit = 0
         for j in range(0, 15):
-            bit ^= BIT(value, hamming_weight[i][j])
+            bit ^= extract_bit(value, hamming_weight[i][j])
         parity = (parity << 1) | bit
     return parity
 
@@ -456,7 +456,7 @@ class WWVBMinute(_WWVBMinute):
 
     def fill_pm_timecode_regular(self, t):  # pylint: disable=too-many-statements
         """Not during minutes 10..15 and 40..45, the amplitude signal holds 'regular information'"""
-        t.put_pm_bin(0, 13, sync_T)
+        t.put_pm_bin(0, 13, SYNC_T)
 
         moc = self.minute_of_century
         leap_sec = self.leap_sec
@@ -464,47 +464,47 @@ class WWVBMinute(_WWVBMinute):
         dst_ls = dst_ls_lut[dst_on | (leap_sec << 2)]
         dst_next = get_dst_next(self.as_datetime())
         t.put_pm_bin(13, 5, hamming_parity(moc))
-        t.put_pm_bit(18, BIT(moc, 25))
-        t.put_pm_bit(19, BIT(moc, 0))
-        t.put_pm_bit(20, BIT(moc, 24))
-        t.put_pm_bit(21, BIT(moc, 23))
-        t.put_pm_bit(22, BIT(moc, 22))
-        t.put_pm_bit(23, BIT(moc, 21))
-        t.put_pm_bit(24, BIT(moc, 20))
-        t.put_pm_bit(25, BIT(moc, 19))
-        t.put_pm_bit(26, BIT(moc, 18))
-        t.put_pm_bit(27, BIT(moc, 17))
-        t.put_pm_bit(28, BIT(moc, 16))
+        t.put_pm_bit(18, extract_bit(moc, 25))
+        t.put_pm_bit(19, extract_bit(moc, 0))
+        t.put_pm_bit(20, extract_bit(moc, 24))
+        t.put_pm_bit(21, extract_bit(moc, 23))
+        t.put_pm_bit(22, extract_bit(moc, 22))
+        t.put_pm_bit(23, extract_bit(moc, 21))
+        t.put_pm_bit(24, extract_bit(moc, 20))
+        t.put_pm_bit(25, extract_bit(moc, 19))
+        t.put_pm_bit(26, extract_bit(moc, 18))
+        t.put_pm_bit(27, extract_bit(moc, 17))
+        t.put_pm_bit(28, extract_bit(moc, 16))
         t.put_pm_bit(29, False)  # Reserved
-        t.put_pm_bit(30, BIT(moc, 15))
-        t.put_pm_bit(31, BIT(moc, 14))
-        t.put_pm_bit(32, BIT(moc, 13))
-        t.put_pm_bit(33, BIT(moc, 12))
-        t.put_pm_bit(34, BIT(moc, 11))
-        t.put_pm_bit(35, BIT(moc, 10))
-        t.put_pm_bit(36, BIT(moc, 9))
-        t.put_pm_bit(37, BIT(moc, 8))
-        t.put_pm_bit(38, BIT(moc, 7))
+        t.put_pm_bit(30, extract_bit(moc, 15))
+        t.put_pm_bit(31, extract_bit(moc, 14))
+        t.put_pm_bit(32, extract_bit(moc, 13))
+        t.put_pm_bit(33, extract_bit(moc, 12))
+        t.put_pm_bit(34, extract_bit(moc, 11))
+        t.put_pm_bit(35, extract_bit(moc, 10))
+        t.put_pm_bit(36, extract_bit(moc, 9))
+        t.put_pm_bit(37, extract_bit(moc, 8))
+        t.put_pm_bit(38, extract_bit(moc, 7))
         t.put_pm_bit(39, True)  # Reserved
-        t.put_pm_bit(40, BIT(moc, 6))
-        t.put_pm_bit(41, BIT(moc, 5))
-        t.put_pm_bit(42, BIT(moc, 4))
-        t.put_pm_bit(43, BIT(moc, 3))
-        t.put_pm_bit(44, BIT(moc, 2))
-        t.put_pm_bit(45, BIT(moc, 1))
-        t.put_pm_bit(46, BIT(moc, 0))
-        t.put_pm_bit(47, BIT(dst_ls, 4))
-        t.put_pm_bit(48, BIT(dst_ls, 3))
+        t.put_pm_bit(40, extract_bit(moc, 6))
+        t.put_pm_bit(41, extract_bit(moc, 5))
+        t.put_pm_bit(42, extract_bit(moc, 4))
+        t.put_pm_bit(43, extract_bit(moc, 3))
+        t.put_pm_bit(44, extract_bit(moc, 2))
+        t.put_pm_bit(45, extract_bit(moc, 1))
+        t.put_pm_bit(46, extract_bit(moc, 0))
+        t.put_pm_bit(47, extract_bit(dst_ls, 4))
+        t.put_pm_bit(48, extract_bit(dst_ls, 3))
         t.put_pm_bit(49, True)  # Notice
-        t.put_pm_bit(50, BIT(dst_ls, 2))
-        t.put_pm_bit(51, BIT(dst_ls, 1))
-        t.put_pm_bit(52, BIT(dst_ls, 0))
-        t.put_pm_bit(53, BIT(dst_next, 5))
-        t.put_pm_bit(54, BIT(dst_next, 4))
-        t.put_pm_bit(55, BIT(dst_next, 3))
-        t.put_pm_bit(56, BIT(dst_next, 2))
-        t.put_pm_bit(57, BIT(dst_next, 1))
-        t.put_pm_bit(58, BIT(dst_next, 0))
+        t.put_pm_bit(50, extract_bit(dst_ls, 2))
+        t.put_pm_bit(51, extract_bit(dst_ls, 1))
+        t.put_pm_bit(52, extract_bit(dst_ls, 0))
+        t.put_pm_bit(53, extract_bit(dst_next, 5))
+        t.put_pm_bit(54, extract_bit(dst_next, 4))
+        t.put_pm_bit(55, extract_bit(dst_next, 3))
+        t.put_pm_bit(56, extract_bit(dst_next, 2))
+        t.put_pm_bit(57, extract_bit(dst_next, 1))
+        t.put_pm_bit(58, extract_bit(dst_next, 0))
         if len(t.phase) > 59:
             t.put_pm_bit(59, PhaseModulation.ZERO)
         if len(t.phase) > 60:
@@ -650,7 +650,7 @@ class WWVBTimecode:
     phase: List[PhaseModulation]
 
     def __init__(self, sz: int) -> None:
-        self.am = [AmplitudeModulation.UNSET] * sz
+        self.am = [AmplitudeModulation.UNSET] * sz  # pylint: disable=invalid-name
         self.phase = [PhaseModulation.UNSET] * sz
 
     @property
@@ -686,7 +686,7 @@ class WWVBTimecode:
     def put_pm_bin(self, st: int, n: int, v: bool) -> None:
         """Update an n-digit binary number in the Phase Modulation signal"""
         for i in range(n):
-            self.put_pm_bit(st + i, BIT(v, (n - i - 1)))
+            self.put_pm_bit(st + i, extract_bit(v, (n - i - 1)))
 
     def __str__(self) -> str:
         """implement str()"""
@@ -694,7 +694,7 @@ class WWVBTimecode:
         if undefined:  # pragma no coverage
             print("Warning: Timecode%s is undefined" % undefined)
 
-        def ch(am, phase):
+        def convert_one(am, phase):
             if phase is PhaseModulation.UNSET:
                 return ["0", "1", "2", "?"][am]
             elif phase:
@@ -702,7 +702,7 @@ class WWVBTimecode:
             else:
                 return ["₀", "₁", "₂", "?"][am]
 
-        return "".join(ch(i, j) for i, j in zip(self.am, self.phase))
+        return "".join(convert_one(i, j) for i, j in zip(self.am, self.phase))
 
     def __repr__(self) -> str:
         """implement repr()"""

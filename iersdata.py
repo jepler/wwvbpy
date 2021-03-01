@@ -3,12 +3,12 @@
 # SPDX-FileCopyrightText: Public domain
 # SPDX-License-Identifier: CC0-1.0
 # fmt: off
-# fmt: off
+# pylint: disable=invalid-name
 import datetime
-__all__ = ['dut1_data_start', 'dut1_offsets']
-dut1_data_start = datetime.datetime(1973, 1, 2, 0, 0)
+__all__ = ['DUT1_DATA_START', 'DUT1_OFFSETS']
+DUT1_DATA_START = datetime.datetime(1973, 1, 2, 0, 0)
 d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s = 'defghijklmnopqrs'
-dut1_offsets = str( # 19730102
+DUT1_OFFSETS = str( # 19730102
     s*18+r*31+q*29+p*28+o*30+n*36+m*40+l*39+k*33+j*31+i*31+h*18  # 19740119
     +r*19+q*38+p*32+o*31+n*33+m*48+l*45+k*37+j*33+i*34+h*15+r*22 # 19750225
     +q*34+p*33+o*34+n*37+m*49+l*45+k*36+j*32+i*36+h*7+r*28+q*33  # 19760402

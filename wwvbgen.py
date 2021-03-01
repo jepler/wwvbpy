@@ -89,9 +89,9 @@ if __name__ == "__main__":  # pragma no cover
 
     extra_args = {}
     if options.iers and options.forcedut1 is None and options.forcels is None:
-        constructor = WWVBMinuteIERS
+        Constructor = WWVBMinuteIERS
     else:  # pragma no coverage
-        constructor = WWVBMinute
+        Constructor = WWVBMinute
         if options.forcedut1 is None:
             extra_args["ut1"] = -500 if options.forcels else 0
         else:
@@ -120,5 +120,5 @@ if __name__ == "__main__":  # pragma no cover
         now = datetime.datetime.utcnow().utctimetuple()
         year, yday, hour, minute = now.tm_year, now.tm_yday, now.tm_hour, now.tm_min
 
-    w = constructor(year, yday, hour, minute, **extra_args)
+    w = Constructor(year, yday, hour, minute, **extra_args)
     print_timecodes(w, options.minutes, options.channel, options.style, file=sys.stdout)

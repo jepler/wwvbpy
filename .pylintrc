@@ -2,4 +2,9 @@
 #
 #SPDX-License-Identifier: GPL-3.0-or-later
 [MESSAGES CONTROL]
-disable=invalid-name,duplicate-code,line-too-long,no-else-return,import-error
+disable=duplicate-code,line-too-long,no-else-return,import-error
+
+[BASIC]
+argument-rgx=[a-z][a-z0-9_]*
+variable-naming-style=any
+good_names=dt,t,i,j,k,ex,_
