@@ -6,14 +6,17 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+import copy
 import datetime
 import glob
 import io
 import random
 import unittest
 
+import iersdata
 import wwvblib
 import wwvbdec
+import uwwvb
 
 
 class WWVBTestCase(unittest.TestCase):
@@ -131,6 +134,45 @@ class WWVBRoundtrip(unittest.TestCase):
             f"Checking equality of minute {minute}: [expected] {timecode.am} != [actual] {decoded.am}",
         )
 
+    def test_noise2(self):
+        """Test of the full minute decoder with targeted errors to get full coverage"""
+        minute = wwvblib.WWVBMinuteIERS.from_datetime(
+            datetime.datetime(2012, 6, 30, 23, 50)
+        )
+        timecode = minute.as_timecode()
+        decoded = wwvblib.WWVBMinute.from_timecode_am(timecode)
+        self.assertIsNotNone(decoded)
+        for position in uwwvb.always_mark:
+            test_input = copy.deepcopy(timecode)
+            for noise in (0, 1):
+                test_input.am[position] = wwvblib.AmplitudeModulation(noise)
+                decoded = wwvblib.WWVBMinute.from_timecode_am(test_input)
+                self.assertIsNone(decoded)
+        for position in uwwvb.always_zero:
+            test_input = copy.deepcopy(timecode)
+            for noise in (1, 2):
+                test_input.am[position] = wwvblib.AmplitudeModulation(noise)
+                decoded = wwvblib.WWVBMinute.from_timecode_am(test_input)
+                self.assertIsNone(decoded)
+        for i in range(8):
+            if i in (0b101, 0b010):  # Test the 6 impossible bit-combos
+                continue
+            test_input = copy.deepcopy(timecode)
+            test_input.am[36] = wwvblib.AmplitudeModulation(i & 1)
+            test_input.am[37] = wwvblib.AmplitudeModulation((i >> 1) & 1)
+            test_input.am[38] = wwvblib.AmplitudeModulation((i >> 2) & 1)
+            decoded = wwvblib.WWVBMinute.from_timecode_am(test_input)
+            self.assertIsNone(decoded)
+        # Invalid year-day
+        test_input = timecode.am[:]
+        test_input[22] = 1
+        test_input[23] = 1
+        test_input[25] = 1
+        test_input[26] = 1
+        test_input[27] = 1
+        decoded = uwwvb.decode_wwvb(test_input)
+        self.assertIsNone(decoded)
+
     def test_previous_next_minute(self):
         """Test that previous minute and next minute are inverses"""
         minute = wwvblib.WWVBMinuteIERS.from_datetime(
@@ -160,6 +202,29 @@ class WWVBRoundtrip(unittest.TestCase):
             repr(timecode),
             "<WWVBTimecode 210100000200100001120001010002001000010201100100120010011112>",
         )
+
+    def test_extreme_dut1(self):
+        """Test extreme dut1 dates"""
+        s = iersdata.DUT1_DATA_START
+        sm1 = s - datetime.timedelta(days=1)
+        self.assertEqual(wwvblib.get_dut1(s), wwvblib.get_dut1(sm1))
+
+        e = iersdata.DUT1_DATA_START + datetime.timedelta(
+            days=len(iersdata.DUT1_OFFSETS) - 1
+        )
+        ep1 = e + datetime.timedelta(days=1)
+
+        self.assertEqual(wwvblib.get_dut1(e), wwvblib.get_dut1(ep1))
+
+    def test_epoch(self):
+        """Test the 1970-to-2069 epoch"""
+        m = wwvblib.WWVBMinute(69, 1, 1, 0, 0)
+        n = wwvblib.WWVBMinute(2069, 1, 1, 0, 0)
+        self.assertEqual(m, n)
+
+        m = wwvblib.WWVBMinute(70, 1, 1, 0, 0)
+        n = wwvblib.WWVBMinute(1970, 1, 1, 0, 0)
+        self.assertEqual(m, n)
 
 
 if __name__ == "__main__":  # pragma no cover

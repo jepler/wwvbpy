@@ -21,9 +21,9 @@ from tzinfo_us import Mountain, HOUR
 def get_dut1(dt):
     """Return the DUT1 number for the given timestamp"""
     i = (dt - iersdata.DUT1_DATA_START).days
-    if i < 0:  # pragma no cover
+    if i < 0:
         v = iersdata.DUT1_OFFSETS[0]
-    elif i >= len(iersdata.DUT1_OFFSETS):  # pragma no cover
+    elif i >= len(iersdata.DUT1_OFFSETS):
         v = iersdata.DUT1_OFFSETS[-1]
     else:
         v = iersdata.DUT1_OFFSETS[i]
@@ -282,7 +282,7 @@ class WWVBMinute(_WWVBMinute):
             ut1, ls = cls.get_dut1_info(year, days)
         elif ut1 is None or ls is None:  # pragma no coverage
             raise ValueError("sepecify both ut1 and ls or neither one")
-        if year < 70:  # pragma no coverage
+        if year < 70:
             year = year + 2000
         elif year < 100:
             year = year + 1900
@@ -572,15 +572,15 @@ class WWVBMinute(_WWVBMinute):
     @classmethod
     def from_timecode_am(cls, t):
         """Construct a WWVBMinute from a WWVBTimecode"""
-        for i in (0, 9, 19, 29, 39, 49, 59):  # pragma no coverage
+        for i in (0, 9, 19, 29, 39, 49, 59):
             if t.am[i] != AmplitudeModulation.MARK:
                 return None
         for i in (4, 10, 11, 14, 20, 21, 24, 34, 35, 44, 54):
-            if t.am[i] != AmplitudeModulation.ZERO:  # pragma no coverage
+            if t.am[i] != AmplitudeModulation.ZERO:
                 return None
-        if t.am[36] == t.am[37]:  # pragma no coverage
+        if t.am[36] == t.am[37]:
             return None
-        if t.am[36] != t.am[38]:  # pragma no coverage
+        if t.am[36] != t.am[38]:
             return None
         minute = t.get_am_bcd(1, 2, 3, 5, 6, 7, 8)
         hour = t.get_am_bcd(12, 13, 15, 16, 17, 18)
