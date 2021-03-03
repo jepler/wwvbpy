@@ -173,12 +173,10 @@ class WWVBRoundtrip(unittest.TestCase):
         minute = wwvblib.WWVBMinuteIERS.from_datetime(
             datetime.datetime(2021, 1, 1, 0, 0)
         )
-        minute_local = minute.as_datetime_local()
-        self.assertEqual(minute_local.year, 2020)  # Locally, it's the prior year
         timecode = minute.as_timecode()
         decoded = uwwvb.decode_wwvb(timecode.am)
         self.assertDateTimeEqualExceptTzInfo(
-            minute.as_datetime_local(),
+            datetime.datetime(2020, 12, 31, 17, 00),  # Mountain time!
             uwwvb.as_datetime_local(decoded),
         )
 
