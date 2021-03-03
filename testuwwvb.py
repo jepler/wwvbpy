@@ -166,6 +166,22 @@ class WWVBRoundtrip(unittest.TestCase):
         """Test the str() of a WWVBDecoder"""
         self.assertEqual(str(uwwvb.WWVBDecoder()), "<WWVBDecoder 1 []>")
 
+    def test_near_year_bug(self):
+        """Chris's WWVB software had a bug where the hours after UTC
+        midnight on 12-31 of a leap year would be shown incorrectly. Check that we
+        don't have that bug."""
+        minute = wwvblib.WWVBMinuteIERS.from_datetime(
+            datetime.datetime(2021, 1, 1, 0, 0)
+        )
+        minute_local = minute.as_datetime_local()
+        self.assertEqual(minute_local.year, 2020)  # Locally, it's the prior year
+        timecode = minute.as_timecode()
+        decoded = uwwvb.decode_wwvb(timecode.am)
+        self.assertDateTimeEqualExceptTzInfo(
+            minute.as_datetime_local(),
+            uwwvb.as_datetime_local(decoded),
+        )
+
 
 if __name__ == "__main__":  # pragma no cover
     unittest.main()
