@@ -55,7 +55,7 @@ class WWVBRoundtrip(unittest.TestCase):
             decoded = uwwvb.as_datetime_utc(uwwvb.decode_wwvb(minute.as_timecode().am))
             self.assertDateTimeEqualExceptTzInfo(
                 minute.as_datetime_utc(),
-                decoded.replace(tzinfo=None),
+                decoded,
             )
             dt = dt + datetime.timedelta(minutes=7182)
 
@@ -77,7 +77,7 @@ class WWVBRoundtrip(unittest.TestCase):
             )
             self.assertDateTimeEqualExceptTzInfo(
                 minute.as_datetime_local(),
-                decoded.replace(tzinfo=None),
+                decoded,
             )
 
             decoded = uwwvb.as_datetime_local(
@@ -86,7 +86,7 @@ class WWVBRoundtrip(unittest.TestCase):
             )
             self.assertDateTimeEqualExceptTzInfo(
                 minute.as_datetime_local(dst_observed=False),
-                decoded.replace(tzinfo=None),
+                decoded,
             )
 
     def test_noise(self):
@@ -115,11 +115,11 @@ class WWVBRoundtrip(unittest.TestCase):
         self.assertIsNotNone(minute_maybe)
         decoded = uwwvb.decode_wwvb(minute_maybe)
         self.assertDateTimeEqualExceptTzInfo(
-            minute.as_datetime_utc().replace(tzinfo=None),
+            minute.as_datetime_utc(),
             uwwvb.as_datetime_utc(decoded),
         )
         self.assertDateTimeEqualExceptTzInfo(
-            minute.as_datetime_local().replace(tzinfo=None),
+            minute.as_datetime_local(),
             uwwvb.as_datetime_local(decoded),
         )
 
