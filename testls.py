@@ -1,7 +1,6 @@
 #!/usr/bin/python3
 """Leap seconds tests"""
 
-# Copyright (C) 2012-2020 Jeff Epler <jepler@gmail.com>
 # SPDX-FileCopyrightText: 2021 Jeff Epler
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
