@@ -4,3 +4,4 @@
 [run]
 omit =
     */site-packages/*
+    test*.py
