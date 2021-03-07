@@ -3,5 +3,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 adafruit-circuitpython-datetime
 beautifulsoup4
+coverage
 pre-commit
 requests
