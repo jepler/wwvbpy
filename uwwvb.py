@@ -116,27 +116,36 @@ def as_datetime_utc(decoded_timestamp):
     return d
 
 
+def is_dst(dt, dst_bits, standard_time_offset=7 * 3600, dst_observed=True):
+    """Return True iff DST is observed at the given moment"""
+    d = dt - datetime.timedelta(seconds=standard_time_offset)
+    if not dst_observed:
+        return False
+    if dst_bits == 0b10:
+        transition_time = dt.replace(hour=2)
+        return d >= transition_time
+    if dst_bits == 0b11:
+        return True
+    if dst_bits == 0b01:
+        transition_time = dt.replace(hour=1)
+        return d < transition_time
+    # self.dst_bits == 0b00
+    return False
+
+
+def apply_dst(dt, dst_bits, standard_time_offset=7 * 3600, dst_observed=True):
+    """Apply time zone and DST (if applicable) to the given moment"""
+    d = dt - datetime.timedelta(seconds=standard_time_offset)
+    if is_dst(dt, dst_bits, standard_time_offset, dst_observed):
+        d += datetime.timedelta(seconds=3600)
+    return d
+
+
 def as_datetime_local(
     decoded_timestamp,
     standard_time_offset=7 * 3600,
     dst_observed=True,
 ):
     """Convert a WWVBMinute to a local datetime with tzinfo=None"""
-    u = as_datetime_utc(decoded_timestamp)
-    d = u - datetime.timedelta(seconds=standard_time_offset)
-    dst = decoded_timestamp.dst
-    if not dst_observed:
-        is_dst = False
-    elif dst == 0b10:
-        transition_time = u.replace(hour=2)
-        is_dst = d >= transition_time
-    elif dst == 0b11:
-        is_dst = True
-    elif dst == 0b01:
-        transition_time = u.replace(hour=1)
-        is_dst = d < transition_time
-    else:  # self.dst == 0b00
-        is_dst = False
-    if is_dst:
-        d += datetime.timedelta(seconds=3600)
-    return d
+    dt = as_datetime_utc(decoded_timestamp)
+    return apply_dst(dt, decoded_timestamp.dst, standard_time_offset, dst_observed)
