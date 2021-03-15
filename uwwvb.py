@@ -14,7 +14,7 @@ always_zero = set((4, 10, 11, 14, 20, 21, 34, 35, 44, 54))
 bcd_weights = (1, 2, 4, 8, 10, 20, 40, 80, 100, 200, 400, 800)
 
 WWVBMinute = namedtuple(
-    "WWVBMinute", ["year", "days", "hour", "minute", "dst", "ut1", "ls"]
+    "WWVBMinute", ["year", "days", "hour", "minute", "dst", "ut1", "ls", "ly"]
 )
 
 
@@ -103,7 +103,7 @@ def decode_wwvb(t):  # pylint: disable=too-many-return-statements
     # With just two bits, bcd and binary are the same
     dst = get_am_bcd(t, 57, 58)
 
-    return WWVBMinute(year, days, hour, minute, dst, ut1, ls)
+    return WWVBMinute(year, days, hour, minute, dst, ut1, ls, is_ly)
 
 
 def as_datetime_utc(decoded_timestamp):
