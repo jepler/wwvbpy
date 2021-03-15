@@ -49,7 +49,7 @@ class WWVBDecoder:
             idx = len(self.minute)
             self.minute.append(value)
             if (idx in always_mark) != (value == MARK):
-                self.state = 1
+                self.state = 3 if self.minute[-2] == MARK else 2
             elif idx in always_zero and value != ZERO:
                 self.state = 1
 
