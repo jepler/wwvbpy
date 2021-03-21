@@ -68,12 +68,20 @@ class WWVBDecoder:
 def get_am_bcd(seq, *poslist):
     """Convert the bits seq[positions[0]], ... seq[positions[len(positions-1)]] [in MSB order] from BCD to decimal"""
     pos = list(poslist)[::-1]
-    weights = bcd_weights[: len(pos)]
+    val = [int(seq[p]) for p in pos]
+    while len(val) % 4 != 0:
+        val.append(0)
     result = 0
-    for p, w in zip(pos, weights):
-        if seq[p]:
-            result += w
-    return result
+    base = 1
+    for i in range(0, len(val), 4):
+        digit = 0
+        for j in range(4):
+            digit += 1 << j if val[i + j] else 0
+        if digit > 9:
+            return False, None
+        result += digit * base
+        base *= 10
+    return True, result
 
 
 def decode_wwvb(t):  # pylint: disable=too-many-return-statements
@@ -89,19 +97,36 @@ def decode_wwvb(t):  # pylint: disable=too-many-return-statements
         return None
     if t[36] != t[38]:
         return None
-    minute = get_am_bcd(t, 1, 2, 3, 5, 6, 7, 8)
-    hour = get_am_bcd(t, 12, 13, 15, 16, 17, 18)
-    days = get_am_bcd(t, 22, 23, 25, 26, 27, 28, 30, 31, 32, 33)
-    abs_ut1 = get_am_bcd(t, 40, 41, 42, 43) * 100
+    ok, minute = get_am_bcd(t, 1, 2, 3, 5, 6, 7, 8)
+    if not ok:
+        return None
+
+    ok, hour = get_am_bcd(t, 12, 13, 15, 16, 17, 18)
+    if not ok:
+        return None
+
+    ok, days = get_am_bcd(t, 22, 23, 25, 26, 27, 28, 30, 31, 32, 33)
+    if not ok:
+        return None
+
+    ok, abs_ut1 = get_am_bcd(t, 40, 41, 42, 43)
+    if not ok:
+        return None
+
+    abs_ut1 *= 100
     ut1_sign = t[38]
     ut1 = abs_ut1 if ut1_sign else -abs_ut1
-    year = get_am_bcd(t, 45, 46, 47, 48, 50, 51, 52, 53)
+    ok, year = get_am_bcd(t, 45, 46, 47, 48, 50, 51, 52, 53)
+    if not ok:
+        return None
+
     is_ly = t[55]
     if days > 366 or (not is_ly and days > 365):
         return None
     ls = t[56]
-    # With just two bits, bcd and binary are the same
-    dst = get_am_bcd(t, 57, 58)
+    # With just two bits, bcd and binary are the same, no possibility of
+    # "bad bcd"
+    _, dst = get_am_bcd(t, 57, 58)
 
     return WWVBMinute(year, days, hour, minute, dst, ut1, ls, is_ly)
 
