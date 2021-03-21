@@ -565,7 +565,7 @@ class WWVBMinute(_WWVBMinute):
         return cls(u.tm_year, u.tm_yday, u.tm_hour, u.tm_min, ut1=newut1, ls=newls)
 
     @classmethod
-    def from_timecode_am(cls, t):
+    def from_timecode_am(cls, t):  # pylint: disable=too-many-return-statements
         """Construct a WWVBMinute from a WWVBTimecode"""
         for i in (0, 9, 19, 29, 39, 49, 59):
             if t.am[i] != AmplitudeModulation.MARK:
@@ -577,16 +577,29 @@ class WWVBMinute(_WWVBMinute):
             return None
         if t.am[36] != t.am[38]:
             return None
-        minute = t.get_am_bcd(1, 2, 3, 5, 6, 7, 8)
-        hour = t.get_am_bcd(12, 13, 15, 16, 17, 18)
-        days = t.get_am_bcd(22, 23, 25, 26, 27, 28, 30, 31, 32, 33)
-        abs_ut1 = t.get_am_bcd(40, 41, 42, 43) * 100
+        ok, minute = t.get_am_bcd(1, 2, 3, 5, 6, 7, 8)
+        if not ok:
+            return None
+        ok, hour = t.get_am_bcd(12, 13, 15, 16, 17, 18)
+        if not ok:
+            return None
+        ok, days = t.get_am_bcd(22, 23, 25, 26, 27, 28, 30, 31, 32, 33)
+        if not ok:
+            return None
+        ok, abs_ut1 = t.get_am_bcd(40, 41, 42, 43)
+        if not ok:
+            return None
+        abs_ut1 *= 100
         ut1_sign = t.am[38]
         ut1 = abs_ut1 if ut1_sign else -abs_ut1
-        year = t.get_am_bcd(45, 46, 47, 48, 50, 51, 52, 53)
-        # is_ly = t.am[55]
+        ok, year = t.get_am_bcd(45, 46, 47, 48, 50, 51, 52, 53)
+        if not ok:
+            return None
+        is_ly = t.am[55]
+        if days > 366 or (not is_ly and days > 365):
+            return None
         ls = t.am[56]
-        dst = t.get_am_bcd(57, 58)
+        _, dst = t.get_am_bcd(57, 58)
 
         return cls(year, days, hour, minute, dst, ut1, ls)
 
@@ -653,15 +666,24 @@ class WWVBTimecode:
         """An alias for `self.am`"""
         return self.am
 
-    def get_am_bcd(self, *poslist: Tuple[int]) -> int:
-        """Treating 'poslist' as a sequence of indices, get the value as a BCD number"""
+    def get_am_bcd(self, *poslist):
+        """Convert the bits seq[positions[0]], ... seq[positions[len(positions-1)]] [in MSB order] from BCD to decimal"""
+        seq = self.am
         pos = list(poslist)[::-1]
-        weights = bcd_weights[: len(pos)]
+        val = [int(seq[p]) for p in pos]
+        while len(val) % 4 != 0:
+            val.append(0)
         result = 0
-        for p, w in zip(pos, weights):
-            if self.am[p]:
-                result += w
-        return result
+        base = 1
+        for i in range(0, len(val), 4):
+            digit = 0
+            for j in range(4):
+                digit += 1 << j if val[i + j] else 0
+            if digit > 9:
+                return False, None
+            result += digit * base
+            base *= 10
+        return True, result
 
     def put_am_bcd(self, v: int, *poslist: Tuple[int]) -> None:
         """Treating 'poslist' as a sequence of indices, update the AM signal with the value as a BCD number"""

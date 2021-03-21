@@ -164,14 +164,36 @@ class WWVBRoundtrip(unittest.TestCase):
             decoded = wwvblib.WWVBMinute.from_timecode_am(test_input)
             self.assertIsNone(decoded)
         # Invalid year-day
-        test_input = timecode.am[:]
-        test_input[22] = 1
-        test_input[23] = 1
-        test_input[25] = 1
-        test_input[26] = 1
-        test_input[27] = 1
-        decoded = uwwvb.decode_wwvb(test_input)
+        test_input = copy.deepcopy(timecode)
+        test_input.am[22] = 1
+        test_input.am[23] = 1
+        test_input.am[25] = 1
+        decoded = wwvblib.WWVBMinute.from_timecode_am(test_input)
         self.assertIsNone(decoded)
+
+    def test_noise3(self):
+        """Test impossible BCD values"""
+        minute = wwvblib.WWVBMinuteIERS.from_datetime(
+            datetime.datetime(2012, 6, 30, 23, 50)
+        )
+        timecode = minute.as_timecode()
+
+        for poslist in [
+            [1, 2, 3, 4],  # tens minutes
+            [5, 6, 7, 8],  # ones minutes
+            [15, 16, 17, 18],  # tens hours
+            [25, 26, 27, 28],  # tens days
+            [30, 31, 32, 33],  # ones days
+            [40, 41, 42, 43],  # tens years
+            [45, 46, 47, 48],  # ones years
+            [50, 51, 52, 53],  # ones dut1
+        ]:
+            with self.subTest(test=poslist):
+                test_input = copy.deepcopy(timecode)
+                for pi in poslist:
+                    test_input.am[pi] = 1
+                decoded = wwvblib.WWVBMinute.from_timecode_am(test_input)
+                self.assertIsNone(decoded)
 
     def test_previous_next_minute(self):
         """Test that previous minute and next minute are inverses"""
