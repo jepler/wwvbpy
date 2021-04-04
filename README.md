@@ -122,7 +122,7 @@ dates when it is available.
 The process for updating `iersdata.py` is intended to be executed monthly from
 github actions.  You can also do it manually:
  * remove the cached `iersdata.txt` and `wwvbdata.html` files to get fresh data
- * run `python iers2py.py > iersdata.py`
+ * run `python3 iers2py.py`
  * gut check the iersdata.py file, commit, and push it out.
 
 Leap seconds are inferred from the DUT1 data as follows: If X and Y are the
