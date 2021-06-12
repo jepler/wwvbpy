@@ -78,7 +78,7 @@ def main():  # pylint: disable=too-many-locals, too-many-branches, too-many-stat
         offsets[off] = wwvb_dut1
         off += 1
 
-    with open("iersdata.py", "wt") as output:
+    with open("wwvb/iersdata.py", "wt") as output:
 
         def code(*args):
             """Print to the output file"""
