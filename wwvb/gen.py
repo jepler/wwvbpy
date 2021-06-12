@@ -8,16 +8,18 @@
 
 import datetime
 import sys
+import optparse  # pylint: disable=deprecated-module
 
-from wwvblib import (
+from . import (
     print_timecodes,
     WWVBMinute,
     WWVBMinuteIERS,
     styles,
 )
 
-if __name__ == "__main__":  # pragma no cover
-    import optparse  # pylint: disable=deprecated-module
+
+def main():  # pragma no cover
+    """A command-line program for generating wwvb timecodes"""
 
     parser = optparse.OptionParser(
         usage="Usage: %prog [options] [year yday hour minute | year month day hour minute]"
@@ -122,3 +124,7 @@ if __name__ == "__main__":  # pragma no cover
 
     w = Constructor(year, yday, hour, minute, **extra_args)
     print_timecodes(w, options.minutes, options.channel, options.style, file=sys.stdout)
+
+
+if __name__ == "__main__":
+    main()

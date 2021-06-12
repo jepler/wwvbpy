@@ -6,7 +6,7 @@
 # SPDX-License-Identifier: GPL-3.0-only
 
 import unittest
-import wwvblib
+import wwvb
 
 
 class TestPhaseModulation(unittest.TestCase):
@@ -32,7 +32,7 @@ class TestPhaseModulation(unittest.TestCase):
             "0110110110"
         )
 
-        ref_minute = wwvblib.WWVBMinuteIERS(2012, 186, 17, 30, dst=3)
+        ref_minute = wwvb.WWVBMinuteIERS(2012, 186, 17, 30, dst=3)
         ref_time = ref_minute.as_timecode()
 
         test_am = ref_time.to_am_string("012")

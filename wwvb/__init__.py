@@ -12,10 +12,10 @@ import enum
 import math
 from typing import List, Tuple
 
-import iersdata
+from . import iersdata
 
 
-from tzinfo_us import Mountain, HOUR
+from .tzinfo_us import Mountain, HOUR
 
 
 def get_dut1(dt):
