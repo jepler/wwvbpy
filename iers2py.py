@@ -6,56 +6,57 @@
 
 """Update the content of 'iersdata.py' based on online sources"""
 
+import csv
 import datetime
 import itertools
 import os
 import bs4
 import requests
 
-IERS_URL = (
-    "https://datacenter.iers.org/data/latestVersion/9_FINALS.ALL_IAU2000_V2013_019.txt"
-)
+IERS_URL = "https://datacenter.iers.org/data/csv/finals2000A.all.csv"
 NIST_URL = "https://www.nist.gov/pml/time-and-frequency-division/atomic-standards/leap-second-and-ut1-utc-information"
 
 
-def get_url_with_cache(url, cache):
-    """Fetch the content of a URL, storing it in a cache"""
+def open_url_with_cache(url, cache):
+    """Fetch the content of a URL, storing it in a cache, returning it as a file"""
     if not os.path.exists(cache):
         with requests.get(url) as f:
             text = f.text
         with open(cache, "w") as f:
             f.write(text)
-    else:
-        with open(cache, "r") as f:
-            text = f.read()
-    return text
+    return open(cache, "r")  # pylint: disable=consider-using-with
+
+
+def read_url_with_cache(url, cache):
+    """Read the content of a URL, returning it as a string"""
+    with open_url_with_cache(url, cache) as f:
+        return f.read()
 
 
 def main():  # pylint: disable=too-many-locals, too-many-branches, too-many-statements
     """Update iersdata.py"""
-    iers_text = get_url_with_cache(IERS_URL, "iersdata.txt")
-    rows = iers_text.strip().split("\n")
-    assert len(rows) > 100
 
-    wwvb_text = get_url_with_cache(NIST_URL, "wwvbdata.html")
+    offsets = []
+    with open_url_with_cache(IERS_URL, "iersdata.csv") as iers_data:
+        for r in csv.DictReader(iers_data, delimiter=";"):
+            if r["Type"] not in ("final", "prediction"):
+                continue
+            jd = float(r["MJD"])
+            offs_str = r["UT1-UTC"]
+            if not offs_str:
+                break
+            offs = int(round(float(offs_str) * 10))
+            if not offsets:
+                start = datetime.datetime(1858, 11, 17) + datetime.timedelta(jd)
+            offsets.append(offs)
+
+    wwvb_text = read_url_with_cache(NIST_URL, "wwvbdata.html")
     wwvb_data = bs4.BeautifulSoup(wwvb_text, features="html.parser")
     wwvb_dut1_table = wwvb_data.findAll("table")[2]
     assert wwvb_dut1_table
     wwvb_data_stamp = datetime.datetime.fromisoformat(
         wwvb_data.find("meta", property="article:modified_time").attrs["content"]
     ).replace(tzinfo=None)
-
-    offsets = []
-    for r in rows:
-        if len(r) < 69:
-            continue
-        if r[57] not in "IP":
-            continue
-        jd = float(r[7:12])
-        offs = int(round(float(r[58:68]) * 10))
-        if not offsets:
-            start = datetime.datetime(1858, 11, 17) + datetime.timedelta(jd)
-        offsets.append(offs)
 
     wwvb_dut1 = None
     wwvb_off = None
