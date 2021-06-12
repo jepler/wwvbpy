@@ -21,6 +21,9 @@ jobs:
         - 3.8
         - 3.9
 
+    env:
+      PYTHON: ${{ python-version }}
+
     runs-on: ubuntu-20.04
     steps:
     - name: Dump GitHub context
@@ -43,6 +46,8 @@ jobs:
 
     - name: Upload Coverage to Codecov
       uses: codecov/codecov-action@v1
+      with:
+      - env_vars: PYTHON
 
   pre-commit:
     runs-on: ubuntu-20.04
