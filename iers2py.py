@@ -39,8 +39,6 @@ def main():  # pylint: disable=too-many-locals, too-many-branches, too-many-stat
     offsets = []
     with open_url_with_cache(IERS_URL, "iersdata.csv") as iers_data:
         for r in csv.DictReader(iers_data, delimiter=";"):
-            if r["Type"] not in ("final", "prediction"):
-                continue
             jd = float(r["MJD"])
             offs_str = r["UT1-UTC"]
             if not offs_str:
