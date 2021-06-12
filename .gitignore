@@ -2,11 +2,13 @@
 #
 # SPDX-License-Identifier: CC0-1.0
 
-__pycache__
-*.py[co]
-/iersdata.csv
-/wwvbdata.html
+/build
 /.coverage
-/.reuse
+/dist
+/*.egg-info
 /htmlcov
-*.py,cover
+/iersdata.csv
+__pycache__
+*,cover
+/.reuse
+/wwvbdata.html

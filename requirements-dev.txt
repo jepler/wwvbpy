@@ -6,3 +6,5 @@ beautifulsoup4
 coverage
 pre-commit
 requests
+setuptools>=42
+wheel
