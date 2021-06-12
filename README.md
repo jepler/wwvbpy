@@ -3,6 +3,8 @@ SPDX-FileCopyrightText: 2021 Jeff Epler
 
 SPDX-License-Identifier: GPL-3.0-only
 -->
+[![Test wwvbgen](https://github.com/jepler/wwvbpy/actions/workflows/test.yml/badge.svg)](https://github.com/jepler/wwvbpy/actions/workflows/test.yml)
+[![Update DUT1 data](https://github.com/jepler/wwvbpy/actions/workflows/cron.yml/badge.svg)](https://github.com/jepler/wwvbpy/actions/workflows/cron.yml)
 
 # Purpose
 
