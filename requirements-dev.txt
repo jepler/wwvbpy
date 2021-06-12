@@ -3,8 +3,10 @@
 # SPDX-License-Identifier: GPL-3.0-only
 adafruit-circuitpython-datetime
 beautifulsoup4
+build
 coverage
 pre-commit
 requests
 setuptools>=42
+twine
 wheel

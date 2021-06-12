@@ -1,0 +1,41 @@
+# SPDX-FileCopyrightText: 2021 Jeff Epler
+#
+# SPDX-License-Identifier: CC0-1.0
+
+name: Release wwvbgen
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  test:
+
+    runs-on: ubuntu-20.04
+    steps:
+    - name: Dump GitHub context
+      env:
+        GITHUB_CONTEXT: ${{ toJson(github) }}
+      run: echo "$GITHUB_CONTEXT"
+
+    - uses: actions/checkout@v2.2.0
+
+    - name: Set up Python
+      uses: actions/setup-python@v1
+      with:
+        python-version: 3.7
+
+    - name: Install deps
+      run: python -mpip install -r requirements-dev.txt
+
+    - name: Test
+      run: python -mcoverage run --branch -m unittest unittests/*.py && python -mcoverage report --fail-under=100
+
+    - name: Build release
+      run: python -mbuild
+
+    - name: Upload release
+      run: twine upload -u "$TWINE_USERNAME" -p "$TWINE_PASSWORD" dist/*
+      env:
+        TWINE_USERNAME: __token__
+        TWINE_PASSWORD: ${{ secrets.pypi_token }}
