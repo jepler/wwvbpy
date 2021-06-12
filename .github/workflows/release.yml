@@ -9,7 +9,7 @@ on:
     types: [published]
 
 jobs:
-  test:
+  release:
 
     runs-on: ubuntu-20.04
     steps:
