@@ -41,6 +41,9 @@ jobs:
     - name: Test
       run: python -mcoverage run --branch -m unittest && python -mcoverage report --fail-under=100
 
+    - name: Upload Coverage to Codecov
+      uses: codecov/codecov-action@v1
+
   pre-commit:
     runs-on: ubuntu-20.04
     steps:
