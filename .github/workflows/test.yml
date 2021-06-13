@@ -42,7 +42,7 @@ jobs:
       run: python -mpip install -r requirements-dev.txt
 
     - name: Test
-      run: python -mcoverage run --branch -m unittest unittests/*.py && python -mcoverage report --fail-under=100
+      run: python -mcoverage run --branch -m unittest && python -mcoverage report --fail-under=100
 
     - name: Upload Coverage to Codecov
       uses: codecov/codecov-action@v1
