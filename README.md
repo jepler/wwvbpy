@@ -24,12 +24,16 @@ within the 100-year WWVB epoch.  (yes, WWVB uses a 2-digit year! In order to
 work with historical data, the epoch is arbitrarily assumed to run from 1970 to
 2069.)
 
-Components include:
+Programs include:
  * wwvbgen, the main commandline generator program
- * wwvblib, the main library for generating WWVB timecodes
- * wwvbdec, a generator-based state machine for decoding WWVB timecodes (amplitude modulation only)
- * uwwvb contains a version of the code intended for use on constrained environments such as [CircuitPython](https://circuitpython.org).
- * wwvbtk visualizes the simulated WWVB signal in real-time using Tkinter
+ * wwvbtk, visualize the simulated WWVB signal in real-time using Tkinter
+ * dut1table, print the full history of dut1 values, including estimated future values
+
+The package includes:
+ * wwvb, for generating WWVB timecodes
+ * wwvb.decode, a generator-based state machine for decoding WWVB timecodes (amplitude modulation only)
+ * wwvb.tzinfo_us, an implementation of the US DST rules adapted from the Python doc examples.  tzinfo_us is an implementation detail and may change.
+ * uwwvb, a version of the decoder intended for use on constrained environments such as [CircuitPython](https://circuitpython.org).
 
 # Development status
 
