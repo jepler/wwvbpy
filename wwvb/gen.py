@@ -8,7 +8,7 @@
 
 import datetime
 import sys
-import optparse  # pylint: disable=deprecated-module
+import click
 
 from . import (
     print_timecodes,
@@ -18,113 +18,102 @@ from . import (
 )
 
 
-def main():  # pragma no cover
-    """A command-line program for generating wwvb timecodes"""
+def parse_timespec(ctx, param, value):  # pylint: disable=unused-argument
+    """Parse a time specifier from the commandline"""
+    try:
+        if len(value) == 5:
+            year, month, day, hour, minute = map(int, value)
+            return datetime.datetime(year, month, day, 0, 0)
+        if len(value) == 4:
+            year, yday, hour, minute = map(int, value)
+            return datetime.datetime(year, 1, 1, hour, minute) + datetime.timedelta(
+                days=yday
+            )
+        if len(value) == 1:
+            # dateparser is slow to import (>300ms on i5-3320M) so postpone it
+            import dateparser  # pylint: disable=import-outside-toplevel
 
-    parser = optparse.OptionParser(
-        usage="Usage: %prog [options] [year yday hour minute | year month day hour minute]"
-    )
-    parser.add_option(
-        "-i",
-        "--iers",
-        dest="iers",
-        help="use IERS data for DUT1 and LS [Default]",
-        action="store_true",
-        default=True,
-    )
-    parser.add_option(
-        "-I",
-        "--no-iers",
-        dest="iers",
-        help="do not use IERS data for DUT1 and LS",
-        action="store_false",
-    )
-    parser.add_option(
-        "-s",
-        "--leap-second",
-        dest="forcels",
-        help="force a leap second  [Implies --no-iers]",
-        action="store_true",
-        default=None,
-    )
-    parser.add_option(
-        "-S",
-        "--no-leap-second",
-        dest="forcels",
-        help="force no leap second [Implies --no-iers]",
-        action="store_false",
-    )
-    parser.add_option(
-        "-d",
-        "--dut1",
-        dest="forcedut1",
-        help="force dut1           [Implies --no-iers]",
-        metavar="DUT1",
-        default=None,
-    )
-    parser.add_option(
-        "-m",
-        "--minutes",
-        dest="minutes",
-        help="number of minutes to generate [Default: 10]",
-        metavar="MINUTES",
-        type="int",
-        default=10,
-    )
-    parser.add_option(
-        "--style",
-        dest="style",
-        help="Style of output (one of: %s)" % ", ".join(styles.keys()),
-        metavar="STYLE",
-        type="str",
-        default="default",
-    )
-    parser.add_option(
-        "--channel",
-        dest="channel",
-        help="Modulation (amplitude, phase, both) to print",
-        metavar="MODULATION",
-        type="str",
-        default="amplitude",
-    )
-    options, args = parser.parse_args()
+            return dateparser.parse(value[0])
+        if len(value) == 0:
+            return datetime.datetime.utcnow()
+        raise ValueError("Unexpected number of arguments")
+    except ValueError as e:
+        raise click.UsageError(f"Could not parse timespec: {e}") from e
+    return value
+
+
+@click.command()
+@click.option(
+    "--iers/--no-iers",
+    "-i/-I",
+    default=True,
+    help="Whether to use IESR data for DUT1 and LS.  (Default: --iers)",
+)
+@click.option(
+    "--leap-second",
+    "-s",
+    "leap_second",
+    flag_value=1,
+    default=None,
+    help="Force a positive leap second at the end of the GMT month (Implies --no-iers)",
+)
+@click.option(
+    "--negative-leap-second",
+    "-n",
+    "leap_second",
+    flag_value=-1,
+    help="Force a negative leap second at the end of the GMT month (Implies --no-iers)",
+)
+@click.option(
+    "--no-leap-second",
+    "-S",
+    "leap_second",
+    flag_value=0,
+    help="Force no leap second at the end of the month (Implies --no-iers)",
+)
+@click.option("--dut1", "-d", type=int, help="Force the DUT1 value (Implies --no-iers)")
+@click.option(
+    "--minutes", "-m", default=10, help="Number of minutes to show (default: 10)"
+)
+@click.option(
+    "--style",
+    default="default",
+    type=click.Choice(styles.keys()),
+    help="Style of output",
+)
+@click.option(
+    "--channel",
+    type=click.Choice(["amplitude", "phase", "both"]),
+    default="amplitude",
+    help="Modulation to show (default: amplitude)",
+)
+@click.argument("timespec", type=str, nargs=-1, callback=parse_timespec)
+# pylint: disable=too-many-arguments, too-many-locals
+def main(iers, leap_second, dut1, minutes, style, channel, timespec):
+    """Generate WWVB timecodes
+
+    TIMESPEC: one of "year yday hour minute" or "year month day hour minute", or else the current minute"""
+
+    if (leap_second is not None) or (dut1 is not None):
+        iers = False
 
     extra_args = {}
-    if options.iers and options.forcedut1 is None and options.forcels is None:
+    if iers:
         Constructor = WWVBMinuteIERS
-    else:  # pragma no coverage
-        Constructor = WWVBMinute
-        if options.forcedut1 is None:
-            extra_args["ut1"] = -500 if options.forcels else 0
-        else:
-            extra_args["ut1"] = options.forcedut1
-        extra_args["ls"] = options.forcels
-
-    if args:
-        if len(args) == 4:
-            try:
-                year, yday, hour, minute = map(int, args)
-            except ValueError as e:
-                parser.print_help()
-                raise SystemExit("Arguments must be numeric") from e
-            parser.print_help()
-        elif len(args) == 5:
-            try:
-                year, month, day, hour, minute = map(int, args)
-            except ValueError as e:
-                parser.print_help()
-                raise SystemExit("Arguments must be numeric") from e
-            yday = datetime.datetime(year, month, day, 0, 0).timetuple().tm_yday
-        else:
-            parser.print_help()
-            raise SystemExit("Expected 4 or 5 arguments, got %d" % len(args))
     else:
-        now = datetime.datetime.utcnow().utctimetuple()
-        year, yday, hour, minute = now.tm_year, now.tm_yday, now.tm_hour, now.tm_min
+        Constructor = WWVBMinute
+        if dut1 is None:
+            extra_args["ut1"] = -500 * (leap_second or 0)
+        else:
+            extra_args["ut1"] = dut1
+        extra_args["ls"] = bool(leap_second)
 
-    w = Constructor(year, yday, hour, minute, **extra_args)
-    print_timecodes(w, options.minutes, options.channel, options.style, file=sys.stdout)
+    if timespec is None:
+        timespec = datetime.datetime.utcnow()
+
+    w = Constructor.from_datetime(timespec, **extra_args)
+    print_timecodes(w, minutes, channel, style, file=sys.stdout)
 
 
 if __name__ == "__main__":
-    main()
+    main()  # pylint: disable=no-value-for-parameter

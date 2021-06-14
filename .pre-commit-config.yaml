@@ -26,4 +26,4 @@ repos:
         entry: pylint
         language: python
         types: [python]
-        additional_dependencies: [beautifulsoup4, pylint, requests, adafruit-circuitpython-datetime]
+        additional_dependencies: [beautifulsoup4, pylint, requests, adafruit-circuitpython-datetime, click, dateparser]
