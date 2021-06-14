@@ -11,6 +11,26 @@ import wwvb
 
 from . import iersdata
 
+ONE_DAY = datetime.timedelta(days=1)
+
+
+def end_of_month(d):
+    """Return the end of the month containing the day 'd'"""
+    while True:
+        d0 = d
+        d = d + ONE_DAY
+        if d.month != d0.month:
+            return d0
+
+
+def next_month(d):
+    """Return the first day of hte next month after 'd'"""
+    while True:
+        d0 = d
+        d = d + ONE_DAY
+        if d.month != d0.month:
+            return d
+
 
 class TestLeapSecond(unittest.TestCase):
     """Leap second tests"""
@@ -21,13 +41,15 @@ class TestLeapSecond(unittest.TestCase):
         e = datetime.datetime(2022, 1, 1, 0, 0)
         leap = []
         while d < e:
+            eom = end_of_month(d)
+            nm = next_month(d)
             if wwvb.isls(d):
-                sense = wwvb.get_dut1(d) > 0
-                assert not sense
+                month_ends_dut1 = wwvb.get_dut1(eom)
+                month_starts_dut1 = wwvb.get_dut1(nm)
+                self.assertLess(month_ends_dut1, 0)
+                self.assertGreater(month_starts_dut1, 0)
                 leap.append(d.strftime("%b %Y"))
-            m = d.utctimetuple().tm_mon
-            while d.utctimetuple().tm_mon == m:
-                d += datetime.timedelta(days=1)
+            d = nm
         self.assertEqual(
             leap,
             [
