@@ -50,7 +50,7 @@ class TestLeapSecond(unittest.TestCase):
                 "Jun 1997",
                 "Dec 1998",
                 "Dec 2005",
-                "Mar 2009",
+                "Dec 2008",
                 "Jun 2012",
                 "Jun 2015",
                 "Dec 2016",

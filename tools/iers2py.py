@@ -56,6 +56,11 @@ def main():  # pylint: disable=too-many-locals, too-many-branches, too-many-stat
         wwvb_data.find("meta", property="article:modified_time").attrs["content"]
     ).replace(tzinfo=None)
 
+    def patch(patch_start, patch_end, val):
+        off_start = (patch_start - start).days
+        off_end = (patch_end - start).days
+        offsets[off_start:off_end] = [val] * (off_end - off_start)
+
     wwvb_dut1 = None
     wwvb_off = None
     for row in wwvb_dut1_table.findAll("tr")[1:][::-1]:
@@ -68,6 +73,12 @@ def main():  # pylint: disable=too-many-locals, too-many-branches, too-many-stat
             offsets[wwvb_off:off] = [wwvb_dut1] * (off - wwvb_off)
         wwvb_dut1 = dut1
         wwvb_off = off
+
+    # As of 2021-06-14, NIST website incorrectly indicates the offset of -600ms
+    # persisted through 2009-03-12, causing an incorrect leap second inference.
+    # Assume instead that NIST started broadcasting +400ms on January 1, 2009,
+    # causing the leap second to occur on 2008-12-31.
+    patch(datetime.datetime(2009, 1, 1), datetime.datetime(2009, 3, 12), 4)
 
     # this is the final (most recent) wwvb DUT1 value broadcast.  We want to
     # extend it some distance into the future, but how far?  We will use the
