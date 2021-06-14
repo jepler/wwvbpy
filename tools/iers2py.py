@@ -45,7 +45,7 @@ def main():  # pylint: disable=too-many-locals, too-many-branches, too-many-stat
                 break
             offs = int(round(float(offs_str) * 10))
             if not offsets:
-                start = datetime.datetime(1858, 11, 17) + datetime.timedelta(jd)
+                table_start = datetime.datetime(1858, 11, 17) + datetime.timedelta(jd)
             offsets.append(offs)
 
     wwvb_text = read_url_with_cache(NIST_URL, "wwvbdata.html")
@@ -57,22 +57,20 @@ def main():  # pylint: disable=too-many-locals, too-many-branches, too-many-stat
     ).replace(tzinfo=None)
 
     def patch(patch_start, patch_end, val):
-        off_start = (patch_start - start).days
-        off_end = (patch_end - start).days
+        off_start = (patch_start - table_start).days
+        off_end = (patch_end - table_start).days
         offsets[off_start:off_end] = [val] * (off_end - off_start)
 
     wwvb_dut1 = None
-    wwvb_off = None
     for row in wwvb_dut1_table.findAll("tr")[1:][::-1]:
         cells = row.findAll("td")
         when = datetime.datetime.strptime(cells[0].text, "%Y-%m-%d")
         dut1 = cells[2].text.replace("s", "").replace(" ", "")
         dut1 = int(round(float(dut1) * 10))
-        off = (when - start).days
         if wwvb_dut1 is not None:
-            offsets[wwvb_off:off] = [wwvb_dut1] * (off - wwvb_off)
+            patch(wwvb_start, when, wwvb_dut1)
         wwvb_dut1 = dut1
-        wwvb_off = off
+        wwvb_start = when
 
     # As of 2021-06-14, NIST website incorrectly indicates the offset of -600ms
     # persisted through 2009-03-12, causing an incorrect leap second inference.
@@ -83,11 +81,7 @@ def main():  # pylint: disable=too-many-locals, too-many-branches, too-many-stat
     # this is the final (most recent) wwvb DUT1 value broadcast.  We want to
     # extend it some distance into the future, but how far?  We will use the
     # modified timestamp of the NIST data.
-
-    off = wwvb_off
-    while off < (wwvb_data_stamp - start).days:
-        offsets[off] = wwvb_dut1
-        off += 1
+    patch(wwvb_start, wwvb_data_stamp + datetime.timedelta(days=1), wwvb_dut1)
 
     with open("wwvb/iersdata.py", "wt") as output:
 
@@ -104,11 +98,12 @@ def main():  # pylint: disable=too-many-locals, too-many-branches, too-many-stat
         code("import datetime")
 
         code("__all__ = ['DUT1_DATA_START', 'DUT1_OFFSETS']")
-        code("DUT1_DATA_START = %r" % start)
+        code("DUT1_DATA_START = %r" % table_start)
         c = sorted(chr(ord("a") + ch + 10) for ch in set(offsets))
         code("%s = '%s'" % (",".join(c), "".join(c)))
         code(
-            "DUT1_OFFSETS = str( # %04d%02d%02d" % (start.year, start.month, start.day)
+            "DUT1_OFFSETS = str( # %04d%02d%02d"
+            % (table_start.year, table_start.month, table_start.day)
         )
         line = ""
         j = 0
@@ -125,12 +120,12 @@ def main():  # pylint: disable=too-many-locals, too-many-branches, too-many-stat
                 part = part + "%s*%d" % (ch, sz)
             j += sz
             if len(line + part) > 60:
-                d = start + datetime.timedelta(j - 1)
+                d = table_start + datetime.timedelta(j - 1)
                 code("    %-60s # %04d%02d%02d" % (line, d.year, d.month, d.day))
                 line = part
             else:
                 line = line + part
-        d = start + datetime.timedelta(j - 1)
+        d = table_start + datetime.timedelta(j - 1)
         code("    %-60s # %04d%02d%02d" % (line, d.year, d.month, d.day))
         code(")")
 
