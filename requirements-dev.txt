@@ -4,6 +4,7 @@
 adafruit-circuitpython-datetime
 beautifulsoup4
 build
+click
 coverage
 pre-commit
 requests
