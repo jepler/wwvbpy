@@ -46,6 +46,15 @@ def main():  # pylint: disable=too-many-locals, too-many-branches, too-many-stat
             offs = int(round(float(offs_str) * 10))
             if not offsets:
                 table_start = datetime.datetime(1858, 11, 17) + datetime.timedelta(jd)
+                if table_start > datetime.datetime(1972, 6, 1):
+                    when = datetime.datetime(1972, 6, 1)
+                    while when < datetime.datetime(1972, 7, 1):
+                        offsets.append(-2)
+                        when = when + datetime.timedelta(days=1)
+                    while when < table_start:
+                        offsets.append(8)
+                        when = when + datetime.timedelta(days=1)
+                    table_start = datetime.datetime(1972, 6, 1)
             offsets.append(offs)
 
     wwvb_text = read_url_with_cache(NIST_URL, "wwvbdata.html")

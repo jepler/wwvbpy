@@ -9,14 +9,16 @@ import datetime
 import unittest
 import wwvb
 
+from . import iersdata
+
 
 class TestLeapSecond(unittest.TestCase):
     """Leap second tests"""
 
     def test_leap(self):
         """Tests that the expected leap seconds all occur."""
-        d = datetime.datetime(1973, 1, 2, 0, 0)
-        e = datetime.datetime(2020, 1, 1, 0, 0)
+        d = iersdata.DUT1_DATA_START
+        e = datetime.datetime(2022, 1, 1, 0, 0)
         leap = []
         while d < e:
             if wwvb.isls(d):
@@ -29,6 +31,7 @@ class TestLeapSecond(unittest.TestCase):
         self.assertEqual(
             leap,
             [
+                "Jun 1972",
                 "Dec 1973",
                 "Dec 1974",
                 "Dec 1975",
