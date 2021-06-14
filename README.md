@@ -64,7 +64,7 @@ channel.
 # Usage
 
 ~~~~
-Usage: wwvbgen.py [options] [dateparser-string | year yday hour minute | year month day hour minute]
+Usage: wwvbgen.py [options] [dateutil-string | year yday hour minute | year month day hour minute]
 
 Options:
   -h, --help            show this help message and exit

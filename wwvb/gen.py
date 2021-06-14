@@ -10,6 +10,8 @@ import datetime
 import sys
 import click
 
+import dateutil.parser
+
 from . import (
     print_timecodes,
     WWVBMinute,
@@ -30,10 +32,7 @@ def parse_timespec(ctx, param, value):  # pylint: disable=unused-argument
                 days=yday
             )
         if len(value) == 1:
-            # dateparser is slow to import (>300ms on i5-3320M) so postpone it
-            import dateparser  # pylint: disable=import-outside-toplevel
-
-            return dateparser.parse(value[0])
+            return dateutil.parser.parse(value[0])
         if len(value) == 0:
             return datetime.datetime.utcnow()
         raise ValueError("Unexpected number of arguments")

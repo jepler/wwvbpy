@@ -6,8 +6,8 @@ beautifulsoup4
 build
 click
 coverage
-dateparser
 pre-commit
+python-dateutil
 requests
 setuptools>=42
 twine
