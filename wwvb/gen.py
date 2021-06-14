@@ -18,6 +18,28 @@ from . import (
 )
 
 
+def parse_timespec(ctx, param, value):  # pylint: disable=unused-argument
+    """Parse a time specifier from the commandline"""
+    try:
+        if len(value) == 5:
+            year, month, day, hour, minute = map(int, value)
+            return datetime.datetime(year, month, day, 0, 0)
+        if len(value) == 4:
+            year, yday, hour, minute = map(int, value)
+            return datetime.datetime(year, 1, 1, hour, minute) + datetime.timedelta(
+                days=yday
+            )
+        if len(value) == 0:
+            return datetime.datetime.utcnow()
+        raise ValueError("Unexpected number of arguments")
+    except ValueError as e:
+        raise click.UsageError(
+            "TIMESPEC must be 'year month day hour minute' or 'year yday hour minute', got '%s'"
+            % " ".join(value)
+        ) from e
+    return value
+
+
 @click.command()
 @click.option(
     "--iers/--no-iers",
@@ -63,7 +85,7 @@ from . import (
     default="amplitude",
     help="Modulation to show (default: amplitude)",
 )
-@click.argument("timespec", type=int, nargs=-1)
+@click.argument("timespec", type=str, nargs=-1, callback=parse_timespec)
 # pylint: disable=too-many-arguments, too-many-locals
 def main(iers, leap_second, dut1, minutes, style, channel, timespec):
     """Generate WWVB timecodes
@@ -84,19 +106,10 @@ def main(iers, leap_second, dut1, minutes, style, channel, timespec):
             extra_args["ut1"] = dut1
         extra_args["ls"] = bool(leap_second)
 
-    if timespec:
-        if len(timespec) == 4:
-            year, yday, hour, minute = timespec
-        elif len(timespec) == 5:
-            year, month, day, hour, minute = timespec
-            yday = datetime.datetime(year, month, day, 0, 0).timetuple().tm_yday
-        else:  # pragma no cover
-            raise click.UsageError("Expected 4 or 5 arguments, got %d" % len(timespec))
-    else:
-        now = datetime.datetime.utcnow().utctimetuple()
-        year, yday, hour, minute = now.tm_year, now.tm_yday, now.tm_hour, now.tm_min
+    if timespec is None:
+        timespec = datetime.datetime.utcnow()
 
-    w = Constructor(year, yday, hour, minute, **extra_args)
+    w = Constructor.from_datetime(timespec, **extra_args)
     print_timecodes(w, minutes, channel, style, file=sys.stdout)
 
 
