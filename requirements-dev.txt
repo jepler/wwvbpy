@@ -6,6 +6,7 @@ beautifulsoup4
 build
 click
 coverage
+dateparser
 pre-commit
 requests
 setuptools>=42

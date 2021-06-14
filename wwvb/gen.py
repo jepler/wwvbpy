@@ -29,14 +29,16 @@ def parse_timespec(ctx, param, value):  # pylint: disable=unused-argument
             return datetime.datetime(year, 1, 1, hour, minute) + datetime.timedelta(
                 days=yday
             )
+        if len(value) == 1:
+            # dateparser is slow to import (>300ms on i5-3320M) so postpone it
+            import dateparser  # pylint: disable=import-outside-toplevel
+
+            return dateparser.parse(value[0])
         if len(value) == 0:
             return datetime.datetime.utcnow()
         raise ValueError("Unexpected number of arguments")
     except ValueError as e:
-        raise click.UsageError(
-            "TIMESPEC must be 'year month day hour minute' or 'year yday hour minute', got '%s'"
-            % " ".join(value)
-        ) from e
+        raise click.UsageError(f"Could not parse timespec: {e}") from e
     return value
 
 
