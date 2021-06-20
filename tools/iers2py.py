@@ -10,8 +10,22 @@ import csv
 import datetime
 import itertools
 import os
+import sys
+import pathlib
 import bs4
 import requests
+
+sys.path.insert(0, str(pathlib.Path(__file__).parent.parent))
+try:
+    import wwvb.iersdata
+
+    print(wwvb.iersdata.__file__)
+    OLD_TABLE_START = wwvb.iersdata.DUT1_DATA_START
+    OLD_TABLE_END = OLD_TABLE_START + datetime.timedelta(
+        days=len(wwvb.iersdata.DUT1_OFFSETS) - 1
+    )
+except (ImportError, NameError) as e:
+    OLD_TABLE_START = OLD_TABLE_END = None
 
 IERS_URL = "https://datacenter.iers.org/data/csv/finals2000A.all.csv"
 NIST_URL = "https://www.nist.gov/pml/time-and-frequency-division/atomic-standards/leap-second-and-ut1-utc-information"
@@ -142,6 +156,8 @@ def main():  # pylint: disable=too-many-locals, too-many-branches, too-many-stat
         code("    %-60s # %04d%02d%02d" % (line, d.year, d.month, d.day))
         code(")")
     table_end = table_start + datetime.timedelta(len(offsets) - 1)
+    if OLD_TABLE_START:
+        print(f"old iersdata covered {OLD_TABLE_START} .. {OLD_TABLE_END}")
     print(f"iersdata covers {table_start} .. {table_end}")
 
 
