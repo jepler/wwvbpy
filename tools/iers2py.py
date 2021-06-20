@@ -141,6 +141,8 @@ def main():  # pylint: disable=too-many-locals, too-many-branches, too-many-stat
         d = table_start + datetime.timedelta(j - 1)
         code("    %-60s # %04d%02d%02d" % (line, d.year, d.month, d.day))
         code(")")
+    table_end = table_start + datetime.timedelta(len(offsets) - 1)
+    print(f"iersdata covers {table_start} .. {table_end}")
 
 
 if __name__ == "__main__":
