@@ -18,9 +18,16 @@ from . import iersdata
 from .tzinfo_us import Mountain, HOUR
 
 
+def _date(dt):
+    """Return the date object itself, or the date property of a datetime"""
+    if isinstance(dt, datetime.datetime):
+        return dt.date()
+    return dt
+
+
 def get_dut1(dt):
     """Return the DUT1 number for the given timestamp"""
-    i = (dt - iersdata.DUT1_DATA_START).days
+    i = (_date(dt) - iersdata.DUT1_DATA_START).days
     if i < 0:
         v = iersdata.DUT1_OFFSETS[0]
     elif i >= len(iersdata.DUT1_OFFSETS):

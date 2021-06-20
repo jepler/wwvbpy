@@ -45,25 +45,29 @@ def main():  # pylint: disable=too-many-locals, too-many-branches, too-many-stat
                 break
             offs = int(round(float(offs_str) * 10))
             if not offsets:
-                table_start = datetime.datetime(1858, 11, 17) + datetime.timedelta(jd)
-                if table_start > datetime.datetime(1972, 6, 1):
-                    when = datetime.datetime(1972, 6, 1)
-                    while when < datetime.datetime(1972, 7, 1):
+                table_start = datetime.date(1858, 11, 17) + datetime.timedelta(jd)
+                if table_start > datetime.date(1972, 6, 1):
+                    when = datetime.date(1972, 6, 1)
+                    while when < datetime.date(1972, 7, 1):
                         offsets.append(-2)
                         when = when + datetime.timedelta(days=1)
                     while when < table_start:
                         offsets.append(8)
                         when = when + datetime.timedelta(days=1)
-                    table_start = datetime.datetime(1972, 6, 1)
+                    table_start = datetime.date(1972, 6, 1)
             offsets.append(offs)
 
     wwvb_text = read_url_with_cache(NIST_URL, "wwvbdata.html")
     wwvb_data = bs4.BeautifulSoup(wwvb_text, features="html.parser")
     wwvb_dut1_table = wwvb_data.findAll("table")[2]
     assert wwvb_dut1_table
-    wwvb_data_stamp = datetime.datetime.fromisoformat(
-        wwvb_data.find("meta", property="article:modified_time").attrs["content"]
-    ).replace(tzinfo=None)
+    wwvb_data_stamp = (
+        datetime.datetime.fromisoformat(
+            wwvb_data.find("meta", property="article:modified_time").attrs["content"]
+        )
+        .replace(tzinfo=None)
+        .date()
+    )
 
     def patch(patch_start, patch_end, val):
         off_start = (patch_start - table_start).days
@@ -73,7 +77,7 @@ def main():  # pylint: disable=too-many-locals, too-many-branches, too-many-stat
     wwvb_dut1 = None
     for row in wwvb_dut1_table.findAll("tr")[1:][::-1]:
         cells = row.findAll("td")
-        when = datetime.datetime.strptime(cells[0].text, "%Y-%m-%d")
+        when = datetime.datetime.strptime(cells[0].text, "%Y-%m-%d").date()
         dut1 = cells[2].text.replace("s", "").replace(" ", "")
         dut1 = int(round(float(dut1) * 10))
         if wwvb_dut1 is not None:
@@ -85,7 +89,7 @@ def main():  # pylint: disable=too-many-locals, too-many-branches, too-many-stat
     # persisted through 2009-03-12, causing an incorrect leap second inference.
     # Assume instead that NIST started broadcasting +400ms on January 1, 2009,
     # causing the leap second to occur on 2008-12-31.
-    patch(datetime.datetime(2009, 1, 1), datetime.datetime(2009, 3, 12), 4)
+    patch(datetime.date(2009, 1, 1), datetime.date(2009, 3, 12), 4)
 
     # this is the final (most recent) wwvb DUT1 value broadcast.  We want to
     # extend it some distance into the future, but how far?  We will use the

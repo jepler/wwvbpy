@@ -38,7 +38,7 @@ class TestLeapSecond(unittest.TestCase):
     def test_leap(self):
         """Tests that the expected leap seconds all occur."""
         d = iersdata.DUT1_DATA_START
-        e = datetime.datetime(2022, 1, 1, 0, 0)
+        e = datetime.date(2022, 1, 1)
         leap = []
         while d < e:
             eom = end_of_month(d)

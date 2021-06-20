@@ -6,7 +6,7 @@
 # pylint: disable=invalid-name
 import datetime
 __all__ = ['DUT1_DATA_START', 'DUT1_OFFSETS']
-DUT1_DATA_START = datetime.datetime(1972, 6, 1, 0, 0)
+DUT1_DATA_START = datetime.date(1972, 6, 1)
 d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s = 'defghijklmnopqrs'
 DUT1_OFFSETS = str( # 19720601
     i*30+s*203+r*31+q*29+p*28+o*30+n*36+m*40+l*39+k*33+j*31+i*31 # 19731231
@@ -33,5 +33,5 @@ DUT1_OFFSETS = str( # 19720601
     +m*154+l*119+k*84+j*217+i*126+h*176+g*97+f*91+e*52+o*116     # 20130130
     +n*98+m*70+l*133+k*91+j*91+i*77+h*140+g*91+f*84+e*70+d*34    # 20150910
     +n*72+m*76+l*66+k*53+j*56+i*105+h*77+g*45+q*25+p*63+o*91     # 20171129
-    +n*154+m*105+l*190+k*118+j*105+i*815+j*329                   # 20220618
+    +n*154+m*105+l*190+k*118+j*105+i*815+j*336                   # 20220625
 )
