@@ -25,7 +25,7 @@ def parse_timespec(ctx, param, value):  # pylint: disable=unused-argument
     try:
         if len(value) == 5:
             year, month, day, hour, minute = map(int, value)
-            return datetime.datetime(year, month, day, 0, 0)
+            return datetime.datetime(year, month, day, hour, minute)
         if len(value) == 4:
             year, yday, hour, minute = map(int, value)
             return datetime.datetime(year, 1, 1, hour, minute) + datetime.timedelta(
