@@ -81,6 +81,13 @@ def parse_timespec(ctx, param, value):  # pylint: disable=unused-argument
     help="Style of output",
 )
 @click.option(
+    "--all-timecodes/--no-all-timecodes",
+    "-t/-T",
+    default=False,
+    type=bool,
+    help="Show the 'WWVB timecode' line before each minute",
+)
+@click.option(
     "--channel",
     type=click.Choice(["amplitude", "phase", "both"]),
     default="amplitude",
@@ -88,7 +95,7 @@ def parse_timespec(ctx, param, value):  # pylint: disable=unused-argument
 )
 @click.argument("timespec", type=str, nargs=-1, callback=parse_timespec)
 # pylint: disable=too-many-arguments, too-many-locals
-def main(iers, leap_second, dut1, minutes, style, channel, timespec):
+def main(iers, leap_second, dut1, minutes, style, channel, all_timecodes, timespec):
     """Generate WWVB timecodes
 
     TIMESPEC: one of "year yday hour minute" or "year month day hour minute", or else the current minute"""
@@ -111,7 +118,9 @@ def main(iers, leap_second, dut1, minutes, style, channel, timespec):
         timespec = datetime.datetime.utcnow()
 
     w = Constructor.from_datetime(timespec, **extra_args)
-    print_timecodes(w, minutes, channel, style, file=sys.stdout)
+    print_timecodes(
+        w, minutes, channel, style, all_timecodes=all_timecodes, file=sys.stdout
+    )
 
 
 if __name__ == "__main__":

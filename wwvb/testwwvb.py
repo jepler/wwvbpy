@@ -18,6 +18,7 @@ from wwvb import decode, iersdata
 import uwwvb
 
 
+# pylint: disable=too-many-locals
 class WWVBTestCase(unittest.TestCase):
     """Test each expected output in tests/.  Some outputs are from another program, some are from us"""
 
@@ -48,10 +49,23 @@ class WWVBTestCase(unittest.TestCase):
                 num_minutes = len(lines) - 2
                 if channel == "both":
                     num_minutes = len(lines) // 3
+
+                num_headers = sum(line.startswith("WWVB timecode") for line in lines)
+                if num_headers > 1:
+                    all_timecodes = True
+                    num_minutes = num_headers
+                else:
+                    all_timecodes = False
+
                 w = wwvb.WWVBMinute.fromstring(timestamp)
                 result = io.StringIO()
                 wwvb.print_timecodes(
-                    w, num_minutes, channel=channel, style=style, file=result
+                    w,
+                    num_minutes,
+                    channel=channel,
+                    style=style,
+                    all_timecodes=all_timecodes,
+                    file=result,
                 )
                 result = result.getvalue()
                 self.assertEqual(text, result)

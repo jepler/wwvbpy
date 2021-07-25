@@ -750,13 +750,21 @@ styles = {
 }
 
 
-def print_timecodes(w, minutes, channel, style, file):
+# pylint: disable=too-many-arguments
+def print_timecodes(w, minutes, channel, style, file, *, all_timecodes=False):
     """Print a range of timecodes with a header.  This header is in a format understood by WWVBMinute.fromstring"""
     channel_text = "" if channel == "amplitude" else " --channel=%s" % channel
     style_text = "" if style == "default" else " --style=%s" % style
     style = styles.get(style, "012")
-    print("WWVB timecode: %s%s%s" % (str(w), channel_text, style_text), file=file)
+    first = True
     for _ in range(minutes):
+        if first or all_timecodes:
+            if not first:
+                print(file=file)
+            print(
+                "WWVB timecode: %s%s%s" % (str(w), channel_text, style_text), file=file
+            )
+        first = False
         pfx = "%04d-%03d %02d:%02d " % (w.year, w.days, w.hour, w.min)
         tc = w.as_timecode()
         if channel in ("amplitude", "both"):
