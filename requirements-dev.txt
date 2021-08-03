@@ -9,6 +9,6 @@ coverage
 pre-commit
 python-dateutil
 requests
-setuptools>=42
+setuptools>=45
 twine
 wheel

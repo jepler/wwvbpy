@@ -12,3 +12,4 @@ __pycache__
 *,cover
 /.reuse
 /wwvbdata.html
+/wwvb/__version__.py
