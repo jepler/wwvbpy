@@ -31,7 +31,7 @@ jobs:
       run: pip install -r requirements-dev.txt
 
     - name: Update DUT1 data
-      run: python tools/iers2py.py
+      run: python -m wwvb.updateiers --dist
 
     - name: Test (python 3.9)
       run: python -munittest
@@ -41,4 +41,4 @@ jobs:
         git config user.name "${GITHUB_ACTOR} (github actions cron)"
         git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
         git remote set-url --push origin https://${GITHUB_ACTOR}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
-        if git commit -m"update iersdata" wwvb/iersdata.py; then git push origin HEAD:main; fi
+        if git commit -m"update iersdata" wwvb/iersdata_dist.py; then git push origin HEAD:main; fi

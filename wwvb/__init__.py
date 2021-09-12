@@ -10,6 +10,7 @@ import collections
 import datetime
 import enum
 import math
+import warnings
 from typing import List, Tuple
 
 from . import iersdata
@@ -25,12 +26,26 @@ def _date(dt):
     return dt
 
 
+def maybe_warn_update(dt):  # pragma no cover
+    """Maybe print a notice to run updateiers, if it seems useful to do so."""
+    # We already know this date is not covered.
+    # If the date is less than 330 days after today, there should be (possibly)
+    # prospective available now.
+    today = datetime.date.today()
+    if dt < today + datetime.timedelta(days=330):
+        warnings.warn(
+            "Note: Running `updateiers` may provide better DUT1 and LS information"
+        )
+
+
 def get_dut1(dt):
     """Return the DUT1 number for the given timestamp"""
-    i = (_date(dt) - iersdata.DUT1_DATA_START).days
+    dt = _date(dt)
+    i = (dt - iersdata.DUT1_DATA_START).days
     if i < 0:
         v = iersdata.DUT1_OFFSETS[0]
     elif i >= len(iersdata.DUT1_OFFSETS):
+        maybe_warn_update(dt)
         v = iersdata.DUT1_OFFSETS[-1]
     else:
         v = iersdata.DUT1_OFFSETS[i]

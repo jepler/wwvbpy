@@ -4,9 +4,14 @@
 
 [build-system]
 requires = [
+    "beautifulsoup4",
+    "click",
+    "requests",
+    "platformdirs",
+    "python-dateutil",
     "setuptools>=45",
+    "setuptools_scm[toml]>=6.0",
     "wheel",
-    "setuptools_scm[toml]>=6.0"
 ]
 build-backend = "setuptools.build_meta"
 [tool.setuptools_scm]

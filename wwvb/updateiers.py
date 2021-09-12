@@ -4,25 +4,27 @@
 #
 # SPDX-License-Identifier: GPL-3.0-only
 
-"""Update the content of 'iersdata.py' based on online sources"""
+"""Update the DUT1 and LS data based on online sources"""
 
 import csv
 import datetime
+import io
 import itertools
 import os
-import sys
 import pathlib
 import bs4
+import click
+import platformdirs
 import requests
 
-sys.path.insert(0, str(pathlib.Path(__file__).parent.parent))
-try:
-    import wwvb.iersdata
+DIST_PATH = str(pathlib.Path(__file__) / "iersdata_dist.py")
 
-    print(wwvb.iersdata.__file__)
-    OLD_TABLE_START = wwvb.iersdata.DUT1_DATA_START
+try:
+    import wwvb.iersdata_dist
+
+    OLD_TABLE_START = wwvb.iersdata_dist.DUT1_DATA_START
     OLD_TABLE_END = OLD_TABLE_START + datetime.timedelta(
-        days=len(wwvb.iersdata.DUT1_OFFSETS) - 1
+        days=len(wwvb.iersdata_dist.DUT1_OFFSETS) - 1
     )
 except (ImportError, NameError) as e:
     OLD_TABLE_START = OLD_TABLE_END = None
@@ -31,28 +33,14 @@ IERS_URL = "https://datacenter.iers.org/data/csv/finals2000A.all.csv"
 NIST_URL = "https://www.nist.gov/pml/time-and-frequency-division/atomic-standards/leap-second-and-ut1-utc-information"
 
 
-def open_url_with_cache(url, cache):
-    """Fetch the content of a URL, storing it in a cache, returning it as a file"""
-    if not os.path.exists(cache):
-        with requests.get(url) as f:
-            text = f.text
-        with open(cache, "w") as f:
-            f.write(text)
-    return open(cache, "r")  # pylint: disable=consider-using-with
-
-
-def read_url_with_cache(url, cache):
-    """Read the content of a URL, returning it as a string"""
-    with open_url_with_cache(url, cache) as f:
-        return f.read()
-
-
-def main():  # pylint: disable=too-many-locals, too-many-branches, too-many-statements
+def update_iersdata(
+    target_file,
+):  # pylint: disable=too-many-locals, too-many-branches, too-many-statements
     """Update iersdata.py"""
 
     offsets = []
-    with open_url_with_cache(IERS_URL, "iersdata.csv") as iers_data:
-        for r in csv.DictReader(iers_data, delimiter=";"):
+    with requests.get(IERS_URL) as iers_data:
+        for r in csv.DictReader(io.StringIO(iers_data.text), delimiter=";"):
             jd = float(r["MJD"])
             offs_str = r["UT1-UTC"]
             if not offs_str:
@@ -71,7 +59,7 @@ def main():  # pylint: disable=too-many-locals, too-many-branches, too-many-stat
                     table_start = datetime.date(1972, 6, 1)
             offsets.append(offs)
 
-    wwvb_text = read_url_with_cache(NIST_URL, "wwvbdata.html")
+    wwvb_text = requests.get(NIST_URL).text
     wwvb_data = bs4.BeautifulSoup(wwvb_text, features="html.parser")
     wwvb_dut1_table = wwvb_data.findAll("table")[2]
     assert wwvb_dut1_table
@@ -110,7 +98,7 @@ def main():  # pylint: disable=too-many-locals, too-many-branches, too-many-stat
     # modified timestamp of the NIST data.
     patch(wwvb_start, wwvb_data_stamp + datetime.timedelta(days=1), wwvb_dut1)
 
-    with open("wwvb/iersdata.py", "wt") as output:
+    with open(target_file, "wt", encoding="utf-8") as output:
 
         def code(*args):
             """Print to the output file"""
@@ -161,5 +149,28 @@ def main():  # pylint: disable=too-many-locals, too-many-branches, too-many-stat
     print(f"iersdata covers {table_start} .. {table_end}")
 
 
+def iersdata_path(callback):
+    """Find out the path for this directory"""
+    return callback("wwvbpy", "unpythonic.net")
+
+
+@click.command()
+@click.option(
+    "--user",
+    "location",
+    flag_value=iersdata_path(platformdirs.user_data_dir),
+    default=iersdata_path(platformdirs.user_data_dir),
+)
+@click.option("--dist", "location", flag_value=DIST_PATH)
+@click.option(
+    "--site", "location", flag_value=iersdata_path(platformdirs.site_data_dir)
+)
+def main(location):
+    """Update DUT1 data"""
+    print("will write to", location)
+    os.makedirs(location, exist_ok=True)
+    update_iersdata(os.path.join(location, "wwvbpy_iersdata.py"))
+
+
 if __name__ == "__main__":
-    main()
+    main()  # pylint: disable=no-value-for-parameter

@@ -28,7 +28,7 @@ class WWVBTestCase(unittest.TestCase):
         """Generate a test case for each expected output in tests/"""
         for test in glob.glob("tests/*"):
             with self.subTest(test=test):
-                with open(test) as f:
+                with open(test, "rt", encoding="utf-8") as f:
                     text = f.read()
                 lines = [line for line in text.split("\n") if not line.startswith("#")]
                 while not lines[0]:
