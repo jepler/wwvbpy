@@ -17,7 +17,7 @@ import click
 import platformdirs
 import requests
 
-DIST_PATH = str(pathlib.Path(__file__) / "iersdata_dist.py")
+DIST_PATH = str(pathlib.Path(__file__).parent)
 
 try:
     import wwvb.iersdata_dist
