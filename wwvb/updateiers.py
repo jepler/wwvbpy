@@ -17,7 +17,7 @@ import click
 import platformdirs
 import requests
 
-DIST_PATH = str(pathlib.Path(__file__).parent)
+DIST_PATH = str(pathlib.Path(__file__).parent / "iersdata_dist.py")
 
 try:
     import wwvb.iersdata_dist
@@ -151,7 +151,7 @@ def update_iersdata(
 
 def iersdata_path(callback):
     """Find out the path for this directory"""
-    return callback("wwvbpy", "unpythonic.net")
+    return os.path.join(callback("wwvbpy", "unpythonic.net"), "wwvb_iersdata.py")
 
 
 @click.command()
@@ -168,8 +168,8 @@ def iersdata_path(callback):
 def main(location):
     """Update DUT1 data"""
     print("will write to", location)
-    os.makedirs(location, exist_ok=True)
-    update_iersdata(os.path.join(location, "wwvbpy_iersdata.py"))
+    os.makedirs(os.path.dirname(location), exist_ok=True)
+    update_iersdata(location)
 
 
 if __name__ == "__main__":
