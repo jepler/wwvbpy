@@ -24,6 +24,10 @@ within the 100-year WWVB epoch.  (yes, WWVB uses a 2-digit year! In order to
 work with historical data, the epoch is arbitrarily assumed to run from 1970 to
 2069.)
 
+Note that the NIST page of DUT1 offsets may be incomplete; on 2021-09-11,
+DUT1=-1 is broadcast, but the latest data on the NIST page gives the latest
+DUT1 correction as -2 starting on 2019-05-02!
+
 Programs include:
  * wwvbgen, the main commandline generator program
  * wwvbtk, visualize the simulated WWVB signal in real-time using Tkinter
