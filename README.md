@@ -29,15 +29,16 @@ DUT1=-1 is broadcast, but the latest data on the NIST page gives the latest
 DUT1 correction as -2 starting on 2019-05-02!
 
 Programs include:
- * wwvbgen, the main commandline generator program
- * wwvbtk, visualize the simulated WWVB signal in real-time using Tkinter
- * dut1table, print the full history of dut1 values, including estimated future values
+ * `wwvbgen`, the main commandline generator program
+ * `wwvbtk`, visualize the simulated WWVB signal in real-time using Tkinter
+ * `dut1table`, print the full history of dut1 values, including estimated future values
+ * `updateiers`, download the latest dut1 data including prospective data from IERS and NIST
 
 The package includes:
- * wwvb, for generating WWVB timecodes
- * wwvb.decode, a generator-based state machine for decoding WWVB timecodes (amplitude modulation only)
- * wwvb.tzinfo_us, an implementation of the US DST rules adapted from the Python doc examples.  tzinfo_us is an implementation detail and may change.
- * uwwvb, a version of the decoder intended for use on constrained environments such as [CircuitPython](https://circuitpython.org).
+ * `wwvb`, for generating WWVB timecodes
+ * `wwvb.decode`, a generator-based state machine for decoding WWVB timecodes (amplitude modulation only)
+ * `wwvb.tzinfo_us`, an implementation of the US DST rules adapted from the Python doc examples.  `tzinfo_us` is an implementation detail and may change.
+ * `uwwvb`, a version of the decoder intended for use on constrained environments such as [CircuitPython](https://circuitpython.org).
 
 # Development status
 
