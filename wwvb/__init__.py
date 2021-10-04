@@ -297,11 +297,11 @@ class WWVBMinute(_WWVBMinute):
         """Construct a WWVBMinute"""
         if dst is None:
             dst = cls.get_dst(year, days)
-        if dst not in (0, 1, 2, 3):  # pragma no coverage
+        if dst not in (0, 1, 2, 3):
             raise ValueError("dst value should be 0..3")
         if ut1 is None and ls is None:
             ut1, ls = cls.get_dut1_info(year, days)
-        elif ut1 is None or ls is None:  # pragma no coverage
+        elif ut1 is None or ls is None:
             raise ValueError("sepecify both ut1 and ls or neither one")
         if year < 70:
             year = year + 2000

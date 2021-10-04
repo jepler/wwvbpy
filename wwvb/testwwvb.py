@@ -286,6 +286,17 @@ class WWVBRoundtrip(unittest.TestCase):
             wwvb.WWVBMinuteIERS.from_datetime(d, newls=1, newut1=-300),
         )
 
+    def test_exceptions(self):
+        """Test some error detection"""
+        with self.assertRaises(ValueError):
+            wwvb.WWVBMinute(2021, 1, 1, 1, dst=4)
+
+        with self.assertRaises(ValueError):
+            wwvb.WWVBMinute(2021, 1, 1, 1, ut1=1)
+
+        with self.assertRaises(ValueError):
+            wwvb.WWVBMinute(2021, 1, 1, 1, ls=False)
+
 
 if __name__ == "__main__":  # pragma no cover
     unittest.main()
