@@ -45,7 +45,7 @@ class WWVBTestCase(unittest.TestCase):
                     elif o.startswith("--style="):
                         style = o[8:]
                     else:  # pragma: no cover
-                        raise ValueError("Unknown option %r" % o)
+                        raise ValueError(f"Unknown option {repr(o)}")
                 num_minutes = len(lines) - 2
                 if channel == "both":
                     num_minutes = len(lines) // 3

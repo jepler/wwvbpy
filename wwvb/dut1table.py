@@ -19,7 +19,7 @@ def main():
         count = len(list(it))
         dut1_next = wwvb.get_dut1(date + timedelta(days=count))
         ls = " LS" if dut1_ms * dut1_next < 0 else ""
-        print("%10s % 3.1f %4d%s" % (date, dut1_ms, count, ls))
+        print(f"{date:10s} {dut1_ms: 3.1f} {count:4d}{ls}")
         date += timedelta(days=count)
     print(date)
 

@@ -113,12 +113,11 @@ def update_iersdata(
         code("import datetime")
 
         code("__all__ = ['DUT1_DATA_START', 'DUT1_OFFSETS']")
-        code("DUT1_DATA_START = %r" % table_start)
+        code(f"DUT1_DATA_START = {repr(table_start)}")
         c = sorted(chr(ord("a") + ch + 10) for ch in set(offsets))
-        code("%s = '%s'" % (",".join(c), "".join(c)))
+        code(f"{','.join(c)} = {repr(''.join(c))}")
         code(
-            "DUT1_OFFSETS = str( # %04d%02d%02d"
-            % (table_start.year, table_start.month, table_start.day)
+            f"DUT1_OFFSETS = str( # {table_start.year:04d}{table_start.month:02d}{table_start.day:02d}"
         )
         line = ""
         j = 0
@@ -130,18 +129,18 @@ def update_iersdata(
             if j:
                 part = part + "+"
             if sz < 2:
-                part = part + "%s" % ch
+                part = part + str(ch)
             else:
-                part = part + "%s*%d" % (ch, sz)
+                part = part + f"{ch}*{sz}"
             j += sz
             if len(line + part) > 60:
                 d = table_start + datetime.timedelta(j - 1)
-                code("    %-60s # %04d%02d%02d" % (line, d.year, d.month, d.day))
+                code(f"    {line:<60s} # {d.year:04d}{d.month:02d}{d.day:02d}")
                 line = part
             else:
                 line = line + part
         d = table_start + datetime.timedelta(j - 1)
-        code("    %-60s # %04d%02d%02d" % (line, d.year, d.month, d.day))
+        code(f"    {line:<60s} # {d.year:04d}{d.month:02d}{d.day:02d}")
         code(")")
     table_end = table_start + datetime.timedelta(len(offsets) - 1)
     if OLD_TABLE_START:

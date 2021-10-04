@@ -320,16 +320,7 @@ class WWVBMinute(_WWVBMinute):
 
     def __str__(self):
         """Implement str()"""
-        return "year=%4d days=%.3d hour=%.2d min=%.2d dst=%d ut1=%d ly=%d ls=%d" % (
-            self.year,
-            self.days,
-            self.hour,
-            self.min,
-            self.dst,
-            self.ut1,
-            self.is_ly(),
-            self.ls,
-        )
+        return f"year={self.year:4d} days={self.days:03d} hour={self.hour:02d} min={self.min:02d} dst={self.dst} ut1={self.ut1} ly={int(self.ly)} ls={self.ls}"
 
     def as_datetime_utc(self):
         """Convert to a UTC datetime"""
@@ -358,6 +349,11 @@ class WWVBMinute(_WWVBMinute):
         if dst:
             d += datetime.timedelta(seconds=3600)
         return d
+
+    @property
+    def ly(self):  # pylint: disable=invalid-name
+        """True if minute is during a leap year"""
+        return self.is_ly()
 
     def is_ly(self):
         """Return True if minute is during a leap year"""
@@ -433,7 +429,7 @@ class WWVBMinute(_WWVBMinute):
         t.am[37] = AmplitudeModulation(not ut1_sign)
         t.put_am_bcd(abs(self.ut1) // 100, 40, 41, 42, 43)
         t.put_am_bcd(self.year, 45, 46, 47, 48, 50, 51, 52, 53)
-        t.am[55] = AmplitudeModulation(self.is_ly())
+        t.am[55] = AmplitudeModulation(self.ly)
         t.am[56] = AmplitudeModulation(self.ls)
         t.put_am_bcd(self.dst, 57, 58)
 
@@ -731,7 +727,7 @@ class WWVBTimecode:
         """implement str()"""
         undefined = [i for i in range(len(self.am)) if self.am[i] is None]
         if undefined:  # pragma no coverage
-            print("Warning: Timecode%s is undefined" % undefined)
+            print(f"Warning: Timecode{undefined} is undefined")
 
         def convert_one(am, phase):
             if phase is PhaseModulation.UNSET:
@@ -768,25 +764,23 @@ styles = {
 # pylint: disable=too-many-arguments
 def print_timecodes(w, minutes, channel, style, file, *, all_timecodes=False):
     """Print a range of timecodes with a header.  This header is in a format understood by WWVBMinute.fromstring"""
-    channel_text = "" if channel == "amplitude" else " --channel=%s" % channel
-    style_text = "" if style == "default" else " --style=%s" % style
+    channel_text = "" if channel == "amplitude" else f" --channel={channel}"
+    style_text = "" if style == "default" else f" --style={style}"
     style = styles.get(style, "012")
     first = True
     for _ in range(minutes):
         if first or all_timecodes:
             if not first:
                 print(file=file)
-            print(
-                "WWVB timecode: %s%s%s" % (str(w), channel_text, style_text), file=file
-            )
+            print(f"WWVB timecode: {str(w)}{channel_text}{style_text}", file=file)
         first = False
-        pfx = "%04d-%03d %02d:%02d " % (w.year, w.days, w.hour, w.min)
+        pfx = f"{w.year:04d}-{w.days:03d} {w.hour:02d}:{w.min:02d} "
         tc = w.as_timecode()
         if channel in ("amplitude", "both"):
-            print("%s %s" % (pfx, tc.to_am_string(style)), file=file)
+            print(f"{pfx} {tc.to_am_string(style)}", file=file)
             pfx = " " * len(pfx)
         if channel in ("phase", "both"):
-            print("%s %s" % (pfx, tc.to_pm_string(style)), file=file)
+            print(f"{pfx} {tc.to_pm_string(style)}", file=file)
         if channel == "both":
             print(file=file)
         w = w.next_minute()
