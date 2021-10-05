@@ -52,9 +52,9 @@ def us_dst_range(year):
         dststart, dstend = DSTSTART_2007, DSTEND_2007
     elif 1986 < year < 2007:
         dststart, dstend = DSTSTART_1987_2006, DSTEND_1987_2006
-    elif 1966 < year < 1987:  # pragma no cover
+    elif 1966 < year < 1987:
         dststart, dstend = DSTSTART_1967_1986, DSTEND_1967_1986
-    else:  # pragma no cover
+    else:
         return (datetime(year, 1, 1),) * 2
 
     start = first_sunday_on_or_after(dststart.replace(year=year))
@@ -72,11 +72,11 @@ class USTimeZone(tzinfo):
         self.stdname = stdname
         self.dstname = dstname
 
-    def __repr__(self):  # pragma no cover
+    def __repr__(self):
         """implement repr()"""
         return self.reprname
 
-    def tzname(self, dt):  # pragma no cover
+    def tzname(self, dt):
         """Return the tzname"""
         if self.dst(dt):
             return self.dstname
@@ -99,7 +99,7 @@ class USTimeZone(tzinfo):
         if end - HOUR <= dt < end:
             # Fold (an ambiguous hour): use dt.fold to disambiguate.
             return ZERO if dt.fold else HOUR
-        if start <= dt < start + HOUR:  # pragma no cover
+        if start <= dt < start + HOUR:
             # Gap (a non-existent hour): reverse the fold rule.
             return HOUR if dt.fold else ZERO
         # DST is off.

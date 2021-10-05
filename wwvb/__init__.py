@@ -26,7 +26,7 @@ def _date(dt):
     return dt
 
 
-def maybe_warn_update(dt):  # pragma no cover
+def maybe_warn_update(dt):
     """Maybe print a notice to run updateiers, if it seems useful to do so."""
     # We already know this date is not covered.
     # If the date is less than 330 days after today, there should be (possibly)
@@ -91,14 +91,14 @@ def get_dst_change_hour(t, tz=Mountain):
         dst1 = lt1.dst()
         if dst0 != dst1:
             return i - 1
-    return None  # pragma no cover
+    return None
 
 
 def get_dst_change_date_and_row(d):
     """Classify DST information for the WWVB phase modulation signal"""
     if isdst(d):
         n = first_sunday_in_month(d.year, 11)
-        for offset in (-28, -21, -14, -7, 0, 7, 14, 21):
+        for offset in (-28, -21, -14, -7, 0, 7, 14, 21):  # pragma: no cover
             d1 = n + datetime.timedelta(days=offset)
             if is_dst_change_day(d1):
                 return d1, (offset + 28) // 7
@@ -109,7 +109,7 @@ def get_dst_change_date_and_row(d):
             if is_dst_change_day(d1):
                 return d1, offset // 7
 
-    return None, None  # pragma no coverage
+    return None, None
 
 
 # "Table 8", likely with transcrption errors
@@ -217,7 +217,7 @@ def get_dst_next(d, tz=Mountain):
 
     if dst_midwinter and dst_midsummer:  # pragma no coverage
         return 0b101111
-    if not (dst_midwinter or dst_midsummer):  # pragma no coverage
+    if not (dst_midwinter or dst_midsummer):
         return 0b000111
 
     # Are we in NZ or something?
