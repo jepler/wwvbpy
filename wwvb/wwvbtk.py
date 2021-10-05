@@ -6,24 +6,23 @@
 #
 # SPDX-License-Identifier: GPL-3.0-only
 
+from tkinter import Tk, Canvas
+from typing import Any, Generator, Tuple
 import threading
-from tkinter import *  # pylint: disable=unused-wildcard-import, wildcard-import
 import time
-import sys
-
 import wwvb
 
 
-def main():
+def main() -> None:
     """Visualize the WWVB signal in realtime"""
 
-    def sleep_deadline(deadline):
+    def sleep_deadline(deadline: float) -> None:
         """Sleep until a deadline"""
         now = time.time()
         if deadline > now:
             time.sleep(deadline - now)
 
-    def wwvbtick():
+    def wwvbtick() -> Generator[Tuple[float, wwvb.AmplitudeModulation], None, None]:
         """Yield consecutive values of the WWVB amplitude signal, going from minute to minute"""
         timestamp = time.time() // 60 * 60
 
@@ -35,7 +34,9 @@ def main():
                 yield timestamp + i, code
             timestamp = timestamp + 60
 
-    def wwvbsmarttick():
+    def wwvbsmarttick() -> Generator[
+        Tuple[float, wwvb.AmplitudeModulation], None, None
+    ]:
         """Yield consecutive values of the WWVB amplitude signal but deal with time
         progressing unexpectedly, such as when the computer is suspended or NTP steps
         the clock backwards
@@ -51,12 +52,19 @@ def main():
                     continue
                 yield stamp, code
 
-    def resize_canvas(event):
+    colors = ["#3c3c3c", "#cc3c3c", "#88883c", "#3ccc3c"]
+    app = Tk()
+    app.wm_minsize(48, 48)
+    canvas = Canvas(app, width=48, height=48, highlightthickness=0)
+    canvas.pack(fill="both", expand=True)
+    circle = canvas.create_oval(4, 4, 44, 44, outline="black", fill=colors[0])
+
+    def resize_canvas(event: Any) -> None:
         """Keep the circle filling the window when it is resized"""
         sz = min(event.width, event.height) - 8
         if sz < 0:
             return
-        canvas.coords(
+        canvas.coords(  # type: ignore
             circle,
             event.width // 2 - sz // 2,
             event.height // 2 - sz // 2,
@@ -64,23 +72,17 @@ def main():
             event.height // 2 + sz // 2,
         )
 
-    colors = ["#3c3c3c", "#cc3c3c", "#88883c", "#3ccc3c"]
-    app = Tk()
-    app.wm_minsize(48, 48)
-    canvas = Canvas(app, width=48, height=48, highlightthickness=0)
-    canvas.pack(fill="both", expand=True)
-    circle = canvas.create_oval(4, 4, 44, 44, outline="black", fill=colors[0])
     canvas.bind("<Configure>", resize_canvas)
 
-    def led_on(i):
+    def led_on(i: int) -> None:
         """Turn the canvas's virtual LED on"""
         canvas.itemconfigure(circle, fill=colors[i + 1])
 
-    def led_off():
+    def led_off() -> None:
         """Turn the canvas's virtual LED off"""
         canvas.itemconfigure(circle, fill=colors[0])
 
-    def thread_func():
+    def thread_func() -> None:
         """Update the canvas virtual LED"""
         for stamp, code in wwvbsmarttick():
             sleep_deadline(stamp)

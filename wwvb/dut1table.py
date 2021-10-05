@@ -11,7 +11,7 @@ import wwvb
 from .iersdata import DUT1_DATA_START, DUT1_OFFSETS
 
 
-def main():
+def main() -> None:
     """Print the table of historical DUT1 values"""
     date = DUT1_DATA_START
     for key, it in groupby(DUT1_OFFSETS):

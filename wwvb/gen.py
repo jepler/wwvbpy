@@ -8,7 +8,8 @@
 
 import datetime
 import sys
-import click  # type: ignore
+from typing import Any, List, Type
+import click
 
 import dateutil.parser
 
@@ -20,7 +21,9 @@ from . import (
 )
 
 
-def parse_timespec(ctx, param, value):  # pylint: disable=unused-argument
+def parse_timespec(  # pylint: disable=unused-argument
+    ctx: Any, param: Any, value: List[str]
+) -> datetime.datetime:
     """Parse a time specifier from the commandline"""
     try:
         if len(value) == 5:
@@ -95,7 +98,16 @@ def parse_timespec(ctx, param, value):  # pylint: disable=unused-argument
 )
 @click.argument("timespec", type=str, nargs=-1, callback=parse_timespec)
 # pylint: disable=too-many-arguments, too-many-locals
-def main(iers, leap_second, dut1, minutes, style, channel, all_timecodes, timespec):
+def main(
+    iers: bool,
+    leap_second: bool,
+    dut1: int,
+    minutes: int,
+    style: str,
+    channel: str,
+    all_timecodes: bool,
+    timespec: datetime.datetime,
+) -> None:
     """Generate WWVB timecodes
 
     TIMESPEC: one of "year yday hour minute" or "year month day hour minute", or else the current minute"""
@@ -105,7 +117,7 @@ def main(iers, leap_second, dut1, minutes, style, channel, all_timecodes, timesp
 
     extra_args = {}
     if iers:
-        Constructor = WWVBMinuteIERS
+        Constructor: Type[WWVBMinute] = WWVBMinuteIERS
     else:
         Constructor = WWVBMinute
         if dut1 is None:
@@ -117,7 +129,7 @@ def main(iers, leap_second, dut1, minutes, style, channel, all_timecodes, timesp
     if timespec is None:
         timespec = datetime.datetime.utcnow()
 
-    w = Constructor.from_datetime(timespec, **extra_args)
+    w = Constructor.from_datetime(timespec, **extra_args)  # type: ignore
     print_timecodes(
         w, minutes, channel, style, all_timecodes=all_timecodes, file=sys.stdout
     )

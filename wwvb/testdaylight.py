@@ -14,7 +14,7 @@ from wwvb.tzinfo_us import Mountain
 class TestDaylight(unittest.TestCase):
     """Test of daylight saving time calculations"""
 
-    def test_onset(self):
+    def test_onset(self) -> None:
         """Test that the onset of DST is the same in Mountain and WWVBMinute (which uses ls bits)"""
         for h in [8, 9, 10]:
             for dm in (-1, 0, 1):
@@ -27,7 +27,7 @@ class TestDaylight(unittest.TestCase):
                     d.astimezone(Mountain),
                 )
 
-    def test_end(self):
+    def test_end(self) -> None:
         """Test that the end of DST is the same in Mountain and WWVBMinute (which uses ls bits)"""
         for h in [7, 8, 9]:
             for dm in (-1, 0, 1):
@@ -40,7 +40,7 @@ class TestDaylight(unittest.TestCase):
                     d.astimezone(Mountain),
                 )
 
-    def test_midsummer(self):
+    def test_midsummer(self) -> None:
         """Test that middle of DST is the same in Mountain and WWVBMinute (which uses ls bits)"""
         for h in [7, 8, 9]:
             for dm in (-1, 0, 1):
@@ -53,7 +53,7 @@ class TestDaylight(unittest.TestCase):
                     d.astimezone(Mountain),
                 )
 
-    def test_midwinter(self):
+    def test_midwinter(self) -> None:
         """Test that middle of standard time is the same in Mountain and WWVBMinute (which uses ls bits)"""
         for h in [7, 8, 9]:
             for dm in (-1, 0, 1):

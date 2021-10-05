@@ -11,13 +11,15 @@ import datetime
 import enum
 import math
 import warnings
-from typing import List, Tuple, Union
-
+from typing import List, Optional, TextIO, Tuple, Union
+import io
 from . import iersdata
 from .tzinfo_us import Mountain, HOUR
 
+DateOrDatetime = Union[datetime.date, datetime.datetime]
 
-def _date(dt: Union[datetime.datetime, datetime.date]) -> datetime.date:
+
+def _date(dt: DateOrDatetime) -> datetime.date:
     """Return the date object itself, or the date property of a datetime"""
     if isinstance(dt, datetime.datetime):
         return dt.date()
@@ -36,7 +38,7 @@ def maybe_warn_update(dt: datetime.date) -> None:
         )
 
 
-def get_dut1(dt: Union[datetime.datetime, datetime.date]) -> float:
+def get_dut1(dt: DateOrDatetime) -> float:
     """Return the DUT1 number for the given timestamp"""
     dt = _date(dt)
     i = (dt - iersdata.DUT1_DATA_START).days
@@ -57,7 +59,7 @@ def isly(year: int) -> bool:
     return d1.year == d2.year
 
 
-def isls(t: Union[datetime.datetime, datetime.date]) -> bool:
+def isls(t: DateOrDatetime) -> bool:
     """Return True if a leap second occurs at the end of this month"""
     dut1_today = get_dut1(t)
     month_today = t.month
@@ -67,13 +69,13 @@ def isls(t: Union[datetime.datetime, datetime.date]) -> bool:
     return dut1_today * dut1_next_month < 0
 
 
-def isdst(t: datetime.date, tz=Mountain) -> bool:
+def isdst(t: datetime.date, tz: datetime.tzinfo = Mountain) -> bool:
     """Return true if daylight saving time is active at the given moment"""
     t = datetime.datetime(t.year, t.month, t.day)
     return bool(t.astimezone(tz).dst())
 
 
-def first_sunday_in_month(y, m):
+def first_sunday_in_month(y: int, m: int) -> datetime.date:
     """Find the first sunday in a given month"""
     for md in range(1, 8):
         d = datetime.date(y, m, md)
@@ -82,12 +84,14 @@ def first_sunday_in_month(y, m):
     raise RuntimeError("Impossible week without Sunday")  # pragma no cover
 
 
-def is_dst_change_day(t):
+def is_dst_change_day(t: datetime.date) -> bool:
     """Return True if the day is a DST change day"""
     return isdst(t) != isdst(t + datetime.timedelta(1))
 
 
-def get_dst_change_hour(t, tz=Mountain):
+def get_dst_change_hour(
+    t: DateOrDatetime, tz: datetime.tzinfo = Mountain
+) -> Optional[int]:
     """Return the hour when DST changes"""
     lt0 = datetime.datetime(t.year, t.month, t.day, hour=0, tzinfo=tz)
     dst0 = lt0.dst()
@@ -99,7 +103,9 @@ def get_dst_change_hour(t, tz=Mountain):
     return None
 
 
-def get_dst_change_date_and_row(d):
+def get_dst_change_date_and_row(
+    d: DateOrDatetime,
+) -> Tuple[Optional[datetime.date], Optional[int]]:
     """Classify DST information for the WWVB phase modulation signal"""
     if isdst(d):
         n = first_sunday_in_month(d.year, 11)
@@ -186,7 +192,7 @@ dsttable = [
 ]
 
 
-def lfsr_gen(x):
+def lfsr_gen(x: List[int]) -> None:
     """Generate the 127-bit sequence used in the extended 6-minute codes
     except generate 255 bits so that we can simply use any range of [x:x+127]
     bits"""
@@ -214,7 +220,7 @@ ftw = [
 ]
 
 
-def get_dst_next(d, tz=Mountain):
+def get_dst_next(d: DateOrDatetime, tz: datetime.tzinfo = Mountain) -> int:
     """Find the "dst next" value for the phase modulation signal"""
     dst_now = isdst(d)  # dst_on[1]
     dst_midwinter = isdst(datetime.datetime(d.year, 1, 1))
@@ -255,12 +261,12 @@ SYNC_T = 0x768
 SYNC_M = 0x1A3A
 
 
-def extract_bit(v, p):
+def extract_bit(v: int, p: int) -> bool:
     """Extract bit 'p' from integer 'v' as a bool"""
     return bool((v >> p) & 1)
 
 
-def hamming_parity(value: int):
+def hamming_parity(value: int) -> int:
     """Compute the "hamming parity" of a 26-bit number, such as the minute-of-century [See Enhanced WWVB Broadcast Format 4.3]"""
     parity = 0
     for i in range(4, -1, -1):
@@ -296,9 +302,25 @@ _WWVBMinute = collections.namedtuple("_WWVBMinute", "year days hour min dst ut1 
 class WWVBMinute(_WWVBMinute):
     """Uniquely identifies a minute of time in the WWVB system. To use ut1 and ls information from IERS, create a WWVBMinuteIERS value instead."""
 
-    def __new__(
-        cls, year, days, hour, minute, dst=None, ut1=None, ls=None, ly=None
-    ):  # pylint: disable=too-many-arguments
+    year: int
+    hour: int
+    minute: int
+    dst: int
+    ut1: int
+    ly: bool
+    ls: bool
+
+    def __new__(  # pylint: disable=too-many-arguments
+        cls,
+        year: int,
+        days: int,
+        hour: int,
+        minute: int,
+        dst: Optional[int] = None,
+        ut1: Optional[int] = None,
+        ls: Optional[bool] = None,
+        ly: Optional[bool] = None,
+    ) -> "WWVBMinute":
         """Construct a WWVBMinute"""
         if dst is None:
             dst = cls.get_dst(year, days)
@@ -317,7 +339,7 @@ class WWVBMinute(_WWVBMinute):
         return _WWVBMinute.__new__(cls, year, days, hour, minute, dst, ut1, ls, ly)
 
     @staticmethod
-    def get_dst(year, days):
+    def get_dst(year: int, days: int) -> int:
         """Get the 2-bit WWVB DST value for the given day"""
         d0 = datetime.datetime(year, 1, 1) + datetime.timedelta(days - 1)
         d1 = d0 + datetime.timedelta(1)
@@ -325,11 +347,11 @@ class WWVBMinute(_WWVBMinute):
         dst1 = isdst(d1)
         return dst1 * 2 + dst0
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Implement str()"""
         return f"year={self.year:4d} days={self.days:03d} hour={self.hour:02d} min={self.min:02d} dst={self.dst} ut1={self.ut1} ly={int(self.ly)} ls={self.ls}"
 
-    def as_datetime_utc(self):
+    def as_datetime_utc(self) -> datetime.datetime:
         """Convert to a UTC datetime"""
         d = datetime.datetime(self.year, 1, 1, tzinfo=datetime.timezone.utc)
         d += datetime.timedelta(self.days - 1, self.hour * 3600 + self.min * 60)
@@ -337,7 +359,9 @@ class WWVBMinute(_WWVBMinute):
 
     as_datetime = as_datetime_utc
 
-    def as_datetime_local(self, standard_time_offset=7 * 3600, dst_observed=True):
+    def as_datetime_local(
+        self, standard_time_offset: int = 7 * 3600, dst_observed: bool = True
+    ) -> datetime.datetime:
         """Convert to a local datetime according to the DST bits"""
         u = self.as_datetime_utc()
         d = u - datetime.timedelta(seconds=standard_time_offset)
@@ -357,18 +381,18 @@ class WWVBMinute(_WWVBMinute):
             d += datetime.timedelta(seconds=3600)
         return d
 
-    def is_ly(self):
+    def is_ly(self) -> bool:
         """Return True if minute is during a leap year"""
         warnings.warn("Deprecated, use ly property instead", DeprecationWarning)
         return self.ly
 
-    def is_end_of_month(self):
+    def is_end_of_month(self) -> bool:
         """Return True if minute is the last minute in a month"""
         d = self.as_datetime()
         e = d + datetime.timedelta(1)
         return d.month != e.month
 
-    def minute_length(self):
+    def minute_length(self) -> int:
         """Return the length of the minute, 60, 61, or (theoretically) 59 seconds"""
         if not self.ls:
             return 60
@@ -380,7 +404,7 @@ class WWVBMinute(_WWVBMinute):
             return 59
         return 61
 
-    def as_timecode(self):
+    def as_timecode(self) -> "WWVBTimecode":
         """Fill a WWVBTimecode structure representing this minute.  Fills both the amplitude and phase codes."""
         t = WWVBTimecode(self.minute_length())
 
@@ -390,7 +414,7 @@ class WWVBMinute(_WWVBMinute):
         return t
 
     @property
-    def leap_sec(self):
+    def leap_sec(self) -> int:
         """Return the 2-bit leap_sec value used by the PM code"""
         if not self.ls:
             return 0
@@ -399,7 +423,7 @@ class WWVBMinute(_WWVBMinute):
         return 2
 
     @property
-    def minute_of_century(self):
+    def minute_of_century(self) -> int:
         """Return the minute of the century"""
         century = (self.year // 100) * 100
         # note: This relies on timedelta seconds never including leapseconds!
@@ -413,7 +437,7 @@ class WWVBMinute(_WWVBMinute):
             // 60
         )
 
-    def fill_am_timecode(self, t):
+    def fill_am_timecode(self, t: "WWVBTimecode") -> None:
         """Fill the amplitude (AM) portion of a timecode object"""
         for i in [0, 9, 19, 29, 39, 49]:
             t.am[i] = AmplitudeModulation.MARK
@@ -435,7 +459,7 @@ class WWVBMinute(_WWVBMinute):
         t.am[56] = AmplitudeModulation(self.ls)
         t.put_am_bcd(self.dst, 57, 58)
 
-    def fill_pm_timecode_extended(self, t):
+    def fill_pm_timecode_extended(self, t: "WWVBTimecode") -> None:
         """During minutes 10..15 and 40..45, the amplitude signal holds 'extended information'"""
         assert 10 <= self.min < 16 or 40 <= self.min < 46
         minno = self.min % 10
@@ -470,7 +494,9 @@ class WWVBMinute(_WWVBMinute):
         for i in range(60):
             t.put_pm_bit(i, full_seq[i + offset])
 
-    def fill_pm_timecode_regular(self, t):  # pylint: disable=too-many-statements
+    def fill_pm_timecode_regular(  # pylint: disable=too-many-statements
+        self, t: "WWVBTimecode"
+    ) -> None:
         """Except during minutes 10..15 and 40..45, the amplitude signal holds 'regular information'"""
         t.put_pm_bin(0, 13, SYNC_T)
 
@@ -526,31 +552,35 @@ class WWVBMinute(_WWVBMinute):
         if len(t.phase) > 60:
             t.put_pm_bit(60, PhaseModulation.ZERO)
 
-    def fill_pm_timecode(self, t):
+    def fill_pm_timecode(self, t: "WWVBTimecode") -> None:
         """Fill the phase portion of a timecode object"""
         if 10 <= self.min < 16 or 40 <= self.min < 46:
             self.fill_pm_timecode_extended(t)
         else:
             self.fill_pm_timecode_regular(t)
 
-    def next_minute(self, newut1=None, newls=None):
+    def next_minute(
+        self, newut1: Optional[int] = None, newls: Optional[bool] = None
+    ) -> "WWVBMinute":
         """Return an object representing the next minute"""
         d = self.as_datetime() + datetime.timedelta(minutes=1)
         return self.from_datetime(d, newut1, newls, self)
 
-    def previous_minute(self, newut1=None, newls=None):
+    def previous_minute(
+        self, newut1: Optional[int] = None, newls: Optional[bool] = None
+    ) -> "WWVBMinute":
         """Return an object representing the previous minute"""
         d = self.as_datetime() - datetime.timedelta(minutes=1)
         return self.from_datetime(d, newut1, newls, self)
 
     @classmethod
-    def get_dut1_info(
-        cls, year, days, old_time=None
-    ):  # pylint: disable=unused-argument
+    def get_dut1_info(  # pylint: disable=unused-argument
+        cls: type, year: int, days: int, old_time: "Optional[WWVBMinute]" = None
+    ) -> Tuple[int, bool]:
         """Return the DUT1 information for a given day, possibly propagating information from a previous timestamp"""
         if old_time is not None:
             if old_time.minute_length() != 60:
-                newls = 0
+                newls = False
                 if old_time.ut1 < 0:
                     newut1 = old_time.ut1 + 1000
                 else:
@@ -559,10 +589,10 @@ class WWVBMinute(_WWVBMinute):
                 newls = old_time.ls
                 newut1 = old_time.ut1
             return newut1, newls
-        return 0, 0
+        return 0, False
 
     @classmethod
-    def fromstring(cls, s):
+    def fromstring(cls, s: str) -> "WWVBMinute":
         """Construct a WWVBMinute from a string representation created by print_timecodes"""
         if s.startswith("WWVB timecode: "):
             s = s[len("WWVB timecode: ") :]
@@ -574,10 +604,16 @@ class WWVBMinute(_WWVBMinute):
             d[k] = int(v)
         if "ly" in d:
             d.pop("ly")
-        return cls(**d)
+        return cls(**d)  # type: ignore
 
     @classmethod
-    def from_datetime(cls, d, newut1=None, newls=None, old_time=None):
+    def from_datetime(
+        cls,
+        d: datetime.datetime,
+        newut1: Optional[int] = None,
+        newls: Optional[bool] = None,
+        old_time: Optional["WWVBMinute"] = None,
+    ) -> "WWVBMinute":
         """Construct a WWVBMinute from a datetime, possibly specifying ut1/ls data or propagating it from an old time"""
         u = d.utctimetuple()
         if newls is None and newut1 is None:
@@ -585,7 +621,9 @@ class WWVBMinute(_WWVBMinute):
         return cls(u.tm_year, u.tm_yday, u.tm_hour, u.tm_min, ut1=newut1, ls=newls)
 
     @classmethod
-    def from_timecode_am(cls, t):  # pylint: disable=too-many-return-statements
+    def from_timecode_am(  # pylint: disable=too-many-return-statements
+        cls, t: "WWVBTimecode"
+    ) -> Optional["WWVBMinute"]:
         """Construct a WWVBMinute from a WWVBTimecode"""
         for i in (0, 9, 19, 29, 39, 49, 59):
             if t.am[i] != AmplitudeModulation.MARK:
@@ -597,30 +635,30 @@ class WWVBMinute(_WWVBMinute):
             return None
         if t.am[36] != t.am[38]:
             return None
-        ok, minute = t.get_am_bcd(1, 2, 3, 5, 6, 7, 8)
-        if not ok:
+        minute = t.get_am_bcd(1, 2, 3, 5, 6, 7, 8)
+        if minute is None:
             return None
-        ok, hour = t.get_am_bcd(12, 13, 15, 16, 17, 18)
-        if not ok:
+        hour = t.get_am_bcd(12, 13, 15, 16, 17, 18)
+        if hour is None:
             return None
-        ok, days = t.get_am_bcd(22, 23, 25, 26, 27, 28, 30, 31, 32, 33)
-        if not ok:
+        days = t.get_am_bcd(22, 23, 25, 26, 27, 28, 30, 31, 32, 33)
+        if days is None:
             return None
-        ok, abs_ut1 = t.get_am_bcd(40, 41, 42, 43)
-        if not ok:
+        abs_ut1 = t.get_am_bcd(40, 41, 42, 43)
+        if abs_ut1 is None:
             return None
         abs_ut1 *= 100
         ut1_sign = t.am[38]
         ut1 = abs_ut1 if ut1_sign else -abs_ut1
-        ok, year = t.get_am_bcd(45, 46, 47, 48, 50, 51, 52, 53)
-        if not ok:
+        year = t.get_am_bcd(45, 46, 47, 48, 50, 51, 52, 53)
+        if year is None:
             return None
-        ly = t.am[55]
+        ly = bool(t.am[55])
         if days > 366 or (not ly and days > 365):
             return None
-        ls = t.am[56]
-        _, dst = t.get_am_bcd(57, 58)
-
+        ls = bool(t.am[56])
+        dst = t.get_am_bcd(57, 58)
+        assert dst is not None  # no BCD decode error possible with 2 bits
         return cls(year, days, hour, minute, dst, ut1, ls, ly)
 
 
@@ -628,12 +666,14 @@ class WWVBMinuteIERS(WWVBMinute):
     """A WWVBMinute that uses a database of DUT1 information"""
 
     @classmethod
-    def get_dut1_info(cls, year, days, old_time=None):
+    def get_dut1_info(
+        cls, year: int, days: int, old_time: Optional[WWVBMinute] = None
+    ) -> Tuple[int, bool]:
         d = datetime.datetime(year, 1, 1) + datetime.timedelta(days - 1)
         return int(round(get_dut1(d) * 10)) * 100, isls(d)
 
 
-def ilog10(v):
+def ilog10(v: int) -> int:
     """Compute the integer log10 of a value"""
     i = int(math.floor(math.log(v) / math.log(10)))
     if 10 ** i > 10 * v:  # pragma no coverage
@@ -641,7 +681,7 @@ def ilog10(v):
     return i
 
 
-def bcd(n, d):
+def bcd(n: int, d: int) -> int:
     """Return the d'th bit of the BCD encoding of n"""
     l = 10 ** ilog10(n)
     n = (n // l) % 10
@@ -682,11 +722,11 @@ class WWVBTimecode:
         self.phase = [PhaseModulation.UNSET] * sz
 
     @property
-    def data(self) -> list:
+    def data(self) -> List[AmplitudeModulation]:
         """An alias for `self.am`"""
         return self.am
 
-    def get_am_bcd(self, *poslist):
+    def get_am_bcd(self, *poslist: int) -> Optional[int]:
         """Convert the bits seq[positions[0]], ... seq[positions[len(positions-1)]] [in MSB order] from BCD to decimal"""
         seq = self.am
         pos = list(poslist)[::-1]
@@ -700,10 +740,10 @@ class WWVBTimecode:
             for j in range(4):
                 digit += 1 << j if val[i + j] else 0
             if digit > 9:
-                return False, None
+                return None
             result += digit * base
             base *= 10
-        return True, result
+        return result
 
     def put_am_bcd(self, v: int, *poslist: int) -> None:
         """Treating 'poslist' as a sequence of indices, update the AM signal with the value as a BCD number"""
@@ -716,11 +756,11 @@ class WWVBTimecode:
             else:
                 self.am[p] = AmplitudeModulation.ZERO
 
-    def put_pm_bit(self, i: int, v: bool) -> None:
+    def put_pm_bit(self, i: int, v: Union[PhaseModulation, int, bool]) -> None:
         """Update a bit of the Phase Modulation signal"""
         self.phase[i] = PhaseModulation(v)
 
-    def put_pm_bin(self, st: int, n: int, v: bool) -> None:
+    def put_pm_bin(self, st: int, n: int, v: int) -> None:
         """Update an n-digit binary number in the Phase Modulation signal"""
         for i in range(n):
             self.put_pm_bit(st + i, extract_bit(v, (n - i - 1)))
@@ -731,7 +771,7 @@ class WWVBTimecode:
         if undefined:  # pragma no coverage
             print(f"Warning: Timecode{undefined} is undefined")
 
-        def convert_one(am, phase):
+        def convert_one(am: AmplitudeModulation, phase: PhaseModulation) -> str:
             if phase is PhaseModulation.UNSET:
                 return ("0", "1", "2", "?")[am]
             if phase:
@@ -764,11 +804,19 @@ styles = {
 
 
 # pylint: disable=too-many-arguments
-def print_timecodes(w, minutes, channel, style, file, *, all_timecodes=False):
+def print_timecodes(
+    w: WWVBMinute,
+    minutes: int,
+    channel: str,
+    style: str,
+    file: TextIO,
+    *,
+    all_timecodes: bool = False,
+) -> None:
     """Print a range of timecodes with a header.  This header is in a format understood by WWVBMinute.fromstring"""
     channel_text = "" if channel == "amplitude" else f" --channel={channel}"
     style_text = "" if style == "default" else f" --style={style}"
-    style = styles.get(style, "012")
+    style_chars = styles.get(style, ["0", "1", "2"])
     first = True
     for _ in range(minutes):
         if first or all_timecodes:
@@ -779,10 +827,10 @@ def print_timecodes(w, minutes, channel, style, file, *, all_timecodes=False):
         pfx = f"{w.year:04d}-{w.days:03d} {w.hour:02d}:{w.min:02d} "
         tc = w.as_timecode()
         if channel in ("amplitude", "both"):
-            print(f"{pfx} {tc.to_am_string(style)}", file=file)
+            print(f"{pfx} {tc.to_am_string(style_chars)}", file=file)
             pfx = " " * len(pfx)
         if channel in ("phase", "both"):
-            print(f"{pfx} {tc.to_pm_string(style)}", file=file)
+            print(f"{pfx} {tc.to_pm_string(style_chars)}", file=file)
         if channel == "both":
             print(file=file)
         w = w.next_minute()

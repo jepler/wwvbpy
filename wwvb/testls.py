@@ -14,7 +14,7 @@ from . import iersdata
 ONE_DAY = datetime.timedelta(days=1)
 
 
-def end_of_month(d):
+def end_of_month(d: datetime.date) -> datetime.date:
     """Return the end of the month containing the day 'd'"""
     while True:
         d0 = d
@@ -23,8 +23,8 @@ def end_of_month(d):
             return d0
 
 
-def next_month(d):
-    """Return the first day of hte next month after 'd'"""
+def next_month(d: datetime.date) -> datetime.date:
+    """Return the first day of the next month after 'd'"""
     while True:
         d0 = d
         d = d + ONE_DAY
@@ -35,7 +35,7 @@ def next_month(d):
 class TestLeapSecond(unittest.TestCase):
     """Leap second tests"""
 
-    def test_leap(self):
+    def test_leap(self) -> None:
         """Tests that the expected leap seconds all occur."""
         d = iersdata.DUT1_DATA_START
         e = datetime.date(2022, 1, 1)

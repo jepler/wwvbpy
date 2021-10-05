@@ -90,7 +90,7 @@ def get_am_bcd(seq: List[int], *poslist: int) -> Optional[int]:
 
 
 def decode_wwvb(  # pylint: disable=too-many-return-statements
-    t: List[int],
+    t: Optional[List[int]],
 ) -> Optional[datetime.datetime]:
     """Convert a received minute of wwvb symbols to a WWVBMinute.  Returns None if any error is detected."""
     if not t:
