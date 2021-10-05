@@ -52,6 +52,13 @@ def get_dut1(dt):
     return (ord(v) - ord("k")) / 10.0
 
 
+def isly(year):
+    """Return True if the year is a leap year"""
+    d1 = datetime.date(year, 1, 1)
+    d2 = d1 + datetime.timedelta(days=365)
+    return d1.year == d2.year
+
+
 def isls(t):
     """Return True if a leap second occurs at the end of this month"""
     dut1_today = get_dut1(t)
@@ -285,14 +292,14 @@ dst_ls_lut = [
     0b11111,
 ]
 
-_WWVBMinute = collections.namedtuple("_WWVBMinute", "year days hour min dst ut1 ls")
+_WWVBMinute = collections.namedtuple("_WWVBMinute", "year days hour min dst ut1 ls ly")
 
 
 class WWVBMinute(_WWVBMinute):
     """Uniquely identifies a minute of time in the WWVB system. To use ut1 and ls information from IERS, create a WWVBMinuteIERS value instead."""
 
     def __new__(
-        cls, year, days, hour, minute, dst=None, ut1=None, ls=None
+        cls, year, days, hour, minute, dst=None, ut1=None, ls=None, ly=None
     ):  # pylint: disable=too-many-arguments
         """Construct a WWVBMinute"""
         if dst is None:
@@ -307,7 +314,9 @@ class WWVBMinute(_WWVBMinute):
             year = year + 2000
         elif year < 100:
             year = year + 1900
-        return _WWVBMinute.__new__(cls, year, days, hour, minute, dst, ut1, ls)
+        if ly is None:
+            ly = isly(year)
+        return _WWVBMinute.__new__(cls, year, days, hour, minute, dst, ut1, ls, ly)
 
     @staticmethod
     def get_dst(year, days):
@@ -350,15 +359,10 @@ class WWVBMinute(_WWVBMinute):
             d += datetime.timedelta(seconds=3600)
         return d
 
-    @property
-    def ly(self):  # pylint: disable=invalid-name
-        """True if minute is during a leap year"""
-        return self.is_ly()
-
     def is_ly(self):
         """Return True if minute is during a leap year"""
-        d = datetime.datetime(self.year, 1, 1) + datetime.timedelta(365)
-        return d.year == self.year
+        warnings.warn("Deprecated, use ly property instead", DeprecationWarning)
+        return self.ly
 
     def is_end_of_month(self):
         """Return True if minute is the last minute in a month"""
@@ -469,7 +473,7 @@ class WWVBMinute(_WWVBMinute):
             t.put_pm_bit(i, full_seq[i + offset])
 
     def fill_pm_timecode_regular(self, t):  # pylint: disable=too-many-statements
-        """Not during minutes 10..15 and 40..45, the amplitude signal holds 'regular information'"""
+        """Except during minutes 10..15 and 40..45, the amplitude signal holds 'regular information'"""
         t.put_pm_bin(0, 13, SYNC_T)
 
         moc = self.minute_of_century
@@ -613,13 +617,13 @@ class WWVBMinute(_WWVBMinute):
         ok, year = t.get_am_bcd(45, 46, 47, 48, 50, 51, 52, 53)
         if not ok:
             return None
-        is_ly = t.am[55]
-        if days > 366 or (not is_ly and days > 365):
+        ly = t.am[55]
+        if days > 366 or (not ly and days > 365):
             return None
         ls = t.am[56]
         _, dst = t.get_am_bcd(57, 58)
 
-        return cls(year, days, hour, minute, dst, ut1, ls)
+        return cls(year, days, hour, minute, dst, ut1, ls, ly)
 
 
 class WWVBMinuteIERS(WWVBMinute):

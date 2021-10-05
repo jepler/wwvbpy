@@ -296,6 +296,11 @@ class WWVBRoundtrip(unittest.TestCase):
         with self.assertRaises(ValueError):
             wwvb.WWVBMinute(2021, 1, 1, 1, ls=False)
 
+    def test_deprecated(self):
+        """Ensure that the 'maybe_warn_update' function is covered"""
+        with self.assertWarnsRegex(DeprecationWarning, "use ly"):
+            wwvb.WWVBMinute(2020, 1, 1, 1).is_ly()
+
     def test_update(self):
         """Ensure that the 'maybe_warn_update' function is covered"""
         with self.assertWarnsRegex(Warning, "updateiers"):
