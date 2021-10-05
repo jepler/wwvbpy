@@ -12,7 +12,7 @@ import io
 import itertools
 import os
 import pathlib
-from typing import Optional
+from typing import Callable, List, Optional
 import bs4  # type: ignore
 import click  # type: ignore
 import platformdirs
@@ -36,12 +36,12 @@ IERS_URL = "https://datacenter.iers.org/data/csv/finals2000A.all.csv"
 NIST_URL = "https://www.nist.gov/pml/time-and-frequency-division/atomic-standards/leap-second-and-ut1-utc-information"
 
 
-def update_iersdata(
-    target_file,
-):  # pylint: disable=too-many-locals, too-many-branches, too-many-statements
+def update_iersdata(  # pylint: disable=too-many-locals, too-many-branches, too-many-statements
+    target_file: str,
+) -> None:
     """Update iersdata.py"""
 
-    offsets = []
+    offsets: List[int] = []
     with requests.get(IERS_URL) as iers_data:
         for r in csv.DictReader(io.StringIO(iers_data.text), delimiter=";"):
             jd = float(r["MJD"])
@@ -74,18 +74,20 @@ def update_iersdata(
         .date()
     )
 
-    def patch(patch_start, patch_end, val):
+    def patch(patch_start: datetime.date, patch_end: datetime.date, val: int) -> None:
         off_start = (patch_start - table_start).days
         off_end = (patch_end - table_start).days
         offsets[off_start:off_end] = [val] * (off_end - off_start)
 
-    wwvb_dut1 = None
+    wwvb_dut1: Optional[int] = None
+    wwvb_start: datetime.date
     for row in wwvb_dut1_table.findAll("tr")[1:][::-1]:
         cells = row.findAll("td")
         when = datetime.datetime.strptime(cells[0].text, "%Y-%m-%d").date()
         dut1 = cells[2].text.replace("s", "").replace(" ", "")
         dut1 = int(round(float(dut1) * 10))
         if wwvb_dut1 is not None:
+            assert wwvb_start
             patch(wwvb_start, when, wwvb_dut1)
         wwvb_dut1 = dut1
         wwvb_start = when
@@ -99,11 +101,12 @@ def update_iersdata(
     # this is the final (most recent) wwvb DUT1 value broadcast.  We want to
     # extend it some distance into the future, but how far?  We will use the
     # modified timestamp of the NIST data.
+    assert wwvb_dut1
     patch(wwvb_start, wwvb_data_stamp + datetime.timedelta(days=1), wwvb_dut1)
 
     with open(target_file, "wt", encoding="utf-8") as output:
 
-        def code(*args):
+        def code(*args: str) -> None:
             """Print to the output file"""
             print(*args, file=output)
 
@@ -125,14 +128,14 @@ def update_iersdata(
         line = ""
         j = 0
 
-        for ch, it in itertools.groupby(offsets):
+        for val, it in itertools.groupby(offsets):
             part = ""
-            ch = chr(ord("a") + ch + 10)
+            ch = chr(ord("a") + val + 10)
             sz = len(list(it))
             if j:
                 part = part + "+"
             if sz < 2:
-                part = part + str(ch)
+                part = part + ch
             else:
                 part = part + f"{ch}*{sz}"
             j += sz
@@ -151,23 +154,23 @@ def update_iersdata(
     print(f"iersdata covers {table_start} .. {table_end}")
 
 
-def iersdata_path(callback):
+def iersdata_path(callback: Callable[[str, str], str]) -> str:
     """Find out the path for this directory"""
     return os.path.join(callback("wwvbpy", "unpythonic.net"), "wwvb_iersdata.py")
 
 
-@click.command()
-@click.option(
+@click.command()  # type: ignore
+@click.option(  # type: ignore
     "--user",
     "location",
     flag_value=iersdata_path(platformdirs.user_data_dir),
     default=iersdata_path(platformdirs.user_data_dir),
 )
-@click.option("--dist", "location", flag_value=DIST_PATH)
-@click.option(
+@click.option("--dist", "location", flag_value=DIST_PATH)  # type: ignore
+@click.option(  # type: ignore
     "--site", "location", flag_value=iersdata_path(platformdirs.site_data_dir)
 )
-def main(location):
+def main(location) -> None:
     """Update DUT1 data"""
     print("will write to", location)
     os.makedirs(os.path.dirname(location), exist_ok=True)

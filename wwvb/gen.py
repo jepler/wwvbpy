@@ -8,6 +8,7 @@
 
 import datetime
 import sys
+from typing import Any, List, Type
 import click  # type: ignore
 
 import dateutil.parser
@@ -20,7 +21,9 @@ from . import (
 )
 
 
-def parse_timespec(ctx, param, value):  # pylint: disable=unused-argument
+def parse_timespec(  # pylint: disable=unused-argument
+    ctx: Any, param: Any, value: List[str]
+) -> datetime.datetime:
     """Parse a time specifier from the commandline"""
     try:
         if len(value) == 5:
@@ -41,14 +44,14 @@ def parse_timespec(ctx, param, value):  # pylint: disable=unused-argument
     return value
 
 
-@click.command()
-@click.option(
+@click.command()  # type: ignore
+@click.option(  # type: ignore
     "--iers/--no-iers",
     "-i/-I",
     default=True,
     help="Whether to use IESR data for DUT1 and LS.  (Default: --iers)",
 )
-@click.option(
+@click.option(  # type: ignore
     "--leap-second",
     "-s",
     "leap_second",
@@ -56,46 +59,48 @@ def parse_timespec(ctx, param, value):  # pylint: disable=unused-argument
     default=None,
     help="Force a positive leap second at the end of the GMT month (Implies --no-iers)",
 )
-@click.option(
+@click.option(  # type: ignore
     "--negative-leap-second",
     "-n",
     "leap_second",
     flag_value=-1,
     help="Force a negative leap second at the end of the GMT month (Implies --no-iers)",
 )
-@click.option(
+@click.option(  # type: ignore
     "--no-leap-second",
     "-S",
     "leap_second",
     flag_value=0,
     help="Force no leap second at the end of the month (Implies --no-iers)",
 )
-@click.option("--dut1", "-d", type=int, help="Force the DUT1 value (Implies --no-iers)")
-@click.option(
+@click.option("--dut1", "-d", type=int, help="Force the DUT1 value (Implies --no-iers)")  # type: ignore
+@click.option(  # type: ignore
     "--minutes", "-m", default=10, help="Number of minutes to show (default: 10)"
 )
-@click.option(
+@click.option(  # type: ignore
     "--style",
     default="default",
     type=click.Choice(list(styles.keys())),
     help="Style of output",
 )
-@click.option(
+@click.option(  # type: ignore
     "--all-timecodes/--no-all-timecodes",
     "-t/-T",
     default=False,
     type=bool,
     help="Show the 'WWVB timecode' line before each minute",
 )
-@click.option(
+@click.option(  # type: ignore
     "--channel",
     type=click.Choice(["amplitude", "phase", "both"]),
     default="amplitude",
     help="Modulation to show (default: amplitude)",
 )
-@click.argument("timespec", type=str, nargs=-1, callback=parse_timespec)
+@click.argument("timespec", type=str, nargs=-1, callback=parse_timespec)  # type: ignore
 # pylint: disable=too-many-arguments, too-many-locals
-def main(iers, leap_second, dut1, minutes, style, channel, all_timecodes, timespec):
+def main(
+    iers, leap_second, dut1, minutes, style, channel, all_timecodes, timespec
+) -> None:
     """Generate WWVB timecodes
 
     TIMESPEC: one of "year yday hour minute" or "year month day hour minute", or else the current minute"""
@@ -105,7 +110,7 @@ def main(iers, leap_second, dut1, minutes, style, channel, all_timecodes, timesp
 
     extra_args = {}
     if iers:
-        Constructor = WWVBMinuteIERS
+        Constructor: Type[WWVBMinute] = WWVBMinuteIERS
     else:
         Constructor = WWVBMinute
         if dut1 is None:
@@ -117,7 +122,7 @@ def main(iers, leap_second, dut1, minutes, style, channel, all_timecodes, timesp
     if timespec is None:
         timespec = datetime.datetime.utcnow()
 
-    w = Constructor.from_datetime(timespec, **extra_args)
+    w = Constructor.from_datetime(timespec, **extra_args)  # type: ignore
     print_timecodes(
         w, minutes, channel, style, all_timecodes=all_timecodes, file=sys.stdout
     )

@@ -15,14 +15,16 @@ import uwwvb
 class WWVBRoundtrip(unittest.TestCase):
     """tests of uwwvb.py"""
 
-    def assertDateTimeEqualExceptTzInfo(self, a, b):  # pylint: disable=invalid-name
+    def assertDateTimeEqualExceptTzInfo(  # pylint: disable=invalid-name
+        self, a: datetime.datetime, b: datetime.datetime
+    ) -> None:
         """Test two datetime objects for equality, excluding tzinfo, and allowing adafruit_datetime and core datetime modules to compare equal"""
         self.assertEqual(
             (a.year, a.month, a.day, a.hour, a.minute, a.second, a.microsecond),
             (b.year, b.month, b.day, b.hour, b.minute, b.second, b.microsecond),
         )
 
-    def test_decode(self):
+    def test_decode(self) -> None:
         """Test decoding of some minutes including a leap second.
         Each minute must decode and match the primary decoder."""
         minute = wwvb.WWVBMinuteIERS.from_datetime(
@@ -46,19 +48,21 @@ class WWVBRoundtrip(unittest.TestCase):
             minute = minute.next_minute()
         self.assertTrue(any_leap_second)
 
-    def test_roundtrip(self):
+    def test_roundtrip(self) -> None:
         """Test that some big range of times all decode the same as the primary decoder"""
         dt = datetime.datetime(2002, 1, 1, 0, 0)
         while dt.year < 2013:
             minute = wwvb.WWVBMinuteIERS.from_datetime(dt)
-            decoded = uwwvb.as_datetime_utc(uwwvb.decode_wwvb(minute.as_timecode().am))
+            decoded = uwwvb.as_datetime_utc(
+                uwwvb.decode_wwvb([int(i) for i in minute.as_timecode().am])
+            )
             self.assertDateTimeEqualExceptTzInfo(
                 minute.as_datetime_utc(),
                 decoded,
             )
             dt = dt + datetime.timedelta(minutes=7182)
 
-    def test_dst(self):
+    def test_dst(self) -> None:
         """Test of DST as handled by the small decoder"""
         for dt in (
             datetime.datetime(2021, 3, 14, 8, 59),
@@ -72,7 +76,7 @@ class WWVBRoundtrip(unittest.TestCase):
         ):
             minute = wwvb.WWVBMinuteIERS.from_datetime(dt)
             decoded = uwwvb.as_datetime_local(
-                uwwvb.decode_wwvb(minute.as_timecode().am)
+                uwwvb.decode_wwvb([int(i) for i in minute.as_timecode().am])
             )
             self.assertDateTimeEqualExceptTzInfo(
                 minute.as_datetime_local(),
@@ -80,7 +84,7 @@ class WWVBRoundtrip(unittest.TestCase):
             )
 
             decoded = uwwvb.as_datetime_local(
-                uwwvb.decode_wwvb(minute.as_timecode().am),
+                uwwvb.decode_wwvb([int(i) for i in minute.as_timecode().am]),
                 dst_observed=False,
             )
             self.assertDateTimeEqualExceptTzInfo(
@@ -88,7 +92,7 @@ class WWVBRoundtrip(unittest.TestCase):
                 decoded,
             )
 
-    def test_noise(self):
+    def test_noise(self) -> None:
         """Test of the state-machine decoder when faced with pseudorandom noise"""
         minute = wwvb.WWVBMinuteIERS.from_datetime(
             datetime.datetime(2012, 6, 30, 23, 50)
@@ -122,22 +126,22 @@ class WWVBRoundtrip(unittest.TestCase):
             uwwvb.as_datetime_local(decoded),
         )
 
-    def test_noise2(self):
+    def test_noise2(self) -> None:
         """Test of the full minute decoder with targeted errors to get full coverage"""
         minute = wwvb.WWVBMinuteIERS.from_datetime(
             datetime.datetime(2012, 6, 30, 23, 50)
         )
         timecode = minute.as_timecode()
-        decoded = uwwvb.decode_wwvb(timecode.am)
+        decoded = uwwvb.decode_wwvb([int(i) for i in timecode.am])
         self.assertIsNotNone(decoded)
         for position in uwwvb.always_mark:
-            test_input = timecode.am[:]
+            test_input = [int(i) for i in timecode.am]
             for noise in (0, 1):
                 test_input[position] = noise
                 decoded = uwwvb.decode_wwvb(test_input)
                 self.assertIsNone(decoded)
         for position in uwwvb.always_zero:
-            test_input = timecode.am[:]
+            test_input = [int(i) for i in timecode.am]
             for noise in (1, 2):
                 test_input[position] = noise
                 decoded = uwwvb.decode_wwvb(test_input)
@@ -145,21 +149,21 @@ class WWVBRoundtrip(unittest.TestCase):
         for i in range(8):
             if i in (0b101, 0b010):  # Test the 6 impossible bit-combos
                 continue
-            test_input = timecode.am[:]
+            test_input = [int(i) for i in timecode.am]
             test_input[36] = i & 1
             test_input[37] = (i >> 1) & 1
             test_input[38] = (i >> 2) & 1
             decoded = uwwvb.decode_wwvb(test_input)
             self.assertIsNone(decoded)
         # Invalid year-day
-        test_input = timecode.am[:]
+        test_input = [int(i) for i in timecode.am]
         test_input[22] = 1
         test_input[23] = 1
         test_input[25] = 1
         decoded = uwwvb.decode_wwvb(test_input)
         self.assertIsNone(decoded)
 
-    def test_noise3(self):
+    def test_noise3(self) -> None:
         """Test impossible BCD values"""
         minute = wwvb.WWVBMinuteIERS.from_datetime(
             datetime.datetime(2012, 6, 30, 23, 50)
@@ -183,17 +187,17 @@ class WWVBRoundtrip(unittest.TestCase):
                 decoded = uwwvb.decode_wwvb(test_input)
                 self.assertIsNone(decoded)
 
-    def test_str(self):
+    def test_str(self) -> None:
         """Test the str() of a WWVBDecoder"""
         self.assertEqual(str(uwwvb.WWVBDecoder()), "<WWVBDecoder 1 []>")
 
-    def test_near_year_bug(self):
+    def test_near_year_bug(self) -> None:
         """Chris's WWVB software had a bug where the hours after UTC
         midnight on 12-31 of a leap year would be shown incorrectly. Check that we
         don't have that bug."""
         minute = wwvb.WWVBMinuteIERS.from_datetime(datetime.datetime(2021, 1, 1, 0, 0))
         timecode = minute.as_timecode()
-        decoded = uwwvb.decode_wwvb(timecode.am)
+        decoded = uwwvb.decode_wwvb([int(i) for i in timecode.am])
         self.assertDateTimeEqualExceptTzInfo(
             datetime.datetime(2020, 12, 31, 17, 00),  # Mountain time!
             uwwvb.as_datetime_local(decoded),
