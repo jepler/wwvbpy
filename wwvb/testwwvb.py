@@ -14,9 +14,8 @@ import random
 import unittest
 
 import wwvb
-from wwvb import decode, iersdata
+from wwvb import decode, iersdata, tzinfo_us
 import uwwvb
-
 
 # pylint: disable=too-many-locals
 class WWVBTestCase(unittest.TestCase):
@@ -285,6 +284,59 @@ class WWVBRoundtrip(unittest.TestCase):
             wwvb.WWVBMinuteIERS.from_datetime(d),
             wwvb.WWVBMinuteIERS.from_datetime(d, newls=1, newut1=-300),
         )
+
+    def test_exceptions(self):
+        """Test some error detection"""
+        with self.assertRaises(ValueError):
+            wwvb.WWVBMinute(2021, 1, 1, 1, dst=4)
+
+        with self.assertRaises(ValueError):
+            wwvb.WWVBMinute(2021, 1, 1, 1, ut1=1)
+
+        with self.assertRaises(ValueError):
+            wwvb.WWVBMinute(2021, 1, 1, 1, ls=False)
+
+    def test_deprecated(self):
+        """Ensure that the 'maybe_warn_update' function is covered"""
+        with self.assertWarnsRegex(DeprecationWarning, "use ly"):
+            wwvb.WWVBMinute(2020, 1, 1, 1).is_ly()
+
+    def test_update(self):
+        """Ensure that the 'maybe_warn_update' function is covered"""
+        with self.assertWarnsRegex(Warning, "updateiers"):
+            wwvb.maybe_warn_update(datetime.date(1970, 1, 1))
+
+    def test_tz(self):
+        """Ensure coverage of tzinfo_us.py"""
+        dststart, dstend = tzinfo_us.us_dst_range(1960)
+        self.assertEqual(dststart, datetime.datetime(1960, 1, 1))
+        self.assertEqual(dstend, datetime.datetime(1960, 1, 1))
+
+        dststart, dstend = tzinfo_us.us_dst_range(1980)
+        self.assertEqual(dststart, datetime.datetime(1980, 4, 27, 2))
+        self.assertEqual(dstend, datetime.datetime(1980, 10, 26, 2))
+
+        dstend = dstend.replace(tzinfo=tzinfo_us.Mountain)
+        dststart = dststart.replace(tzinfo=tzinfo_us.Mountain)
+        self.assertFalse((dstend + datetime.timedelta(seconds=60)).dst())
+        self.assertTrue((dststart + datetime.timedelta(seconds=61 * 60)).dst())
+        self.assertFalse(dststart.dst())
+
+        self.assertEqual(repr(tzinfo_us.Mountain), "Mountain")
+        self.assertEqual(
+            datetime.datetime(1960, 1, 1).astimezone(tzinfo_us.Mountain).tzname(), "MST"
+        )
+        self.assertEqual(
+            datetime.datetime(1980, 8, 1).astimezone(tzinfo_us.Mountain).tzname(), "MDT"
+        )
+
+        self.assertIsNone(wwvb.get_dst_change_hour(datetime.datetime(1960, 1, 1)))
+
+        date, row = wwvb.get_dst_change_date_and_row(datetime.datetime(1960, 1, 1))
+        self.assertIsNone(date)
+        self.assertIsNone(row)
+
+        self.assertEqual(wwvb.get_dst_next(datetime.datetime(1960, 1, 1)), 0b000111)
 
 
 if __name__ == "__main__":  # pragma no cover

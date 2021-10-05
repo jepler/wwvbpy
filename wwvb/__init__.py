@@ -26,7 +26,7 @@ def _date(dt):
     return dt
 
 
-def maybe_warn_update(dt):  # pragma no cover
+def maybe_warn_update(dt):
     """Maybe print a notice to run updateiers, if it seems useful to do so."""
     # We already know this date is not covered.
     # If the date is less than 330 days after today, there should be (possibly)
@@ -50,6 +50,13 @@ def get_dut1(dt):
     else:
         v = iersdata.DUT1_OFFSETS[i]
     return (ord(v) - ord("k")) / 10.0
+
+
+def isly(year):
+    """Return True if the year is a leap year"""
+    d1 = datetime.date(year, 1, 1)
+    d2 = d1 + datetime.timedelta(days=365)
+    return d1.year == d2.year
 
 
 def isls(t):
@@ -91,14 +98,14 @@ def get_dst_change_hour(t, tz=Mountain):
         dst1 = lt1.dst()
         if dst0 != dst1:
             return i - 1
-    return None  # pragma no cover
+    return None
 
 
 def get_dst_change_date_and_row(d):
     """Classify DST information for the WWVB phase modulation signal"""
     if isdst(d):
         n = first_sunday_in_month(d.year, 11)
-        for offset in (-28, -21, -14, -7, 0, 7, 14, 21):
+        for offset in (-28, -21, -14, -7, 0, 7, 14, 21):  # pragma: no cover
             d1 = n + datetime.timedelta(days=offset)
             if is_dst_change_day(d1):
                 return d1, (offset + 28) // 7
@@ -109,7 +116,7 @@ def get_dst_change_date_and_row(d):
             if is_dst_change_day(d1):
                 return d1, offset // 7
 
-    return None, None  # pragma no coverage
+    return None, None
 
 
 # "Table 8", likely with transcrption errors
@@ -217,7 +224,7 @@ def get_dst_next(d, tz=Mountain):
 
     if dst_midwinter and dst_midsummer:  # pragma no coverage
         return 0b101111
-    if not (dst_midwinter or dst_midsummer):  # pragma no coverage
+    if not (dst_midwinter or dst_midsummer):
         return 0b000111
 
     # Are we in NZ or something?
@@ -285,29 +292,31 @@ dst_ls_lut = [
     0b11111,
 ]
 
-_WWVBMinute = collections.namedtuple("_WWVBMinute", "year days hour min dst ut1 ls")
+_WWVBMinute = collections.namedtuple("_WWVBMinute", "year days hour min dst ut1 ls ly")
 
 
 class WWVBMinute(_WWVBMinute):
     """Uniquely identifies a minute of time in the WWVB system. To use ut1 and ls information from IERS, create a WWVBMinuteIERS value instead."""
 
     def __new__(
-        cls, year, days, hour, minute, dst=None, ut1=None, ls=None
+        cls, year, days, hour, minute, dst=None, ut1=None, ls=None, ly=None
     ):  # pylint: disable=too-many-arguments
         """Construct a WWVBMinute"""
         if dst is None:
             dst = cls.get_dst(year, days)
-        if dst not in (0, 1, 2, 3):  # pragma no coverage
+        if dst not in (0, 1, 2, 3):
             raise ValueError("dst value should be 0..3")
         if ut1 is None and ls is None:
             ut1, ls = cls.get_dut1_info(year, days)
-        elif ut1 is None or ls is None:  # pragma no coverage
+        elif ut1 is None or ls is None:
             raise ValueError("sepecify both ut1 and ls or neither one")
         if year < 70:
             year = year + 2000
         elif year < 100:
             year = year + 1900
-        return _WWVBMinute.__new__(cls, year, days, hour, minute, dst, ut1, ls)
+        if ly is None:
+            ly = isly(year)
+        return _WWVBMinute.__new__(cls, year, days, hour, minute, dst, ut1, ls, ly)
 
     @staticmethod
     def get_dst(year, days):
@@ -350,15 +359,10 @@ class WWVBMinute(_WWVBMinute):
             d += datetime.timedelta(seconds=3600)
         return d
 
-    @property
-    def ly(self):  # pylint: disable=invalid-name
-        """True if minute is during a leap year"""
-        return self.is_ly()
-
     def is_ly(self):
         """Return True if minute is during a leap year"""
-        d = datetime.datetime(self.year, 1, 1) + datetime.timedelta(365)
-        return d.year == self.year
+        warnings.warn("Deprecated, use ly property instead", DeprecationWarning)
+        return self.ly
 
     def is_end_of_month(self):
         """Return True if minute is the last minute in a month"""
@@ -469,7 +473,7 @@ class WWVBMinute(_WWVBMinute):
             t.put_pm_bit(i, full_seq[i + offset])
 
     def fill_pm_timecode_regular(self, t):  # pylint: disable=too-many-statements
-        """Not during minutes 10..15 and 40..45, the amplitude signal holds 'regular information'"""
+        """Except during minutes 10..15 and 40..45, the amplitude signal holds 'regular information'"""
         t.put_pm_bin(0, 13, SYNC_T)
 
         moc = self.minute_of_century
@@ -613,13 +617,13 @@ class WWVBMinute(_WWVBMinute):
         ok, year = t.get_am_bcd(45, 46, 47, 48, 50, 51, 52, 53)
         if not ok:
             return None
-        is_ly = t.am[55]
-        if days > 366 or (not is_ly and days > 365):
+        ly = t.am[55]
+        if days > 366 or (not ly and days > 365):
             return None
         ls = t.am[56]
         _, dst = t.get_am_bcd(57, 58)
 
-        return cls(year, days, hour, minute, dst, ut1, ls)
+        return cls(year, days, hour, minute, dst, ut1, ls, ly)
 
 
 class WWVBMinuteIERS(WWVBMinute):
