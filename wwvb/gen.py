@@ -8,7 +8,7 @@
 
 import datetime
 import sys
-import click
+import click  # type: ignore
 
 import dateutil.parser
 

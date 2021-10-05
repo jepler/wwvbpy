@@ -4,6 +4,7 @@
 """Time zone routines for US zones"""
 
 from datetime import tzinfo, timedelta, datetime
+from typing import Tuple, Optional
 
 ZERO = timedelta(0)
 HOUR = timedelta(hours=1)
@@ -11,7 +12,7 @@ HOUR = timedelta(hours=1)
 # A complete implementation of current DST rules for major US time zones.
 
 
-def first_sunday_on_or_after(dt):
+def first_sunday_on_or_after(dt: datetime) -> datetime:
     """Return the first sunday on or after the reference time"""
     days_to_go = 6 - dt.weekday()
     if days_to_go:
@@ -45,7 +46,7 @@ DSTSTART_1967_1986 = datetime(1, 4, 24, 2)
 DSTEND_1967_1986 = DSTEND_1987_2006
 
 
-def us_dst_range(year):
+def us_dst_range(year: int) -> Tuple[datetime, datetime]:
     """Find start and end times for US DST. For years before 1967, return
     start = end for no DST."""
     if 2006 < year:  # pylint: disable=misplaced-comparison-constant
@@ -55,7 +56,7 @@ def us_dst_range(year):
     elif 1966 < year < 1987:
         dststart, dstend = DSTSTART_1967_1986, DSTEND_1967_1986
     else:
-        return (datetime(year, 1, 1),) * 2
+        return (datetime(year, 1, 1), datetime(year, 1, 1))
 
     start = first_sunday_on_or_after(dststart.replace(year=year))
     end = first_sunday_on_or_after(dstend.replace(year=year))
@@ -65,29 +66,29 @@ def us_dst_range(year):
 class USTimeZone(tzinfo):
     """tzinfo subclass for US time zones"""
 
-    def __init__(self, hours, reprname, stdname, dstname):
+    def __init__(self, hours: int, reprname: str, stdname: str, dstname: str) -> None:
         """Construct a USTimeZone"""
         self.stdoffset = timedelta(hours=hours)
         self.reprname = reprname
         self.stdname = stdname
         self.dstname = dstname
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """implement repr()"""
         return self.reprname
 
-    def tzname(self, dt):
+    def tzname(self, dt: Optional[datetime]) -> str:
         """Return the tzname"""
         if self.dst(dt):
             return self.dstname
         return self.stdname
 
-    def utcoffset(self, dt):
+    def utcoffset(self, dt: Optional[datetime]) -> Optional[timedelta]:
         """Return the UTC offset for a particular moment"""
         return self.stdoffset + self.dst(dt)
 
-    def dst(self, dt):
-        """Return true if dst is in effect for a particular moment"""
+    def dst(self, dt: Optional[datetime]) -> timedelta:
+        """Return the offset in effect for a particular moment"""
         assert dt and dt.tzinfo is self
         start, end = us_dst_range(dt.year)
         # Can't compare naive to aware objects, so strip the timezone from
@@ -105,7 +106,7 @@ class USTimeZone(tzinfo):
         # DST is off.
         return ZERO
 
-    def fromutc(self, dt):
+    def fromutc(self, dt: datetime) -> datetime:
         """Convert the given dt from its zone to our zone"""
         assert dt.tzinfo is self
         start, end = us_dst_range(dt.year)

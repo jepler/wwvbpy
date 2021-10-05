@@ -6,9 +6,12 @@ beautifulsoup4
 build
 click
 coverage
+mypy
 pre-commit
 python-dateutil
 requests
 setuptools>=45
 twine
+types-python-dateutil
+types-requests
 wheel
