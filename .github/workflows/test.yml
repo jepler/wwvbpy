@@ -42,7 +42,7 @@ jobs:
       run: python -mpip install -r requirements-dev.txt
 
     - name: Check stubs
-      run: mypy wwvb uwwvb.py
+      run: mypy --strict wwvb uwwvb.py
 
     - name: Test
       run: python -mcoverage run --branch -m unittest && python -mcoverage report --fail-under=100
