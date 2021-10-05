@@ -14,7 +14,7 @@ import os
 import pathlib
 from typing import Callable, List, Optional
 import bs4  # type: ignore
-import click  # type: ignore
+import click
 import platformdirs
 import requests
 
@@ -159,18 +159,18 @@ def iersdata_path(callback: Callable[[str, str], str]) -> str:
     return os.path.join(callback("wwvbpy", "unpythonic.net"), "wwvb_iersdata.py")
 
 
-@click.command()  # type: ignore
-@click.option(  # type: ignore
+@click.command()
+@click.option(
     "--user",
     "location",
     flag_value=iersdata_path(platformdirs.user_data_dir),
     default=iersdata_path(platformdirs.user_data_dir),
 )
-@click.option("--dist", "location", flag_value=DIST_PATH)  # type: ignore
-@click.option(  # type: ignore
+@click.option("--dist", "location", flag_value=DIST_PATH)
+@click.option(
     "--site", "location", flag_value=iersdata_path(platformdirs.site_data_dir)
 )
-def main(location) -> None:
+def main(location: str) -> None:
     """Update DUT1 data"""
     print("will write to", location)
     os.makedirs(os.path.dirname(location), exist_ok=True)

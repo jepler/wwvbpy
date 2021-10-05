@@ -9,7 +9,7 @@
 import datetime
 import sys
 from typing import Any, List, Type
-import click  # type: ignore
+import click
 
 import dateutil.parser
 
@@ -44,14 +44,14 @@ def parse_timespec(  # pylint: disable=unused-argument
     return value
 
 
-@click.command()  # type: ignore
-@click.option(  # type: ignore
+@click.command()
+@click.option(
     "--iers/--no-iers",
     "-i/-I",
     default=True,
     help="Whether to use IESR data for DUT1 and LS.  (Default: --iers)",
 )
-@click.option(  # type: ignore
+@click.option(
     "--leap-second",
     "-s",
     "leap_second",
@@ -59,47 +59,54 @@ def parse_timespec(  # pylint: disable=unused-argument
     default=None,
     help="Force a positive leap second at the end of the GMT month (Implies --no-iers)",
 )
-@click.option(  # type: ignore
+@click.option(
     "--negative-leap-second",
     "-n",
     "leap_second",
     flag_value=-1,
     help="Force a negative leap second at the end of the GMT month (Implies --no-iers)",
 )
-@click.option(  # type: ignore
+@click.option(
     "--no-leap-second",
     "-S",
     "leap_second",
     flag_value=0,
     help="Force no leap second at the end of the month (Implies --no-iers)",
 )
-@click.option("--dut1", "-d", type=int, help="Force the DUT1 value (Implies --no-iers)")  # type: ignore
-@click.option(  # type: ignore
+@click.option("--dut1", "-d", type=int, help="Force the DUT1 value (Implies --no-iers)")
+@click.option(
     "--minutes", "-m", default=10, help="Number of minutes to show (default: 10)"
 )
-@click.option(  # type: ignore
+@click.option(
     "--style",
     default="default",
     type=click.Choice(list(styles.keys())),
     help="Style of output",
 )
-@click.option(  # type: ignore
+@click.option(
     "--all-timecodes/--no-all-timecodes",
     "-t/-T",
     default=False,
     type=bool,
     help="Show the 'WWVB timecode' line before each minute",
 )
-@click.option(  # type: ignore
+@click.option(
     "--channel",
     type=click.Choice(["amplitude", "phase", "both"]),
     default="amplitude",
     help="Modulation to show (default: amplitude)",
 )
-@click.argument("timespec", type=str, nargs=-1, callback=parse_timespec)  # type: ignore
+@click.argument("timespec", type=str, nargs=-1, callback=parse_timespec)
 # pylint: disable=too-many-arguments, too-many-locals
 def main(
-    iers, leap_second, dut1, minutes, style, channel, all_timecodes, timespec
+    iers: bool,
+    leap_second: bool,
+    dut1: int,
+    minutes: int,
+    style: str,
+    channel: str,
+    all_timecodes: bool,
+    timespec: datetime.datetime,
 ) -> None:
     """Generate WWVB timecodes
 

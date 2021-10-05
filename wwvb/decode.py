@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: GPL-3.0-only
 """A stateful decoder of WWVB signals"""
 
-from typing import Generator, Optional
+from typing import Generator, List, Optional
 import wwvb
 
 # State 1: Unsync'd
@@ -25,7 +25,7 @@ def wwvbreceive() -> Generator[
     Optional[wwvb.WWVBTimecode], wwvb.AmplitudeModulation, None
 ]:  # pylint: disable=too-many-branches
     """A stateful decoder of WWVB signals"""
-    minute: list[wwvb.AmplitudeModulation] = []
+    minute: List[wwvb.AmplitudeModulation] = []
     state = 1
 
     value = yield None
