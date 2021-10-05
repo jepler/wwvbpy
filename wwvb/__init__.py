@@ -11,22 +11,20 @@ import datetime
 import enum
 import math
 import warnings
-from typing import List, Tuple
+from typing import List, Tuple, Union
 
 from . import iersdata
-
-
 from .tzinfo_us import Mountain, HOUR
 
 
-def _date(dt):
+def _date(dt: Union[datetime.datetime, datetime.date]) -> datetime.date:
     """Return the date object itself, or the date property of a datetime"""
     if isinstance(dt, datetime.datetime):
         return dt.date()
     return dt
 
 
-def maybe_warn_update(dt):
+def maybe_warn_update(dt: datetime.date) -> None:
     """Maybe print a notice to run updateiers, if it seems useful to do so."""
     # We already know this date is not covered.
     # If the date is less than 330 days after today, there should be (possibly)
@@ -38,7 +36,7 @@ def maybe_warn_update(dt):
         )
 
 
-def get_dut1(dt):
+def get_dut1(dt: Union[datetime.datetime, datetime.date]) -> float:
     """Return the DUT1 number for the given timestamp"""
     dt = _date(dt)
     i = (dt - iersdata.DUT1_DATA_START).days
@@ -52,14 +50,14 @@ def get_dut1(dt):
     return (ord(v) - ord("k")) / 10.0
 
 
-def isly(year):
+def isly(year: int) -> bool:
     """Return True if the year is a leap year"""
     d1 = datetime.date(year, 1, 1)
     d2 = d1 + datetime.timedelta(days=365)
     return d1.year == d2.year
 
 
-def isls(t):
+def isls(t: Union[datetime.datetime, datetime.date]) -> bool:
     """Return True if a leap second occurs at the end of this month"""
     dut1_today = get_dut1(t)
     month_today = t.month
@@ -69,7 +67,7 @@ def isls(t):
     return dut1_today * dut1_next_month < 0
 
 
-def isdst(t, tz=Mountain):
+def isdst(t: datetime.date, tz=Mountain) -> bool:
     """Return true if daylight saving time is active at the given moment"""
     t = datetime.datetime(t.year, t.month, t.day)
     return bool(t.astimezone(tz).dst())
@@ -707,7 +705,7 @@ class WWVBTimecode:
             base *= 10
         return True, result
 
-    def put_am_bcd(self, v: int, *poslist: Tuple[int]) -> None:
+    def put_am_bcd(self, v: int, *poslist: int) -> None:
         """Treating 'poslist' as a sequence of indices, update the AM signal with the value as a BCD number"""
         pos = list(poslist)[::-1]
         weights = bcd_weights[: len(pos)]
@@ -735,10 +733,10 @@ class WWVBTimecode:
 
         def convert_one(am, phase):
             if phase is PhaseModulation.UNSET:
-                return ["0", "1", "2", "?"][am]
+                return ("0", "1", "2", "?")[am]
             if phase:
-                return ["⁰", "¹", "²", "?"][am]
-            return ["₀", "₁", "₂", "?"][am]
+                return ("⁰", "¹", "²", "¿")[am]
+            return ("₀", "₁", "₂", "⸮")[am]
 
         return "".join(convert_one(i, j) for i, j in zip(self.am, self.phase))
 
@@ -746,13 +744,13 @@ class WWVBTimecode:
         """implement repr()"""
         return "<WWVBTimecode " + str(self) + ">"
 
-    def to_am_string(self, charset: List[List[str]]) -> str:
+    def to_am_string(self, charset: List[str]) -> str:
         """Convert the amplitude signal to a string"""
         return "".join(charset[i] for i in self.am)
 
     to_string = to_am_string
 
-    def to_pm_string(self, charset: List[List[str]]) -> str:
+    def to_pm_string(self, charset: List[str]) -> str:
         """Convert the phase signal to a string"""
         return "".join(charset[i] for i in self.phase)
 

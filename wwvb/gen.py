@@ -8,7 +8,7 @@
 
 import datetime
 import sys
-import click
+import click  # type: ignore
 
 import dateutil.parser
 
@@ -77,7 +77,7 @@ def parse_timespec(ctx, param, value):  # pylint: disable=unused-argument
 @click.option(
     "--style",
     default="default",
-    type=click.Choice(styles.keys()),
+    type=click.Choice(list(styles.keys())),
     help="Style of output",
 )
 @click.option(

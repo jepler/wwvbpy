@@ -5,7 +5,12 @@
 """Implementation of a WWVB state machine & decoder for resource-constrained systems"""
 
 from collections import namedtuple
-import adafruit_datetime as datetime
+
+try:
+    from typing import List, Optional
+except ImportError:  # pragma no coverage
+    pass
+import adafruit_datetime as datetime  # type: ignore
 
 ZERO, ONE, MARK = range(3)
 
@@ -21,12 +26,12 @@ WWVBMinute = namedtuple(
 class WWVBDecoder:
     """A state machine for receiving WWVB timecodes."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Construct a WWVBDecoder"""
-        self.minute = []
+        self.minute: List[int] = []
         self.state = 1
 
-    def update(self, value):
+    def update(self, value: int) -> Optional[List[int]]:
         """Update the _state machine when a new symbol is received.  If a possible complete _minute is received, return it; otherwise, return None"""
         result = None
         if self.state == 1:
@@ -60,12 +65,12 @@ class WWVBDecoder:
 
         return result
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Return a string representation of self"""
         return f"<WWVBDecoder {self.state} {self.minute}>"
 
 
-def get_am_bcd(seq, *poslist):
+def get_am_bcd(seq: List[int], *poslist: int) -> Optional[int]:
     """Convert the bits seq[positions[0]], ... seq[positions[len(positions-1)]] [in MSB order] from BCD to decimal"""
     pos = list(poslist)[::-1]
     val = [int(seq[p]) for p in pos]
@@ -78,13 +83,15 @@ def get_am_bcd(seq, *poslist):
         for j in range(4):
             digit += 1 << j if val[i + j] else 0
         if digit > 9:
-            return False, None
+            return None
         result += digit * base
         base *= 10
-    return True, result
+    return result
 
 
-def decode_wwvb(t):  # pylint: disable=too-many-return-statements
+def decode_wwvb(  # pylint: disable=too-many-return-statements
+    t: List[int],
+) -> Optional[datetime.datetime]:
     """Convert a received minute of wwvb symbols to a WWVBMinute.  Returns None if any error is detected."""
     if not t:
         return None
@@ -97,41 +104,40 @@ def decode_wwvb(t):  # pylint: disable=too-many-return-statements
         return None
     if t[36] != t[38]:
         return None
-    ok, minute = get_am_bcd(t, 1, 2, 3, 5, 6, 7, 8)
-    if not ok:
+    minute = get_am_bcd(t, 1, 2, 3, 5, 6, 7, 8)
+    if minute is None:
         return None
 
-    ok, hour = get_am_bcd(t, 12, 13, 15, 16, 17, 18)
-    if not ok:
+    hour = get_am_bcd(t, 12, 13, 15, 16, 17, 18)
+    if hour is None:
         return None
 
-    ok, days = get_am_bcd(t, 22, 23, 25, 26, 27, 28, 30, 31, 32, 33)
-    if not ok:
+    days = get_am_bcd(t, 22, 23, 25, 26, 27, 28, 30, 31, 32, 33)
+    if days is None:
         return None
 
-    ok, abs_ut1 = get_am_bcd(t, 40, 41, 42, 43)
-    if not ok:
+    abs_ut1 = get_am_bcd(t, 40, 41, 42, 43)
+    if abs_ut1 is None:
         return None
 
     abs_ut1 *= 100
     ut1_sign = t[38]
     ut1 = abs_ut1 if ut1_sign else -abs_ut1
-    ok, year = get_am_bcd(t, 45, 46, 47, 48, 50, 51, 52, 53)
-    if not ok:
+    year = get_am_bcd(t, 45, 46, 47, 48, 50, 51, 52, 53)
+    if year is None:
         return None
 
     is_ly = t[55]
     if days > 366 or (not is_ly and days > 365):
         return None
     ls = t[56]
-    # With just two bits, bcd and binary are the same, no possibility of
-    # "bad bcd"
-    _, dst = get_am_bcd(t, 57, 58)
+    dst = get_am_bcd(t, 57, 58)
+    assert dst is not None  # No possibility of BCD decode error in 2 bits
 
     return WWVBMinute(year, days, hour, minute, dst, ut1, ls, is_ly)
 
 
-def as_datetime_utc(decoded_timestamp):
+def as_datetime_utc(decoded_timestamp: datetime.datetime) -> datetime.datetime:
     """Convert a WWVBMinute to a UTC datetime"""
     d = datetime.datetime(decoded_timestamp.year + 2000, 1, 1)
     d += datetime.timedelta(
@@ -141,24 +147,36 @@ def as_datetime_utc(decoded_timestamp):
     return d
 
 
-def is_dst(dt, dst_bits, standard_time_offset=7 * 3600, dst_observed=True):
+def is_dst(
+    dt: datetime.datetime,
+    dst_bits: int,
+    standard_time_offset: int = 7 * 3600,
+    dst_observed: bool = True,
+) -> bool:
     """Return True iff DST is observed at the given moment"""
     d = dt - datetime.timedelta(seconds=standard_time_offset)
     if not dst_observed:
         return False
     if dst_bits == 0b10:
         transition_time = dt.replace(hour=2)
-        return d >= transition_time
+        result: bool = d >= transition_time
+        return result
     if dst_bits == 0b11:
         return True
     if dst_bits == 0b01:
         transition_time = dt.replace(hour=1)
-        return d < transition_time
+        result = d < transition_time
+        return result
     # self.dst_bits == 0b00
     return False
 
 
-def apply_dst(dt, dst_bits, standard_time_offset=7 * 3600, dst_observed=True):
+def apply_dst(
+    dt: datetime.datetime,
+    dst_bits: int,
+    standard_time_offset: int = 7 * 3600,
+    dst_observed: bool = True,
+) -> datetime.datetime:
     """Apply time zone and DST (if applicable) to the given moment"""
     d = dt - datetime.timedelta(seconds=standard_time_offset)
     if is_dst(dt, dst_bits, standard_time_offset, dst_observed):
@@ -167,10 +185,10 @@ def apply_dst(dt, dst_bits, standard_time_offset=7 * 3600, dst_observed=True):
 
 
 def as_datetime_local(
-    decoded_timestamp,
-    standard_time_offset=7 * 3600,
-    dst_observed=True,
-):
+    decoded_timestamp: datetime.datetime,
+    standard_time_offset: int = 7 * 3600,
+    dst_observed: bool = True,
+) -> datetime.datetime:
     """Convert a WWVBMinute to a local datetime with tzinfo=None"""
     dt = as_datetime_utc(decoded_timestamp)
     return apply_dst(dt, decoded_timestamp.dst, standard_time_offset, dst_observed)

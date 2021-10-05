@@ -7,7 +7,7 @@
 import datetime
 __all__ = ['DUT1_DATA_START', 'DUT1_OFFSETS']
 DUT1_DATA_START = datetime.date(1972, 6, 1)
-d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s = 'defghijklmnopqrs'
+d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s = tuple('defghijklmnopqrs')
 DUT1_OFFSETS = str( # 19720601
     i*30+s*203+r*31+q*29+p*28+o*30+n*36+m*40+l*39+k*33+j*31+i*31 # 19731231
     +h*18+r*19+q*38+p*32+o*31+n*33+m*48+l*45+k*37+j*33+i*34+h*15 # 19750122

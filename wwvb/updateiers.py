@@ -12,13 +12,17 @@ import io
 import itertools
 import os
 import pathlib
-import bs4
-import click
+from typing import Optional
+import bs4  # type: ignore
+import click  # type: ignore
 import platformdirs
 import requests
 
+
 DIST_PATH = str(pathlib.Path(__file__).parent / "iersdata_dist.py")
 
+OLD_TABLE_START: Optional[datetime.date] = None
+OLD_TABLE_END: Optional[datetime.date] = None
 try:
     import wwvb.iersdata_dist
 
@@ -27,8 +31,7 @@ try:
         days=len(wwvb.iersdata_dist.DUT1_OFFSETS) - 1
     )
 except (ImportError, NameError) as e:
-    OLD_TABLE_START = OLD_TABLE_END = None
-
+    pass
 IERS_URL = "https://datacenter.iers.org/data/csv/finals2000A.all.csv"
 NIST_URL = "https://www.nist.gov/pml/time-and-frequency-division/atomic-standards/leap-second-and-ut1-utc-information"
 
@@ -115,7 +118,7 @@ def update_iersdata(
         code("__all__ = ['DUT1_DATA_START', 'DUT1_OFFSETS']")
         code(f"DUT1_DATA_START = {repr(table_start)}")
         c = sorted(chr(ord("a") + ch + 10) for ch in set(offsets))
-        code(f"{','.join(c)} = {repr(''.join(c))}")
+        code(f"{','.join(c)} = tuple({repr(''.join(c))})")
         code(
             f"DUT1_OFFSETS = str( # {table_start.year:04d}{table_start.month:02d}{table_start.day:02d}"
         )
