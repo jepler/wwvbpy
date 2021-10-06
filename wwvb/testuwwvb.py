@@ -6,19 +6,26 @@
 
 import datetime
 import random
+from typing import Union
 import unittest
+
+import adafruit_datetime
 
 import wwvb
 import uwwvb
+
+EitherDatetimeOrNone = Union[None, datetime.datetime, adafruit_datetime.datetime]
 
 
 class WWVBRoundtrip(unittest.TestCase):
     """tests of uwwvb.py"""
 
     def assertDateTimeEqualExceptTzInfo(  # pylint: disable=invalid-name
-        self, a: datetime.datetime, b: datetime.datetime
+        self, a: EitherDatetimeOrNone, b: EitherDatetimeOrNone
     ) -> None:
         """Test two datetime objects for equality, excluding tzinfo, and allowing adafruit_datetime and core datetime modules to compare equal"""
+        assert a
+        assert b
         self.assertEqual(
             (a.year, a.month, a.day, a.hour, a.minute, a.second, a.microsecond),
             (b.year, b.month, b.day, b.hour, b.minute, b.second, b.microsecond),
@@ -30,6 +37,7 @@ class WWVBRoundtrip(unittest.TestCase):
         minute = wwvb.WWVBMinuteIERS.from_datetime(
             datetime.datetime(2012, 6, 30, 23, 50)
         )
+        assert minute
         decoder = uwwvb.WWVBDecoder()
         decoder.update(uwwvb.MARK)
         any_leap_second = False
@@ -40,7 +48,7 @@ class WWVBRoundtrip(unittest.TestCase):
                 any_leap_second = True
             for code in timecode.am:
                 decoded = uwwvb.decode_wwvb(decoder.update(int(code))) or decoded
-            self.assertIsNotNone(decoded)
+            assert decoded
             self.assertDateTimeEqualExceptTzInfo(
                 minute.as_datetime_utc(),
                 uwwvb.as_datetime_utc(decoded),
@@ -53,12 +61,11 @@ class WWVBRoundtrip(unittest.TestCase):
         dt = datetime.datetime(2002, 1, 1, 0, 0)
         while dt.year < 2013:
             minute = wwvb.WWVBMinuteIERS.from_datetime(dt)
-            decoded = uwwvb.as_datetime_utc(
-                uwwvb.decode_wwvb([int(i) for i in minute.as_timecode().am])
-            )
+            assert minute
+            decoded = uwwvb.decode_wwvb([int(i) for i in minute.as_timecode().am])
+            assert decoded
             self.assertDateTimeEqualExceptTzInfo(
-                minute.as_datetime_utc(),
-                decoded,
+                minute.as_datetime_utc(), uwwvb.as_datetime_utc(decoded)
             )
             dt = dt + datetime.timedelta(minutes=7182)
 
@@ -75,21 +82,17 @@ class WWVBRoundtrip(unittest.TestCase):
             datetime.datetime(2021, 7, 7, 9, 1),
         ):
             minute = wwvb.WWVBMinuteIERS.from_datetime(dt)
-            decoded = uwwvb.as_datetime_local(
-                uwwvb.decode_wwvb([int(i) for i in minute.as_timecode().am])
-            )
+            decoded = uwwvb.decode_wwvb([int(i) for i in minute.as_timecode().am])
+            assert decoded
             self.assertDateTimeEqualExceptTzInfo(
-                minute.as_datetime_local(),
-                decoded,
+                minute.as_datetime_local(), uwwvb.as_datetime_local(decoded)
             )
 
-            decoded = uwwvb.as_datetime_local(
-                uwwvb.decode_wwvb([int(i) for i in minute.as_timecode().am]),
-                dst_observed=False,
-            )
+            decoded = uwwvb.decode_wwvb([int(i) for i in minute.as_timecode().am])
+            assert decoded
             self.assertDateTimeEqualExceptTzInfo(
                 minute.as_datetime_local(dst_observed=False),
-                decoded,
+                uwwvb.as_datetime_local(decoded, dst_observed=False),
             )
 
     def test_noise(self) -> None:
@@ -115,15 +118,16 @@ class WWVBRoundtrip(unittest.TestCase):
             decoded = decoder.update(code)
             self.assertIsNone(decoded)
         minute_maybe = decoder.update(wwvb.AmplitudeModulation.MARK)
-        self.assertIsNotNone(minute_maybe)
-        decoded = uwwvb.decode_wwvb(minute_maybe)
+        assert minute_maybe
+        decoded_minute = uwwvb.decode_wwvb(minute_maybe)
+        assert decoded_minute
         self.assertDateTimeEqualExceptTzInfo(
             minute.as_datetime_utc(),
-            uwwvb.as_datetime_utc(decoded),
+            uwwvb.as_datetime_utc(decoded_minute),
         )
         self.assertDateTimeEqualExceptTzInfo(
             minute.as_datetime_local(),
-            uwwvb.as_datetime_local(decoded),
+            uwwvb.as_datetime_local(decoded_minute),
         )
 
     def test_noise2(self) -> None:
@@ -198,6 +202,7 @@ class WWVBRoundtrip(unittest.TestCase):
         minute = wwvb.WWVBMinuteIERS.from_datetime(datetime.datetime(2021, 1, 1, 0, 0))
         timecode = minute.as_timecode()
         decoded = uwwvb.decode_wwvb([int(i) for i in timecode.am])
+        assert decoded
         self.assertDateTimeEqualExceptTzInfo(
             datetime.datetime(2020, 12, 31, 17, 00),  # Mountain time!
             uwwvb.as_datetime_local(decoded),
