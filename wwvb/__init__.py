@@ -105,13 +105,13 @@ def get_dst_change_date_and_row(
     """Classify DST information for the WWVB phase modulation signal"""
     if isdst(d):
         n = first_sunday_in_month(d.year, 11)
-        for offset in (-28, -21, -14, -7, 0, 7, 14, 21):  # pragma: no cover
+        for offset in range(-28, 28, 7):  # pragma no branch
             d1 = n + datetime.timedelta(days=offset)
             if is_dst_change_day(d1):
                 return d1, (offset + 28) // 7
     else:
         m = first_sunday_in_month(d.year + (d.month > 3), 3)
-        for offset in (0, 7, 14, 21, 28, 35, 42, 49):
+        for offset in range(0, 52, 7):
             d1 = m + datetime.timedelta(days=offset)
             if is_dst_change_day(d1):
                 return d1, offset // 7
