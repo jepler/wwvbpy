@@ -9,9 +9,8 @@
 import collections
 import datetime
 import enum
-import math
 import warnings
-from typing import List, Optional, TextIO, Tuple, Union
+from typing import Generator, List, Optional, TextIO, Tuple, Union
 import io
 from . import iersdata
 from .tzinfo_us import Mountain, HOUR, first_sunday_on_or_after
@@ -669,23 +668,13 @@ class WWVBMinuteIERS(WWVBMinute):
         return int(round(get_dut1(d) * 10)) * 100, isls(d)
 
 
-def ilog10(v: int) -> int:
-    """Compute the integer log10 of a value"""
-    i = int(math.floor(math.log(v) / math.log(10)))
-    if 10 ** i > 10 * v:  # pragma no coverage
-        return i - 1
-    return i
-
-
-def bcd(n: int, d: int) -> int:
-    """Return the d'th bit of the BCD encoding of n"""
-    l = 10 ** ilog10(n)
-    n = (n // l) % 10
-    d = (d // l) % 10
-    return int(bool(n & d))
-
-
-bcd_weights = [1, 2, 4, 8, 10, 20, 40, 80, 100, 200, 400, 800]
+def bcd_bits(n: int) -> Generator[bool, None, None]:
+    """Return the bcd representation of n, starting with the least significant bit"""
+    while True:
+        d = n % 10
+        n = n // 10
+        for i in (1, 2, 4, 8):
+            yield bool(d & i)
 
 
 @enum.unique
@@ -744,9 +733,7 @@ class WWVBTimecode:
     def put_am_bcd(self, v: int, *poslist: int) -> None:
         """Treating 'poslist' as a sequence of indices, update the AM signal with the value as a BCD number"""
         pos = list(poslist)[::-1]
-        weights = bcd_weights[: len(pos)]
-        for p, w in zip(pos, weights):
-            b = bcd(w, v)
+        for p, b in zip(pos, bcd_bits(v)):
             if b:
                 self.am[p] = AmplitudeModulation.ONE
             else:
