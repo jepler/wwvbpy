@@ -9,12 +9,11 @@
 import collections
 import datetime
 import enum
-import math
 import warnings
-from typing import List, Optional, TextIO, Tuple, Union
+from typing import Generator, List, Optional, TextIO, Tuple, Union
 import io
 from . import iersdata
-from .tzinfo_us import Mountain, HOUR
+from .tzinfo_us import Mountain, HOUR, first_sunday_on_or_after
 
 DateOrDatetime = Union[datetime.date, datetime.datetime]
 
@@ -77,11 +76,7 @@ def isdst(t: datetime.date, tz: datetime.tzinfo = Mountain) -> bool:
 
 def first_sunday_in_month(y: int, m: int) -> datetime.date:
     """Find the first sunday in a given month"""
-    for md in range(1, 8):
-        d = datetime.date(y, m, md)
-        if d.weekday() == 6:
-            return d
-    raise RuntimeError("Impossible week without Sunday")  # pragma no cover
+    return first_sunday_on_or_after(datetime.datetime(y, m, 1)).date()
 
 
 def is_dst_change_day(t: datetime.date) -> bool:
@@ -109,13 +104,13 @@ def get_dst_change_date_and_row(
     """Classify DST information for the WWVB phase modulation signal"""
     if isdst(d):
         n = first_sunday_in_month(d.year, 11)
-        for offset in (-28, -21, -14, -7, 0, 7, 14, 21):  # pragma: no cover
+        for offset in range(-28, 28, 7):  # pragma no branch
             d1 = n + datetime.timedelta(days=offset)
             if is_dst_change_day(d1):
                 return d1, (offset + 28) // 7
     else:
         m = first_sunday_in_month(d.year + (d.month > 3), 3)
-        for offset in (0, 7, 14, 21, 28, 35, 42, 49):
+        for offset in range(0, 52, 7):
             d1 = m + datetime.timedelta(days=offset)
             if is_dst_change_day(d1):
                 return d1, offset // 7
@@ -349,7 +344,7 @@ class WWVBMinute(_WWVBMinute):
 
     def __str__(self) -> str:
         """Implement str()"""
-        return f"year={self.year:4d} days={self.days:03d} hour={self.hour:02d} min={self.min:02d} dst={self.dst} ut1={self.ut1} ly={int(self.ly)} ls={self.ls}"
+        return f"year={self.year:4d} days={self.days:03d} hour={self.hour:02d} min={self.min:02d} dst={self.dst} ut1={self.ut1} ly={int(self.ly)} ls={int(self.ls)}"
 
     def as_datetime_utc(self) -> datetime.datetime:
         """Convert to a UTC datetime"""
@@ -673,23 +668,13 @@ class WWVBMinuteIERS(WWVBMinute):
         return int(round(get_dut1(d) * 10)) * 100, isls(d)
 
 
-def ilog10(v: int) -> int:
-    """Compute the integer log10 of a value"""
-    i = int(math.floor(math.log(v) / math.log(10)))
-    if 10 ** i > 10 * v:  # pragma no coverage
-        return i - 1
-    return i
-
-
-def bcd(n: int, d: int) -> int:
-    """Return the d'th bit of the BCD encoding of n"""
-    l = 10 ** ilog10(n)
-    n = (n // l) % 10
-    d = (d // l) % 10
-    return int(bool(n & d))
-
-
-bcd_weights = [1, 2, 4, 8, 10, 20, 40, 80, 100, 200, 400, 800]
+def bcd_bits(n: int) -> Generator[bool, None, None]:
+    """Return the bcd representation of n, starting with the least significant bit"""
+    while True:
+        d = n % 10
+        n = n // 10
+        for i in (1, 2, 4, 8):
+            yield bool(d & i)
 
 
 @enum.unique
@@ -748,9 +733,7 @@ class WWVBTimecode:
     def put_am_bcd(self, v: int, *poslist: int) -> None:
         """Treating 'poslist' as a sequence of indices, update the AM signal with the value as a BCD number"""
         pos = list(poslist)[::-1]
-        weights = bcd_weights[: len(pos)]
-        for p, w in zip(pos, weights):
-            b = bcd(w, v)
+        for p, b in zip(pos, bcd_bits(v)):
             if b:
                 self.am[p] = AmplitudeModulation.ONE
             else:
@@ -767,9 +750,11 @@ class WWVBTimecode:
 
     def __str__(self) -> str:
         """implement str()"""
-        undefined = [i for i in range(len(self.am)) if self.am[i] is None]
-        if undefined:  # pragma no coverage
-            print(f"Warning: Timecode{undefined} is undefined")
+        undefined = [
+            i for i in range(len(self.am)) if self.am[i] == AmplitudeModulation.UNSET
+        ]
+        if undefined:
+            warnings.warn(f"am{undefined} is unset")
 
         def convert_one(am: AmplitudeModulation, phase: PhaseModulation) -> str:
             if phase is PhaseModulation.UNSET:

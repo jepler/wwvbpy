@@ -16,7 +16,7 @@ def first_sunday_on_or_after(dt: datetime) -> datetime:
     """Return the first sunday on or after the reference time"""
     days_to_go = 6 - dt.weekday()
     if days_to_go:
-        dt += timedelta(days_to_go)
+        return dt + timedelta(days_to_go)
     return dt
 
 
