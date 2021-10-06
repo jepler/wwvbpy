@@ -345,7 +345,7 @@ class WWVBMinute(_WWVBMinute):
 
     def __str__(self) -> str:
         """Implement str()"""
-        return f"year={self.year:4d} days={self.days:03d} hour={self.hour:02d} min={self.min:02d} dst={self.dst} ut1={self.ut1} ly={int(self.ly)} ls={self.ls}"
+        return f"year={self.year:4d} days={self.days:03d} hour={self.hour:02d} min={self.min:02d} dst={self.dst} ut1={self.ut1} ly={int(self.ly)} ls={int(self.ls)}"
 
     def as_datetime_utc(self) -> datetime.datetime:
         """Convert to a UTC datetime"""
