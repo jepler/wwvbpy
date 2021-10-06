@@ -7,10 +7,10 @@
 from collections import namedtuple
 
 try:
-    from typing import List, Optional
+    from typing import List, Optional, Sequence
 except ImportError:  # pragma no coverage
     pass
-import adafruit_datetime as datetime  # type: ignore
+import adafruit_datetime as datetime
 
 ZERO, ONE, MARK = range(3)
 
@@ -70,7 +70,7 @@ class WWVBDecoder:
         return f"<WWVBDecoder {self.state} {self.minute}>"
 
 
-def get_am_bcd(seq: List[int], *poslist: int) -> Optional[int]:
+def get_am_bcd(seq: Sequence[int], *poslist: int) -> Optional[int]:
     """Convert the bits seq[positions[0]], ... seq[positions[len(positions-1)]] [in MSB order] from BCD to decimal"""
     pos = list(poslist)[::-1]
     val = [int(seq[p]) for p in pos]
@@ -90,8 +90,8 @@ def get_am_bcd(seq: List[int], *poslist: int) -> Optional[int]:
 
 
 def decode_wwvb(  # pylint: disable=too-many-return-statements
-    t: Optional[List[int]],
-) -> Optional[datetime.datetime]:
+    t: Optional[Sequence[int]],
+) -> Optional[WWVBMinute]:
     """Convert a received minute of wwvb symbols to a WWVBMinute.  Returns None if any error is detected."""
     if not t:
         return None
@@ -137,7 +137,7 @@ def decode_wwvb(  # pylint: disable=too-many-return-statements
     return WWVBMinute(year, days, hour, minute, dst, ut1, ls, is_ly)
 
 
-def as_datetime_utc(decoded_timestamp: datetime.datetime) -> datetime.datetime:
+def as_datetime_utc(decoded_timestamp: WWVBMinute) -> datetime.datetime:
     """Convert a WWVBMinute to a UTC datetime"""
     d = datetime.datetime(decoded_timestamp.year + 2000, 1, 1)
     d += datetime.timedelta(
@@ -159,14 +159,12 @@ def is_dst(
         return False
     if dst_bits == 0b10:
         transition_time = dt.replace(hour=2)
-        result: bool = d >= transition_time
-        return result
+        return d >= transition_time
     if dst_bits == 0b11:
         return True
     if dst_bits == 0b01:
         transition_time = dt.replace(hour=1)
-        result = d < transition_time
-        return result
+        return d < transition_time
     # self.dst_bits == 0b00
     return False
 
@@ -185,7 +183,7 @@ def apply_dst(
 
 
 def as_datetime_local(
-    decoded_timestamp: datetime.datetime,
+    decoded_timestamp: WWVBMinute,
     standard_time_offset: int = 7 * 3600,
     dst_observed: bool = True,
 ) -> datetime.datetime:
