@@ -6,6 +6,7 @@ SPDX-License-Identifier: GPL-3.0-only
 [![Test wwvbgen](https://github.com/jepler/wwvbpy/actions/workflows/test.yml/badge.svg)](https://github.com/jepler/wwvbpy/actions/workflows/test.yml)
 [![codecov](https://codecov.io/gh/jepler/wwvbpy/branch/main/graph/badge.svg?token=Exx0c3Gp65)](https://codecov.io/gh/jepler/wwvbpy)
 [![Update DUT1 data](https://github.com/jepler/wwvbpy/actions/workflows/cron.yml/badge.svg)](https://github.com/jepler/wwvbpy/actions/workflows/cron.yml)
+![PyPI](https://img.shields.io/pypi/v/wwvb)
 
 # Purpose
 
@@ -19,14 +20,12 @@ system's time zone.
 
 It uses DUT1/leap second data derived from IERS Bulletin "A" and from NIST's
 "Leap second and UT1-UTC information" page.  With regular updates to
-`iersdata.py`, wwvbpy should be able to correctly encode the time anywhere
+the "iersdata", wwvbpy should be able to correctly encode the time anywhere
 within the 100-year WWVB epoch.  (yes, WWVB uses a 2-digit year! In order to
 work with historical data, the epoch is arbitrarily assumed to run from 1970 to
 2069.)
 
-Note that the NIST page of DUT1 offsets may be incomplete; on 2021-09-11,
-DUT1=-1 is broadcast, but the latest data on the NIST page gives the latest
-DUT1 correction as -2 starting on 2019-05-02!
+Note that the NIST page of DUT1 offsets may be incomplete; on 2021-07-04 I noticed that DUT1=-1 was being broadcast, but as of 2019-10-05 the latest data on the NIST page gives the latest DUT1 correction as DUT1=-2 starting on 2019-05-02, as does the current NIST Time and Frequency Bulletin, NISTIR 8346-09 for 2021-09.
 
 Programs include:
  * `wwvbgen`, the main commandline generator program
@@ -43,8 +42,8 @@ The package includes:
 # Development status
 
 The author (@jepler) occasionally develops and maintains this project, but
-issues and pull requests are not likely to be acted on.  They would be
-interested in adding co-maintainer(s).
+issues are not likely to be acted on.  They would be interested in adding
+co-maintainer(s).
 
 
 # WWVB Timecodes
@@ -103,7 +102,7 @@ consists of 61 seconds, instead of the normal 60)
 
 # How wwvbpy handles DUT1 data
 
-wwvbpy stores a compact representation of DUT1 values in `iersdata.py`.
+wwvbpy stores a compact representation of DUT1 values in `wwvb/iersdata_dist.py` or `wwvb_iersdata.py`.
 In this representation, one value is used for one day (0000UTC through 2359UTC).
 The letters `a` through `u` represent offsets of -1.0s through +1.0s
 in 0.1s increments; `k` represents 0s.  (In practice, only a smaller range
@@ -131,11 +130,9 @@ decimal places, in a machine readable fixed length format.
 wwvbpy merges the WWVB and IERS datasets, favoring the WWVB dataset for
 dates when it is available.
 
-The process for updating `iersdata.py` is intended to be executed monthly from
-github actions.  You can also do it manually:
- * remove the cached `iersdata.txt` and `wwvbdata.html` files to get fresh data
- * run `python3 iers2py.py`
- * gut check the iersdata.py file, commit, and push it out.
+`wwvb/iersdata_dist.py` is updated monthly from github actions or with `iersdata --dist` from within the wwvbpy source tree. However, at this time, releases are not regularly made from the updated information.
+
+A site or user version of the file, `wwvb_iersdata.py` can be created or updated with `iersdata --site` or `iersdata --user`.  If the distributed iersdata is out of date, the generator will prompt you to run the update command.
 
 Leap seconds are inferred from the DUT1 data as follows: If X and Y are the
 1-digit-rounded DUT1 values for consecutive dates, and `X*Y<0`, then there is a
@@ -144,7 +141,7 @@ inferred from the sign of X, a positive leap second if X is positive.  As long
 as DUT1 changes slowly enough during other times that there is at least one day
 of DUT1=+0.0, no incorrect (negative) leapsecond will be inferred. (something
 that should remain true for the next few centuries, until the length of the day
-is 100ms less than 86400 seconds)
+is 100ms different from 86400 seconds)
 
 
 # The phase modulation channel
