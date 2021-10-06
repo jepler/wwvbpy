@@ -3,8 +3,10 @@
 # SPDX-License-Identifier: Python-2.0
 """Time zone routines for US zones"""
 
-from datetime import tzinfo, timedelta, datetime
-from typing import Tuple, Optional
+from datetime import tzinfo, timedelta, datetime, date
+from typing import Tuple, TypeVar, Optional
+
+DateOrDatetime = TypeVar("DateOrDatetime", date, datetime)
 
 ZERO = timedelta(0)
 HOUR = timedelta(hours=1)
@@ -12,7 +14,7 @@ HOUR = timedelta(hours=1)
 # A complete implementation of current DST rules for major US time zones.
 
 
-def first_sunday_on_or_after(dt: datetime) -> datetime:
+def first_sunday_on_or_after(dt: DateOrDatetime) -> DateOrDatetime:
     """Return the first sunday on or after the reference time"""
     days_to_go = 6 - dt.weekday()
     if days_to_go:

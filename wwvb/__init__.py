@@ -10,12 +10,12 @@ import collections
 import datetime
 import enum
 import warnings
-from typing import Generator, List, Optional, TextIO, Tuple, Union
+from typing import Generator, List, Optional, TextIO, Tuple, TypeVar, Union
 import io
 from . import iersdata
 from .tzinfo_us import Mountain, HOUR, first_sunday_on_or_after
 
-DateOrDatetime = Union[datetime.date, datetime.datetime]
+DateOrDatetime = TypeVar("DateOrDatetime", datetime.date, datetime.datetime)
 
 
 def _date(dt: DateOrDatetime) -> datetime.date:
@@ -39,8 +39,8 @@ def maybe_warn_update(dt: datetime.date) -> None:
 
 def get_dut1(dt: DateOrDatetime) -> float:
     """Return the DUT1 number for the given timestamp"""
-    dt = _date(dt)
-    i = (dt - iersdata.DUT1_DATA_START).days
+    date = _date(dt)
+    i = (date - iersdata.DUT1_DATA_START).days
     if i < 0:
         v = iersdata.DUT1_OFFSETS[0]
     elif i >= len(iersdata.DUT1_OFFSETS):
@@ -76,7 +76,7 @@ def isdst(t: datetime.date, tz: datetime.tzinfo = Mountain) -> bool:
 
 def first_sunday_in_month(y: int, m: int) -> datetime.date:
     """Find the first sunday in a given month"""
-    return first_sunday_on_or_after(datetime.datetime(y, m, 1)).date()
+    return first_sunday_on_or_after(datetime.datetime(y, m, 1))
 
 
 def is_dst_change_day(t: datetime.date) -> bool:
