@@ -14,7 +14,7 @@ import warnings
 from typing import List, Optional, TextIO, Tuple, Union
 import io
 from . import iersdata
-from .tzinfo_us import Mountain, HOUR
+from .tzinfo_us import Mountain, HOUR, first_sunday_on_or_after
 
 DateOrDatetime = Union[datetime.date, datetime.datetime]
 
@@ -77,11 +77,7 @@ def isdst(t: datetime.date, tz: datetime.tzinfo = Mountain) -> bool:
 
 def first_sunday_in_month(y: int, m: int) -> datetime.date:
     """Find the first sunday in a given month"""
-    for md in range(1, 8):
-        d = datetime.date(y, m, md)
-        if d.weekday() == 6:
-            return d
-    raise RuntimeError("Impossible week without Sunday")  # pragma no cover
+    return first_sunday_on_or_after(datetime.datetime(y, m, 1)).date()
 
 
 def is_dst_change_day(t: datetime.date) -> bool:
