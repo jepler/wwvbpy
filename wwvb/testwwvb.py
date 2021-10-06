@@ -311,6 +311,11 @@ class WWVBRoundtrip(unittest.TestCase):
         with self.assertWarnsRegex(Warning, "updateiers"):
             wwvb.maybe_warn_update(datetime.date(1970, 1, 1))
 
+    def test_undefined(self) -> None:
+        """Ensure that the check for unset elements in am works"""
+        with self.assertWarnsRegex(Warning, "is unset"):
+            str(wwvb.WWVBTimecode(60))
+
     def test_tz(self) -> None:
         """Ensure coverage of tzinfo_us.py"""
         dststart, dstend = tzinfo_us.us_dst_range(1960)

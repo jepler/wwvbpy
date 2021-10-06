@@ -750,9 +750,11 @@ class WWVBTimecode:
 
     def __str__(self) -> str:
         """implement str()"""
-        undefined = [i for i in range(len(self.am)) if self.am[i] is None]
-        if undefined:  # pragma no coverage
-            print(f"Warning: Timecode{undefined} is undefined")
+        undefined = [
+            i for i in range(len(self.am)) if self.am[i] == AmplitudeModulation.UNSET
+        ]
+        if undefined:
+            warnings.warn(f"am{undefined} is unset")
 
         def convert_one(am: AmplitudeModulation, phase: PhaseModulation) -> str:
             if phase is PhaseModulation.UNSET:
