@@ -15,7 +15,7 @@ import unittest
 from typing import Optional
 
 import wwvb
-from wwvb import decode, iersdata, tzinfo_us
+from wwvb import decode, iersdata
 import uwwvb
 
 # pylint: disable=too-many-locals
@@ -317,34 +317,12 @@ class WWVBRoundtrip(unittest.TestCase):
             str(wwvb.WWVBTimecode(60))
 
     def test_tz(self) -> None:
-        """Ensure coverage of tzinfo_us.py"""
-        dststart, dstend = tzinfo_us.us_dst_range(1960)
-        self.assertEqual(dststart, datetime.datetime(1960, 1, 1))
-        self.assertEqual(dstend, datetime.datetime(1960, 1, 1))
-
-        dststart, dstend = tzinfo_us.us_dst_range(1980)
-        self.assertEqual(dststart, datetime.datetime(1980, 4, 27, 2))
-        self.assertEqual(dstend, datetime.datetime(1980, 10, 26, 2))
-
-        dstend = dstend.replace(tzinfo=tzinfo_us.Mountain)
-        dststart = dststart.replace(tzinfo=tzinfo_us.Mountain)
-        self.assertFalse((dstend + datetime.timedelta(seconds=60)).dst())
-        self.assertTrue((dststart + datetime.timedelta(seconds=61 * 60)).dst())
-        self.assertFalse(dststart.dst())
-
-        self.assertEqual(repr(tzinfo_us.Mountain), "Mountain")
-        self.assertEqual(
-            datetime.datetime(1960, 1, 1).astimezone(tzinfo_us.Mountain).tzname(), "MST"
-        )
-        self.assertEqual(
-            datetime.datetime(1980, 8, 1).astimezone(tzinfo_us.Mountain).tzname(), "MDT"
-        )
-
-        self.assertIsNone(wwvb.get_dst_change_hour(datetime.datetime(1960, 1, 1)))
-
+        """Get a little more coverage in the dst change functions"""
         date, row = wwvb.get_dst_change_date_and_row(datetime.datetime(1960, 1, 1))
         self.assertIsNone(date)
         self.assertIsNone(row)
+
+        self.assertIsNone(wwvb.get_dst_change_hour(datetime.datetime(1960, 1, 1)))
 
         self.assertEqual(wwvb.get_dst_next(datetime.datetime(1960, 1, 1)), 0b000111)
 
