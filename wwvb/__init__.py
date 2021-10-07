@@ -12,9 +12,14 @@ import enum
 import warnings
 from typing import Generator, List, Optional, TextIO, Tuple, TypeVar, Union
 import io
+from dateutil.tz import gettz
 from . import iersdata
-from .tzinfo_us import Mountain, HOUR, first_sunday_on_or_after
 
+HOUR = datetime.timedelta(seconds=3600)
+
+_Mountain = gettz("America/Denver")
+assert _Mountain
+Mountain = _Mountain
 DateOrDatetime = TypeVar("DateOrDatetime", datetime.date, datetime.datetime)
 
 
@@ -72,6 +77,14 @@ def isdst(t: datetime.date, tz: datetime.tzinfo = Mountain) -> bool:
     """Return true if daylight saving time is active at the given moment"""
     t = datetime.datetime(t.year, t.month, t.day)
     return bool(t.astimezone(tz).dst())
+
+
+def first_sunday_on_or_after(dt: DateOrDatetime) -> DateOrDatetime:
+    """Return the first sunday on or after the reference time"""
+    days_to_go = 6 - dt.weekday()
+    if days_to_go:
+        return dt + datetime.timedelta(days_to_go)
+    return dt
 
 
 def first_sunday_in_month(y: int, m: int) -> datetime.date:

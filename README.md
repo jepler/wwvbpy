@@ -14,9 +14,7 @@ wwvbpy generates WWVB timecodes for any desired time.  These timecodes
 may be useful in testing WWVB decoder software.
 
 Where possible, wwvbpy uses existing facilities for calendar and time
-manipulation (datetime).  It uses code adapted from standard Python
-documentation for the US DST rules (tzinfo\_us) regardless of the operating
-system's time zone.
+manipulation (datetime and dateutil).
 
 It uses DUT1/leap second data derived from IERS Bulletin "A" and from NIST's
 "Leap second and UT1-UTC information" page.  With regular updates to
@@ -34,7 +32,6 @@ Programs include:
 The package includes:
  * `wwvb`, for generating WWVB timecodes
  * `wwvb.decode`, a generator-based state machine for decoding WWVB timecodes (amplitude modulation only)
- * `wwvb.tzinfo_us`, an implementation of the US DST rules adapted from the Python doc examples.  `tzinfo_us` is an implementation detail and may change.
  * `uwwvb`, a version of the decoder intended for use on constrained environments such as [CircuitPython](https://circuitpython.org).
 
 # Development status
