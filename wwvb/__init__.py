@@ -16,11 +16,18 @@ from dateutil.tz import gettz
 from . import iersdata
 
 HOUR = datetime.timedelta(seconds=3600)
-
-_Mountain = gettz("America/Denver")
-assert _Mountain
-Mountain = _Mountain
 DateOrDatetime = TypeVar("DateOrDatetime", datetime.date, datetime.datetime)
+T = TypeVar("T")  # pylint: disable=invalid-name
+
+
+def require(x: Optional[T]) -> T:
+    """Assert that an Optional value is not None, and then return the value,
+    giving a hint to the type system."""
+    assert x is not None
+    return x
+
+
+Mountain = require(gettz("America/Denver"))
 
 
 def _date(dt: DateOrDatetime) -> datetime.date:
@@ -665,8 +672,7 @@ class WWVBMinute(_WWVBMinute):
         if days > 366 or (not ly and days > 365):
             return None
         ls = bool(t.am[56])
-        dst = t.get_am_bcd(57, 58)
-        assert dst is not None  # no BCD decode error possible with 2 bits
+        dst = require(t.get_am_bcd(57, 58))
         return cls(year, days, hour, minute, dst, ut1, ls, ly)
 
 
