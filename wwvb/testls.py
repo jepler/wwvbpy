@@ -16,20 +16,12 @@ ONE_DAY = datetime.timedelta(days=1)
 
 def end_of_month(d: datetime.date) -> datetime.date:
     """Return the end of the month containing the day 'd'"""
+    d = d.replace(day=28)
     while True:
         d0 = d
         d = d + ONE_DAY
         if d.month != d0.month:
             return d0
-
-
-def next_month(d: datetime.date) -> datetime.date:
-    """Return the first day of the next month after 'd'"""
-    while True:
-        d0 = d
-        d = d + ONE_DAY
-        if d.month != d0.month:
-            return d
 
 
 class TestLeapSecond(unittest.TestCase):
@@ -42,7 +34,7 @@ class TestLeapSecond(unittest.TestCase):
         leap = []
         while d < e:
             eom = end_of_month(d)
-            nm = next_month(d)
+            nm = eom + ONE_DAY
             if wwvb.isls(d):
                 month_ends_dut1 = wwvb.get_dut1(eom)
                 month_starts_dut1 = wwvb.get_dut1(nm)

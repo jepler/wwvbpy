@@ -617,9 +617,17 @@ class WWVBMinute(_WWVBMinute):
             if k == "min":
                 k = "minute"
             d[k] = int(v)
-        if "ly" in d:
-            d.pop("ly")
-        return cls(**d)  # type: ignore
+        year = d.pop("year")
+        days = d.pop("days")
+        hour = d.pop("hour")
+        minute = d.pop("minute")
+        dst = d.pop("dst", None)
+        ut1 = d.pop("ut1", None)
+        ls = d.pop("ls", None)
+        d.pop("ly", None)
+        if d:
+            raise ValueError(f"Invalid options: {d}")
+        return cls(year, days, hour, minute, dst, ut1, None if ls is None else bool(ls))
 
     @classmethod
     def from_datetime(

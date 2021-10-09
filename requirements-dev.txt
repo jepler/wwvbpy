@@ -6,7 +6,7 @@ beautifulsoup4
 build
 click
 coverage
-mypy
+mypy; implementation_name=="cpython"
 pre-commit
 python-dateutil
 requests
