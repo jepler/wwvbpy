@@ -4,6 +4,7 @@
 #
 # SPDX-License-Identifier: GPL-3.0-only
 
+import sys
 import datetime
 import random
 from typing import Union
@@ -59,6 +60,9 @@ class WWVBRoundtrip(unittest.TestCase):
     def test_roundtrip(self) -> None:
         """Test that some big range of times all decode the same as the primary decoder"""
         dt = datetime.datetime(2002, 1, 1, 0, 0)
+        delta = datetime.timedelta(
+            minutes=7182 if sys.implementation.name == "cpython" else 86400 - 7182
+        )
         while dt.year < 2013:
             minute = wwvb.WWVBMinuteIERS.from_datetime(dt)
             assert minute
@@ -67,7 +71,7 @@ class WWVBRoundtrip(unittest.TestCase):
             self.assertDateTimeEqualExceptTzInfo(
                 minute.as_datetime_utc(), uwwvb.as_datetime_utc(decoded)
             )
-            dt = dt + datetime.timedelta(minutes=7182)
+            dt = dt + delta
 
     def test_dst(self) -> None:
         """Test of DST as handled by the small decoder"""

@@ -11,6 +11,7 @@ import datetime
 import glob
 import io
 import random
+import sys
 import unittest
 from typing import Optional
 
@@ -119,6 +120,9 @@ class WWVBRoundtrip(unittest.TestCase):
     def test_roundtrip(self) -> None:
         """Test that a wide of minutes are correctly decoded by the state-based decoder"""
         dt = datetime.datetime(1992, 1, 1, 0, 0)
+        delta = datetime.timedelta(
+            minutes=915 if sys.implementation.name == "cpython" else 86400 - 915
+        )
         while dt.year < 1993:
             minute = wwvb.WWVBMinuteIERS.from_datetime(dt)
             assert minute is not None
@@ -134,7 +138,7 @@ class WWVBRoundtrip(unittest.TestCase):
                 decoded,
                 f"Checking equality of minute {minute}: [expected] {timecode} != [actual] {decoded}",
             )
-            dt = dt + datetime.timedelta(minutes=915)
+            dt = dt + delta
 
     def test_noise(self) -> None:
         """Test against pseudorandom noise"""
