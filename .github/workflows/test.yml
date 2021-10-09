@@ -21,6 +21,7 @@ jobs:
         - '3.8'
         - '3.9'
         - '3.10'
+        - 'pypy-3.7'
 
     env:
       PYTHON: ${{ matrix.python-version }}
@@ -43,6 +44,7 @@ jobs:
       run: python -mpip install -r requirements-dev.txt
 
     - name: Check stubs
+      if: (! startsWith(matrix.python-version, 'pypy-'))
       run: mypy --strict wwvb uwwvb.py
 
     - name: Test
