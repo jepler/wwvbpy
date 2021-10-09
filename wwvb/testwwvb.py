@@ -99,6 +99,23 @@ class WWVBRoundtrip(unittest.TestCase):
             minute = minute.next_minute()
         self.assertTrue(any_leap_second)
 
+    def test_cover_fill_pm_timecode_extended(  # pylint: disable=no-self-use
+        self,
+    ) -> None:
+        """Get full coverage of the function pm_timecode_extended"""
+        for dt in (
+            datetime.datetime(1992, 1, 1),
+            datetime.datetime(1992, 4, 5),
+            datetime.datetime(1992, 6, 1),
+            datetime.datetime(1992, 10, 25),
+        ):
+            for hour in (0, 4, 11):
+                dt = dt.replace(hour=hour, minute=10)
+                minute = wwvb.WWVBMinuteIERS.from_datetime(dt)
+                assert minute is not None
+                timecode = minute.as_timecode().am
+                assert timecode
+
     def test_roundtrip(self) -> None:
         """Test that a wide of minutes are correctly decoded by the state-based decoder"""
         dt = datetime.datetime(1992, 1, 1, 0, 0)
@@ -300,6 +317,11 @@ class WWVBRoundtrip(unittest.TestCase):
 
         with self.assertRaises(ValueError):
             wwvb.WWVBMinute(2021, 1, 1, 1, ls=False)
+
+        with self.assertRaises(ValueError):
+            wwvb.WWVBMinute.fromstring(
+                "year=1998 days=365 hour=23 min=56 dst=0 ut1=-300 ly=0 ls=1 boo=1"
+            )
 
     def test_deprecated(self) -> None:
         """Ensure that the 'maybe_warn_update' function is covered"""
