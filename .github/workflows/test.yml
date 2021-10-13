@@ -48,12 +48,13 @@ jobs:
       run: mypy --strict wwvb uwwvb.py
 
     - name: Test
-      run: python -mcoverage run --branch -m unittest && python -mcoverage report --fail-under=100
+      run: python -mcoverage run --branch -m unittest && python -mcoverage report --fail-under=100 && python -mcoverage xml
 
     - name: Upload Coverage to Codecov
-      uses: codecov/codecov-action@v1
+      uses: codecov/codecov-action@v2
       with:
         env_vars: PYTHON
+        fail_ci_if_error: true
 
   pre-commit:
     runs-on: ubuntu-20.04
