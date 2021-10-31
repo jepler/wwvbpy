@@ -134,7 +134,8 @@ Note that the NIST page of DUT1 offsets may be incomplete; on 2021-07-04 I notic
 Leap seconds are inferred from the DUT1 data as follows: If X and Y are the
 1-digit-rounded DUT1 values for consecutive dates, and `X*Y<0`, then there is a
 leap second at the end of day X.  The direction of the leap second can be
-inferred from the sign of X, a positive leap second if X is positive.  As long
+inferred from the sign of X, a 59-second minute if X is positive and a
+61-second minute if it is negative.  As long
 as DUT1 changes slowly enough during other times that there is at least one day
 of DUT1=+0.0, no incorrect (negative) leapsecond will be inferred. (something
 that should remain true for the next few centuries, until the length of the day
