@@ -163,9 +163,9 @@ def is_dst(
     if dst_bits == 0b11:
         return True
     if dst_bits == 0b01:
+        # DST ends at 2AM *DST* which is 1AM *standard*
         transition_time = dt.replace(hour=1)
         return d < transition_time
-    # self.dst_bits == 0b00
     return False
 
 
