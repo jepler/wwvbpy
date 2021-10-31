@@ -17,7 +17,7 @@ class TestDaylight(unittest.TestCase):
     def test_onset(self) -> None:
         """Test that the onset of DST is the same in Mountain and WWVBMinute (which uses ls bits)"""
         for h in [8, 9, 10]:
-            for dm in (-1, 0, 1):
+            for dm in range(-1441, 1442):
                 d = datetime.datetime(
                     2021, 3, 14, h, 0, tzinfo=datetime.timezone.utc
                 ) + datetime.timedelta(minutes=dm)
@@ -30,7 +30,7 @@ class TestDaylight(unittest.TestCase):
     def test_end(self) -> None:
         """Test that the end of DST is the same in Mountain and WWVBMinute (which uses ls bits)"""
         for h in [7, 8, 9]:
-            for dm in (-1, 0, 1):
+            for dm in range(-1441, 1442):
                 d = datetime.datetime(
                     2021, 11, 7, h, 0, tzinfo=datetime.timezone.utc
                 ) + datetime.timedelta(minutes=dm)

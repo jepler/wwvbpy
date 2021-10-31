@@ -79,10 +79,15 @@ class WWVBRoundtrip(unittest.TestCase):
             datetime.datetime(2021, 3, 14, 8, 59),
             datetime.datetime(2021, 3, 14, 9, 00),
             datetime.datetime(2021, 3, 14, 9, 1),
+            datetime.datetime(2021, 3, 15, 8, 59),
+            datetime.datetime(2021, 3, 15, 9, 00),
+            datetime.datetime(2021, 3, 15, 9, 1),
             datetime.datetime(2021, 11, 7, 8, 59),
             datetime.datetime(2021, 11, 7, 9, 00),
             datetime.datetime(2021, 11, 7, 9, 1),
-            datetime.datetime(2021, 12, 7, 9, 1),
+            datetime.datetime(2021, 11, 8, 8, 59),
+            datetime.datetime(2021, 11, 8, 9, 00),
+            datetime.datetime(2021, 11, 8, 9, 1),
             datetime.datetime(2021, 7, 7, 9, 1),
         ):
             minute = wwvb.WWVBMinuteIERS.from_datetime(dt)
