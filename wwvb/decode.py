@@ -76,7 +76,7 @@ def wwvbreceive() -> Generator[
                 value = yield None
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma no cover
     decoder = wwvbreceive()
     next(decoder)
     decoder.send(wwvb.AmplitudeModulation.MARK)
