@@ -1,0 +1,10 @@
+# SPDX-FileCopyrightText: 2021 Jeff Epler
+#
+# SPDX-License-Identifier: CC0-1.0
+
+extraction:
+  python:
+    python_setup:
+      requirements_files:
+        - requirements-dev.py
+      setup_py: false
