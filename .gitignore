@@ -4,6 +4,7 @@
 
 /build
 /.coverage
+/coverage.xml
 /dist
 /*.egg-info
 /htmlcov
