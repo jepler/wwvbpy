@@ -3,9 +3,11 @@ PYTHON ?= python3
 COVERAGE_INCLUDE=--omit '/usr/**/*.py'
 .PHONY: coverage
 coverage:
-	$(PYTHON) -mcoverage run --branch -m unittest
+	$(PYTHON) -mcoverage erase
+	$(PYTHON) -mcoverage run --branch -p -m unittest
+	$(PYTHON) -mcoverage combine
 	$(PYTHON) -mcoverage html $(COVERAGE_INCLUDE)
-	$(PYTHON) -mcoverage annotate $(COVERAGE_INCLUDE)
+	$(PYTHON) -mcoverage xml $(COVERAGE_INCLUDE)
 	$(PYTHON) -mcoverage report $(COVERAGE_INCLUDE) --fail-under=100
 
 .PHONY: mypy

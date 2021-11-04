@@ -32,11 +32,11 @@ def parse_timespec(  # pylint: disable=unused-argument
         if len(value) == 4:
             year, yday, hour, minute = map(int, value)
             return datetime.datetime(year, 1, 1, hour, minute) + datetime.timedelta(
-                days=yday
+                days=yday - 1
             )
         if len(value) == 1:
             return dateutil.parser.parse(value[0])
-        if len(value) == 0:
+        if len(value) == 0:  # pragma no cover
             return datetime.datetime.utcnow()
         raise ValueError("Unexpected number of arguments")
     except ValueError as e:
@@ -120,13 +120,10 @@ def main(
     else:
         Constructor = WWVBMinute
         if dut1 is None:
-            extra_args["ut1"] = -500 * (leap_second or 0)
+            extra_args["newut1"] = -500 * (leap_second or 0)
         else:
-            extra_args["ut1"] = dut1
-        extra_args["ls"] = bool(leap_second)
-
-    if timespec is None:
-        timespec = datetime.datetime.utcnow()
+            extra_args["newut1"] = dut1
+        extra_args["newls"] = bool(leap_second)
 
     w = Constructor.from_datetime(timespec, **extra_args)  # type: ignore
     print_timecodes(
@@ -134,5 +131,5 @@ def main(
     )
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma no branch
     main()  # pylint: disable=no-value-for-parameter

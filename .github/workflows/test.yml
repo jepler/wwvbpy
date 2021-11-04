@@ -24,9 +24,6 @@ jobs:
         - 'pypy-3.7'
         - 'pypy-3.8'
 
-    env:
-      PYTHON: ${{ matrix.python-version }}
-
     runs-on: ubuntu-20.04
     steps:
     - name: Dump GitHub context
@@ -46,14 +43,16 @@ jobs:
 
     - name: Check stubs
       if: (! startsWith(matrix.python-version, 'pypy-'))
-      run: mypy --strict wwvb uwwvb.py
+      run: make mypy
 
     - name: Test
-      run: python -mcoverage run --branch -m unittest && python -mcoverage xml && python -mcoverage report --fail-under=100
+      run: make coverage
 
     - name: Upload Coverage to Codecov
       if: always()
       uses: codecov/codecov-action@v2
+      env:
+        PYTHON: ${{ matrix.python-version }}
       with:
         env_vars: PYTHON
         fail_ci_if_error: true

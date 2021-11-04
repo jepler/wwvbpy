@@ -1,6 +1,9 @@
 #SPDX-FileCopyrightText: 2021 Jeff Epler
 #
 #SPDX-License-Identifier: GPL-3.0-only
+[MASTER]
+py-version=3.7
+
 [MESSAGES CONTROL]
 disable=duplicate-code,line-too-long
 
