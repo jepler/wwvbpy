@@ -41,7 +41,6 @@ def parse_timespec(  # pylint: disable=unused-argument
         raise ValueError("Unexpected number of arguments")
     except ValueError as e:
         raise click.UsageError(f"Could not parse timespec: {e}") from e
-    return value
 
 
 @click.command()

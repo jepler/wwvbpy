@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: GPL-3.0-only
 """A stateful decoder of WWVB signals"""
 
+import sys
 from typing import Generator, List, Optional
 import wwvb
 
@@ -73,3 +74,17 @@ def wwvbreceive() -> Generator[
                 value = yield tc
             else:
                 value = yield None
+
+
+if __name__ == "__main__":  # pragma no cover
+    decoder = wwvbreceive()
+    next(decoder)
+    decoder.send(wwvb.AmplitudeModulation.MARK)
+    for s in sys.argv[1:]:
+        for c in s:
+            decoded = decoder.send(wwvb.AmplitudeModulation(int(c)))
+            if decoded:
+                print(decoded)
+                w = wwvb.WWVBMinute.from_timecode_am(decoded)
+                if w:
+                    print(w)
