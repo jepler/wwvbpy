@@ -9,9 +9,9 @@ coverage
 mypy; implementation_name=="cpython"
 pre-commit
 python-dateutil
-requests
-setuptools>=45
-twine
+requests; implementation_name=="cpython"
+setuptools>=45; implementation_name=="cpython"
+twine; implementation_name=="cpython"
 types-python-dateutil
 types-requests
 wheel
