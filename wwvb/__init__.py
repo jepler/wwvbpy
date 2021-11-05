@@ -49,7 +49,7 @@ def maybe_warn_update(dt: datetime.date) -> None:
         )
 
 
-def get_dut1(dt: DateOrDatetime, *, warn_outdated=True) -> float:
+def get_dut1(dt: DateOrDatetime, *, warn_outdated: bool = True) -> float:
     """Return the DUT1 number for the given timestamp"""
     date = _date(dt)
     i = (date - iersdata.DUT1_DATA_START).days
