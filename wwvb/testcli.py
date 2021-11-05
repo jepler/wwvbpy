@@ -132,7 +132,7 @@ WWVB timecode: year=2020 days=001 hour=12 min=30 dst=0 ut1=-300 ly=1 ls=0
             "2020-1-1 12:30",
         )
 
-    def test_dut1table(self):
+    def test_dut1table(self) -> None:
         """Test the dut1table program"""
         self.assertModuleOutputStarts(
             """\
