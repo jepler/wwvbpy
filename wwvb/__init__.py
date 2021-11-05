@@ -27,7 +27,7 @@ def require(x: Optional[T]) -> T:
     return x
 
 
-Mountain = require(gettz("America/Denver"))
+Mountain = require(gettz("America/Denver"))  # lgtm [py/call-to-non-callable]
 
 
 def _date(dt: DateOrDatetime) -> datetime.date:
