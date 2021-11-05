@@ -1,5 +1,8 @@
 PYTHON ?= python3
 
+.PHONY: default
+default: coverage mypy
+
 COVERAGE_INCLUDE=--omit '/usr/**/*.py'
 .PHONY: coverage
 coverage:
