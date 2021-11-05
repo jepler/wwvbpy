@@ -28,9 +28,22 @@ class CLITestCase(unittest.TestCase):
         )
         self.assertMultiLineEqual(expected, actual, "args={args}")
 
+    def assertProgramOutputStarts(self, expected: str, *args: str) -> None:
+        """Check the output from invoking a program matches the expected"""
+        actual = subprocess.check_output(
+            args, stdin=subprocess.DEVNULL, encoding="utf-8"
+        )
+        self.assertMultiLineEqual(expected, actual[: len(expected)], "args={args}")
+
     def assertModuleOutput(self, expected: str, *args: str) -> None:
         """Check the output from invoking a `python -m modulename` program matches the expected"""
         return self.assertProgramOutput(
+            expected, sys.executable, *coverage_add, "-m", *args
+        )
+
+    def assertModuleOutputStarts(self, expected: str, *args: str) -> None:
+        """Check the output from invoking a `python -m modulename` program matches the expected"""
+        return self.assertProgramOutputStarts(
             expected, sys.executable, *coverage_add, "-m", *args
         )
 
@@ -117,4 +130,15 @@ WWVB timecode: year=2020 days=001 hour=12 min=30 dst=0 ut1=-300 ly=1 ls=0
             "-d",
             "-300",
             "2020-1-1 12:30",
+        )
+
+    def test_dut1table(self):
+        """Test the dut1table program"""
+        self.assertModuleOutputStarts(
+            """\
+1972-06-01 -0.2   30 LS
+1972-07-01  0.8  203
+1973-01-20  0.7   31
+""",
+            "wwvb.dut1table",
         )

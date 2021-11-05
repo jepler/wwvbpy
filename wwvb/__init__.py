@@ -49,14 +49,15 @@ def maybe_warn_update(dt: datetime.date) -> None:
         )
 
 
-def get_dut1(dt: DateOrDatetime) -> float:
+def get_dut1(dt: DateOrDatetime, *, warn_outdated=True) -> float:
     """Return the DUT1 number for the given timestamp"""
     date = _date(dt)
     i = (date - iersdata.DUT1_DATA_START).days
     if i < 0:
         v = iersdata.DUT1_OFFSETS[0]
     elif i >= len(iersdata.DUT1_OFFSETS):
-        maybe_warn_update(dt)
+        if warn_outdated:
+            maybe_warn_update(dt)
         v = iersdata.DUT1_OFFSETS[-1]
     else:
         v = iersdata.DUT1_OFFSETS[i]

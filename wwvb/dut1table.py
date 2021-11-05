@@ -17,12 +17,12 @@ def main() -> None:
     for key, it in groupby(DUT1_OFFSETS):
         dut1_ms = (ord(key) - ord("k")) / 10.0
         count = len(list(it))
-        dut1_next = wwvb.get_dut1(date + timedelta(days=count))
+        dut1_next = wwvb.get_dut1(date + timedelta(days=count), warn_outdated=False)
         ls = " LS" if dut1_ms * dut1_next < 0 else ""
-        print(f"{date:10s} {dut1_ms: 3.1f} {count:4d}{ls}")
+        print(f"{date:%F} {dut1_ms: 3.1f} {count:4d}{ls}")
         date += timedelta(days=count)
     print(date)
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma no branch
     main()
