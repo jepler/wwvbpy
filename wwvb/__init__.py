@@ -398,7 +398,8 @@ class WWVBMinute(_WWVBMinute):
         self, standard_time_offset: int = 7 * 3600, dst_observed: bool = True
     ) -> datetime.datetime:
         """Convert to a local datetime according to the DST bits"""
-        u = self.as_datetime_utc().replace(tzinfo=None)
+        u = self.as_datetime_utc()
+        offset = datetime.timedelta(seconds=-standard_time_offset)
         d = u - datetime.timedelta(seconds=standard_time_offset)
         if not dst_observed:
             dst = False
@@ -413,8 +414,8 @@ class WWVBMinute(_WWVBMinute):
         else:  # self.dst == 0b00
             dst = False
         if dst:
-            d += datetime.timedelta(seconds=3600)
-        return d
+            offset += datetime.timedelta(seconds=3600)
+        return u.astimezone(datetime.timezone(offset))
 
     def is_ly(self) -> bool:
         """Return True if minute is during a leap year"""
