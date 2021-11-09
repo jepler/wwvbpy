@@ -27,6 +27,10 @@ def require(x: Optional[T]) -> T:
     assert x is not None
     return x
 
+def _removeprefix(s: str, p: str) -> str:
+    if s.startswith(p):
+        return s[len(p):]
+    return s
 
 Mountain = require(gettz("America/Denver"))  # lgtm [py/call-to-non-callable]
 
@@ -632,7 +636,7 @@ class WWVBMinute(_WWVBMinute):
     @classmethod
     def fromstring(cls, s: str) -> "WWVBMinute":
         """Construct a WWVBMinute from a string representation created by print_timecodes"""
-        s = s.removeprefix("WWVB timecode: ")
+        s = _removeprefix(s, "WWVB timecode: ")
         d: dict[str, int] = {}
         for part in s.split():
             k, v = part.split("=")
