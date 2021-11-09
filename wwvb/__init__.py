@@ -10,7 +10,7 @@ import collections
 import datetime
 import enum
 import warnings
-from typing import Generator, List, Optional, TextIO, Tuple, TypeVar, Union
+from typing import Dict, Generator, List, Optional, TextIO, Tuple, TypeVar, Union
 
 from dateutil.tz import gettz
 
@@ -27,10 +27,12 @@ def require(x: Optional[T]) -> T:
     assert x is not None
     return x
 
+
 def _removeprefix(s: str, p: str) -> str:
     if s.startswith(p):
-        return s[len(p):]
+        return s[len(p) :]
     return s
+
 
 Mountain = require(gettz("America/Denver"))  # lgtm [py/call-to-non-callable]
 
@@ -637,7 +639,7 @@ class WWVBMinute(_WWVBMinute):
     def fromstring(cls, s: str) -> "WWVBMinute":
         """Construct a WWVBMinute from a string representation created by print_timecodes"""
         s = _removeprefix(s, "WWVB timecode: ")
-        d: dict[str, int] = {}
+        d: Dict[str, int] = {}
         for part in s.split():
             k, v = part.split("=")
             if k == "min":
