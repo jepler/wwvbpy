@@ -761,17 +761,14 @@ class WWVBTimecode:
 
     def get_am_bcd(self, *poslist: int) -> Optional[int]:
         """Convert the bits seq[positions[0]], ... seq[positions[len(positions-1)]] [in MSB order] from BCD to decimal"""
-        seq = self.am
-        pos = list(poslist)[::-1]
-        val = [int(seq[p]) for p in pos]
-        while len(val) % 4 != 0:
-            val.append(0)
+        pos = reversed(poslist)
+        val = [bool(self.am[p]) for p in pos]
         result = 0
         base = 1
         for i in range(0, len(val), 4):
             digit = 0
-            for j in range(4):
-                digit += 1 << j if val[i + j] else 0
+            for j, b in enumerate(val[i : i + 4]):
+                digit += b << j
             if digit > 9:
                 return None
             result += digit * base
