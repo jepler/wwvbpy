@@ -44,6 +44,7 @@ co-maintainer(s).
 
 
 # WWVB Timecodes
+
 The National Institute of Standards and Technology operates the WWVB time
 signal service near Fort Collins, Colorado.  The signal can be received in most
 of the continental US.  Each minute, the signal transmits the current time,
@@ -105,7 +106,7 @@ The letters `a` through `u` represent offsets of -1.0s through +1.0s
 in 0.1s increments; `k` represents 0s.  (In practice, only a smaller range
 of values, typically -0.7s to +0.8s, is seen)
 
-For 2001 through present, NIST has published the actual DUT1 values broadcast,
+For 2001 through 2019, NIST has published the actual DUT1 values broadcast,
 and the date of each change, though it in the format of an HTML
 table and not designed for machine readability:
 
@@ -158,6 +159,4 @@ Run the testsuite with `python3 -munittest`.  There are several test suites:
  * `testuwwvb.py`: Test the reduced-functionality version against the main version
  * `testls.py`: Check the IERS data through 2020-1-1 for expected leap seconds
  * `testpm.py`: Check the phase modulation data against a test case from NIST documentation
-
-A script `printls.py` prints all leap seconds represented in `iersdata.py`.
-Verification of this data is manual.
+ * `testcli.py`: Check the commandline programs work as expected (limited tests to get 100% coverage)
