@@ -247,13 +247,6 @@ class WWVBRoundtrip(unittest.TestCase):
         )
         self.assertEqual(minute, minute.next_minute().previous_minute())
 
-    def test_data(self) -> None:
-        """Test that the .data property is the same as .am (strictly for coverage)"""
-        minute = wwvb.WWVBMinuteIERS.from_datetime(
-            datetime.datetime(1992, 6, 30, 23, 50)
-        )
-        self.assertEqual(minute.as_timecode().data, minute.as_timecode().am)
-
     def test_timecode_str(self) -> None:
         """Test the str() and repr() methods"""
         minute = wwvb.WWVBMinuteIERS.from_datetime(
@@ -342,7 +335,7 @@ class WWVBRoundtrip(unittest.TestCase):
     def test_update(self) -> None:
         """Ensure that the 'maybe_warn_update' function is covered"""
         with self.assertWarnsRegex(Warning, "updateiers"):
-            wwvb.maybe_warn_update(datetime.date(1970, 1, 1))
+            wwvb._maybe_warn_update(datetime.date(1970, 1, 1))
 
     def test_undefined(self) -> None:
         """Ensure that the check for unset elements in am works"""

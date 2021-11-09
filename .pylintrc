@@ -5,7 +5,7 @@
 py-version=3.7
 
 [MESSAGES CONTROL]
-disable=duplicate-code,line-too-long
+disable=duplicate-code,line-too-long,protected-access
 
 [BASIC]
 argument-rgx=[a-z][a-z0-9_]*

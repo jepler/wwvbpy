@@ -11,8 +11,9 @@ import datetime
 import enum
 import warnings
 from typing import Generator, List, Optional, TextIO, Tuple, TypeVar, Union
-import io
+
 from dateutil.tz import gettz
+
 from . import iersdata
 
 HOUR = datetime.timedelta(seconds=3600)
@@ -37,7 +38,7 @@ def _date(dt: DateOrDatetime) -> datetime.date:
     return dt
 
 
-def maybe_warn_update(dt: datetime.date) -> None:
+def _maybe_warn_update(dt: datetime.date) -> None:
     """Maybe print a notice to run updateiers, if it seems useful to do so."""
     # We already know this date is not covered.
     # If the date is less than 330 days after today, there should be (possibly)
@@ -57,7 +58,7 @@ def get_dut1(dt: DateOrDatetime, *, warn_outdated: bool = True) -> float:
         v = iersdata.DUT1_OFFSETS[0]
     elif i >= len(iersdata.DUT1_OFFSETS):
         if warn_outdated:
-            maybe_warn_update(dt)
+            _maybe_warn_update(dt)
         v = iersdata.DUT1_OFFSETS[-1]
     else:
         v = iersdata.DUT1_OFFSETS[i]
@@ -345,7 +346,7 @@ class WWVBMinute(_WWVBMinute):
         if dst not in (0, 1, 2, 3):
             raise ValueError("dst value should be 0..3")
         if ut1 is None and ls is None:
-            ut1, ls = cls.get_dut1_info(year, days)
+            ut1, ls = cls._get_dut1_info(year, days)
         elif ut1 is None or ls is None:
             raise ValueError("sepecify both ut1 and ls or neither one")
         year = cls.full_year(year)
@@ -397,7 +398,7 @@ class WWVBMinute(_WWVBMinute):
         self, standard_time_offset: int = 7 * 3600, dst_observed: bool = True
     ) -> datetime.datetime:
         """Convert to a local datetime according to the DST bits"""
-        u = self.as_datetime_utc()
+        u = self.as_datetime_utc().replace(tzinfo=None)
         d = u - datetime.timedelta(seconds=standard_time_offset)
         if not dst_observed:
             dst = False
@@ -420,7 +421,7 @@ class WWVBMinute(_WWVBMinute):
         warnings.warn("Deprecated, use ly property instead", DeprecationWarning)
         return self.ly
 
-    def is_end_of_month(self) -> bool:
+    def _is_end_of_month(self) -> bool:
         """Return True if minute is the last minute in a month"""
         d = self.as_datetime()
         e = d + datetime.timedelta(1)
@@ -430,7 +431,7 @@ class WWVBMinute(_WWVBMinute):
         """Return the length of the minute, 60, 61, or (theoretically) 59 seconds"""
         if not self.ls:
             return 60
-        if not self.is_end_of_month():
+        if not self._is_end_of_month():
             return 60
         if self.hour != 23 or self.min != 59:
             return 60
@@ -481,19 +482,19 @@ class WWVBMinute(_WWVBMinute):
             t.am[60] = AmplitudeModulation.MARK
         for i in [4, 10, 11, 14, 20, 21, 24, 34, 35, 44, 54]:
             t.am[i] = AmplitudeModulation.ZERO
-        t.put_am_bcd(self.min, 1, 2, 3, 5, 6, 7, 8)
-        t.put_am_bcd(self.hour, 12, 13, 15, 16, 17, 18)
-        t.put_am_bcd(self.days, 22, 23, 25, 26, 27, 28, 30, 31, 32, 33)
+        t._put_am_bcd(self.min, 1, 2, 3, 5, 6, 7, 8)
+        t._put_am_bcd(self.hour, 12, 13, 15, 16, 17, 18)
+        t._put_am_bcd(self.days, 22, 23, 25, 26, 27, 28, 30, 31, 32, 33)
         ut1_sign = self.ut1 >= 0
         t.am[36] = t.am[38] = AmplitudeModulation(ut1_sign)
         t.am[37] = AmplitudeModulation(not ut1_sign)
-        t.put_am_bcd(abs(self.ut1) // 100, 40, 41, 42, 43)
-        t.put_am_bcd(
+        t._put_am_bcd(abs(self.ut1) // 100, 40, 41, 42, 43)
+        t._put_am_bcd(
             self.year, 45, 46, 47, 48, 50, 51, 52, 53
         )  # Implicitly discards all but lowest 2 digits of year
         t.am[55] = AmplitudeModulation(self.ly)
         t.am[56] = AmplitudeModulation(self.ls)
-        t.put_am_bcd(self.dst, 57, 58)
+        t._put_am_bcd(self.dst, 57, 58)
 
     def fill_pm_timecode_extended(self, t: "WWVBTimecode") -> None:
         """During minutes 10..15 and 40..45, the amplitude signal holds 'extended information'"""
@@ -528,65 +529,65 @@ class WWVBMinute(_WWVBMinute):
 
         offset = minno * 60
         for i in range(60):
-            t.put_pm_bit(i, full_seq[i + offset])
+            t._put_pm_bit(i, full_seq[i + offset])
 
     def fill_pm_timecode_regular(  # pylint: disable=too-many-statements
         self, t: "WWVBTimecode"
     ) -> None:
         """Except during minutes 10..15 and 40..45, the amplitude signal holds 'regular information'"""
-        t.put_pm_bin(0, 13, SYNC_T)
+        t._put_pm_bin(0, 13, SYNC_T)
 
         moc = self.minute_of_century
         leap_sec = self.leap_sec
         dst_on = self.dst
         dst_ls = dst_ls_lut[dst_on | (leap_sec << 2)]
         dst_next = get_dst_next(self.as_datetime())
-        t.put_pm_bin(13, 5, hamming_parity(moc))
-        t.put_pm_bit(18, extract_bit(moc, 25))
-        t.put_pm_bit(19, extract_bit(moc, 0))
-        t.put_pm_bit(20, extract_bit(moc, 24))
-        t.put_pm_bit(21, extract_bit(moc, 23))
-        t.put_pm_bit(22, extract_bit(moc, 22))
-        t.put_pm_bit(23, extract_bit(moc, 21))
-        t.put_pm_bit(24, extract_bit(moc, 20))
-        t.put_pm_bit(25, extract_bit(moc, 19))
-        t.put_pm_bit(26, extract_bit(moc, 18))
-        t.put_pm_bit(27, extract_bit(moc, 17))
-        t.put_pm_bit(28, extract_bit(moc, 16))
-        t.put_pm_bit(29, False)  # Reserved
-        t.put_pm_bit(30, extract_bit(moc, 15))
-        t.put_pm_bit(31, extract_bit(moc, 14))
-        t.put_pm_bit(32, extract_bit(moc, 13))
-        t.put_pm_bit(33, extract_bit(moc, 12))
-        t.put_pm_bit(34, extract_bit(moc, 11))
-        t.put_pm_bit(35, extract_bit(moc, 10))
-        t.put_pm_bit(36, extract_bit(moc, 9))
-        t.put_pm_bit(37, extract_bit(moc, 8))
-        t.put_pm_bit(38, extract_bit(moc, 7))
-        t.put_pm_bit(39, True)  # Reserved
-        t.put_pm_bit(40, extract_bit(moc, 6))
-        t.put_pm_bit(41, extract_bit(moc, 5))
-        t.put_pm_bit(42, extract_bit(moc, 4))
-        t.put_pm_bit(43, extract_bit(moc, 3))
-        t.put_pm_bit(44, extract_bit(moc, 2))
-        t.put_pm_bit(45, extract_bit(moc, 1))
-        t.put_pm_bit(46, extract_bit(moc, 0))
-        t.put_pm_bit(47, extract_bit(dst_ls, 4))
-        t.put_pm_bit(48, extract_bit(dst_ls, 3))
-        t.put_pm_bit(49, True)  # Notice
-        t.put_pm_bit(50, extract_bit(dst_ls, 2))
-        t.put_pm_bit(51, extract_bit(dst_ls, 1))
-        t.put_pm_bit(52, extract_bit(dst_ls, 0))
-        t.put_pm_bit(53, extract_bit(dst_next, 5))
-        t.put_pm_bit(54, extract_bit(dst_next, 4))
-        t.put_pm_bit(55, extract_bit(dst_next, 3))
-        t.put_pm_bit(56, extract_bit(dst_next, 2))
-        t.put_pm_bit(57, extract_bit(dst_next, 1))
-        t.put_pm_bit(58, extract_bit(dst_next, 0))
+        t._put_pm_bin(13, 5, hamming_parity(moc))
+        t._put_pm_bit(18, extract_bit(moc, 25))
+        t._put_pm_bit(19, extract_bit(moc, 0))
+        t._put_pm_bit(20, extract_bit(moc, 24))
+        t._put_pm_bit(21, extract_bit(moc, 23))
+        t._put_pm_bit(22, extract_bit(moc, 22))
+        t._put_pm_bit(23, extract_bit(moc, 21))
+        t._put_pm_bit(24, extract_bit(moc, 20))
+        t._put_pm_bit(25, extract_bit(moc, 19))
+        t._put_pm_bit(26, extract_bit(moc, 18))
+        t._put_pm_bit(27, extract_bit(moc, 17))
+        t._put_pm_bit(28, extract_bit(moc, 16))
+        t._put_pm_bit(29, False)  # Reserved
+        t._put_pm_bit(30, extract_bit(moc, 15))
+        t._put_pm_bit(31, extract_bit(moc, 14))
+        t._put_pm_bit(32, extract_bit(moc, 13))
+        t._put_pm_bit(33, extract_bit(moc, 12))
+        t._put_pm_bit(34, extract_bit(moc, 11))
+        t._put_pm_bit(35, extract_bit(moc, 10))
+        t._put_pm_bit(36, extract_bit(moc, 9))
+        t._put_pm_bit(37, extract_bit(moc, 8))
+        t._put_pm_bit(38, extract_bit(moc, 7))
+        t._put_pm_bit(39, True)  # Reserved
+        t._put_pm_bit(40, extract_bit(moc, 6))
+        t._put_pm_bit(41, extract_bit(moc, 5))
+        t._put_pm_bit(42, extract_bit(moc, 4))
+        t._put_pm_bit(43, extract_bit(moc, 3))
+        t._put_pm_bit(44, extract_bit(moc, 2))
+        t._put_pm_bit(45, extract_bit(moc, 1))
+        t._put_pm_bit(46, extract_bit(moc, 0))
+        t._put_pm_bit(47, extract_bit(dst_ls, 4))
+        t._put_pm_bit(48, extract_bit(dst_ls, 3))
+        t._put_pm_bit(49, True)  # Notice
+        t._put_pm_bit(50, extract_bit(dst_ls, 2))
+        t._put_pm_bit(51, extract_bit(dst_ls, 1))
+        t._put_pm_bit(52, extract_bit(dst_ls, 0))
+        t._put_pm_bit(53, extract_bit(dst_next, 5))
+        t._put_pm_bit(54, extract_bit(dst_next, 4))
+        t._put_pm_bit(55, extract_bit(dst_next, 3))
+        t._put_pm_bit(56, extract_bit(dst_next, 2))
+        t._put_pm_bit(57, extract_bit(dst_next, 1))
+        t._put_pm_bit(58, extract_bit(dst_next, 0))
         if len(t.phase) > 59:
-            t.put_pm_bit(59, PhaseModulation.ZERO)
+            t._put_pm_bit(59, PhaseModulation.ZERO)
         if len(t.phase) > 60:
-            t.put_pm_bit(60, PhaseModulation.ZERO)
+            t._put_pm_bit(60, PhaseModulation.ZERO)
 
     def fill_pm_timecode(self, t: "WWVBTimecode") -> None:
         """Fill the phase portion of a timecode object"""
@@ -610,7 +611,7 @@ class WWVBMinute(_WWVBMinute):
         return self.from_datetime(d, newut1, newls, self)
 
     @classmethod
-    def get_dut1_info(  # pylint: disable=unused-argument
+    def _get_dut1_info(  # pylint: disable=unused-argument
         cls: type, year: int, days: int, old_time: "Optional[WWVBMinute]" = None
     ) -> Tuple[int, bool]:
         """Return the DUT1 information for a given day, possibly propagating information from a previous timestamp"""
@@ -630,9 +631,8 @@ class WWVBMinute(_WWVBMinute):
     @classmethod
     def fromstring(cls, s: str) -> "WWVBMinute":
         """Construct a WWVBMinute from a string representation created by print_timecodes"""
-        if s.startswith("WWVB timecode: "):
-            s = s[len("WWVB timecode: ") :]
-        d = {}
+        s = s.removeprefix("WWVB timecode: ")
+        d: dict[str, int] = {}
         for part in s.split():
             k, v = part.split("=")
             if k == "min":
@@ -642,8 +642,8 @@ class WWVBMinute(_WWVBMinute):
         days = d.pop("days")
         hour = d.pop("hour")
         minute = d.pop("minute")
-        dst = d.pop("dst", None)
-        ut1 = d.pop("ut1", None)
+        dst: Optional[int] = d.pop("dst", None)
+        ut1: Optional[int] = d.pop("ut1", None)
         ls = d.pop("ls", None)
         d.pop("ly", None)
         if d:
@@ -661,7 +661,7 @@ class WWVBMinute(_WWVBMinute):
         """Construct a WWVBMinute from a datetime, possibly specifying ut1/ls data or propagating it from an old time"""
         u = d.utctimetuple()
         if newls is None and newut1 is None:
-            newut1, newls = cls.get_dut1_info(u.tm_year, u.tm_yday, old_time)
+            newut1, newls = cls._get_dut1_info(u.tm_year, u.tm_yday, old_time)
         return cls(u.tm_year, u.tm_yday, u.tm_hour, u.tm_min, ut1=newut1, ls=newls)
 
     @classmethod
@@ -679,29 +679,29 @@ class WWVBMinute(_WWVBMinute):
             return None
         if t.am[36] != t.am[38]:
             return None
-        minute = t.get_am_bcd(1, 2, 3, 5, 6, 7, 8)
+        minute = t._get_am_bcd(1, 2, 3, 5, 6, 7, 8)
         if minute is None:
             return None
-        hour = t.get_am_bcd(12, 13, 15, 16, 17, 18)
+        hour = t._get_am_bcd(12, 13, 15, 16, 17, 18)
         if hour is None:
             return None
-        days = t.get_am_bcd(22, 23, 25, 26, 27, 28, 30, 31, 32, 33)
+        days = t._get_am_bcd(22, 23, 25, 26, 27, 28, 30, 31, 32, 33)
         if days is None:
             return None
-        abs_ut1 = t.get_am_bcd(40, 41, 42, 43)
+        abs_ut1 = t._get_am_bcd(40, 41, 42, 43)
         if abs_ut1 is None:
             return None
         abs_ut1 *= 100
         ut1_sign = t.am[38]
         ut1 = abs_ut1 if ut1_sign else -abs_ut1
-        year = t.get_am_bcd(45, 46, 47, 48, 50, 51, 52, 53)
+        year = t._get_am_bcd(45, 46, 47, 48, 50, 51, 52, 53)
         if year is None:
             return None
         ly = bool(t.am[55])
         if days > 366 or (not ly and days > 365):
             return None
         ls = bool(t.am[56])
-        dst = require(t.get_am_bcd(57, 58))
+        dst = require(t._get_am_bcd(57, 58))
         return cls(year, days, hour, minute, dst, ut1, ls, ly)
 
 
@@ -709,7 +709,7 @@ class WWVBMinuteIERS(WWVBMinute):
     """A WWVBMinute that uses a database of DUT1 information"""
 
     @classmethod
-    def get_dut1_info(
+    def _get_dut1_info(
         cls, year: int, days: int, old_time: Optional[WWVBMinute] = None
     ) -> Tuple[int, bool]:
         d = datetime.datetime(year, 1, 1) + datetime.timedelta(days - 1)
@@ -754,12 +754,7 @@ class WWVBTimecode:
         self.am = [AmplitudeModulation.UNSET] * sz  # pylint: disable=invalid-name
         self.phase = [PhaseModulation.UNSET] * sz
 
-    @property
-    def data(self) -> List[AmplitudeModulation]:
-        """An alias for `self.am`"""
-        return self.am
-
-    def get_am_bcd(self, *poslist: int) -> Optional[int]:
+    def _get_am_bcd(self, *poslist: int) -> Optional[int]:
         """Convert the bits seq[positions[0]], ... seq[positions[len(positions-1)]] [in MSB order] from BCD to decimal"""
         pos = reversed(poslist)
         val = [bool(self.am[p]) for p in pos]
@@ -775,7 +770,7 @@ class WWVBTimecode:
             base *= 10
         return result
 
-    def put_am_bcd(self, v: int, *poslist: int) -> None:
+    def _put_am_bcd(self, v: int, *poslist: int) -> None:
         """Treating 'poslist' as a sequence of indices, update the AM signal with the value as a BCD number"""
         pos = list(poslist)[::-1]
         for p, b in zip(pos, bcd_bits(v)):
@@ -784,14 +779,14 @@ class WWVBTimecode:
             else:
                 self.am[p] = AmplitudeModulation.ZERO
 
-    def put_pm_bit(self, i: int, v: Union[PhaseModulation, int, bool]) -> None:
+    def _put_pm_bit(self, i: int, v: Union[PhaseModulation, int, bool]) -> None:
         """Update a bit of the Phase Modulation signal"""
         self.phase[i] = PhaseModulation(v)
 
-    def put_pm_bin(self, st: int, n: int, v: int) -> None:
+    def _put_pm_bin(self, st: int, n: int, v: int) -> None:
         """Update an n-digit binary number in the Phase Modulation signal"""
         for i in range(n):
-            self.put_pm_bit(st + i, extract_bit(v, (n - i - 1)))
+            self._put_pm_bit(st + i, extract_bit(v, (n - i - 1)))
 
     def __str__(self) -> str:
         """implement str()"""
