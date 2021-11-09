@@ -326,6 +326,8 @@ class WWVBMinute(_WWVBMinute):
     ly: bool
     ls: bool
 
+    epoch: int = 1970
+
     def __new__(  # pylint: disable=too-many-arguments
         cls,
         year: int,
@@ -346,13 +348,29 @@ class WWVBMinute(_WWVBMinute):
             ut1, ls = cls.get_dut1_info(year, days)
         elif ut1 is None or ls is None:
             raise ValueError("sepecify both ut1 and ls or neither one")
-        if year < 70:
-            year = year + 2000
-        elif year < 100:
-            year = year + 1900
+        year = cls.full_year(year)
         if ly is None:
             ly = isly(year)
         return _WWVBMinute.__new__(cls, year, days, hour, minute, dst, ut1, ls, ly)
+
+    @classmethod
+    def full_year(cls, year: int) -> int:
+        """Convert a (possibly two-digit) year to a full year.
+
+        If the argument is above 100, it is assumed to be a full year.
+        Otherwise, the intuitive method is followed: Say the epoch is 1970,
+        then 70..99 means 1970..99 and 00..69 means 2000..2069.
+
+        To actually use a different epoch, derive a class from WWVBMinute (or
+        WWVBMinuteIERS) and give it a different epoch property.  Then, create
+        instances of that class instead of WWVBMinute.
+        """
+        century = cls.epoch // 100 * 100
+        if year < (cls.epoch % 100):
+            return year + century + 100
+        if year < 100:
+            return year + century
+        return year
 
     @staticmethod
     def get_dst(year: int, days: int) -> int:
@@ -470,7 +488,9 @@ class WWVBMinute(_WWVBMinute):
         t.am[36] = t.am[38] = AmplitudeModulation(ut1_sign)
         t.am[37] = AmplitudeModulation(not ut1_sign)
         t.put_am_bcd(abs(self.ut1) // 100, 40, 41, 42, 43)
-        t.put_am_bcd(self.year, 45, 46, 47, 48, 50, 51, 52, 53)
+        t.put_am_bcd(
+            self.year, 45, 46, 47, 48, 50, 51, 52, 53
+        )  # Implicitly discards all but lowest 2 digits of year
         t.am[55] = AmplitudeModulation(self.ly)
         t.am[56] = AmplitudeModulation(self.ls)
         t.put_am_bcd(self.dst, 57, 58)
