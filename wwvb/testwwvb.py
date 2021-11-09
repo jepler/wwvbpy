@@ -19,6 +19,13 @@ import wwvb
 from wwvb import decode, iersdata
 import uwwvb
 
+
+class WWVBMinute2k(wwvb.WWVBMinute):
+    """Treats the origin of the 2-digit epoch as 2000"""
+
+    epoch = 2000
+
+
 # pylint: disable=too-many-locals
 class WWVBTestCase(unittest.TestCase):
     """Test each expected output in tests/.  Some outputs are from another program, some are from us"""
@@ -351,6 +358,38 @@ class WWVBRoundtrip(unittest.TestCase):
         self.assertIsNone(wwvb.get_dst_change_hour(datetime.datetime(1960, 1, 1)))
 
         self.assertEqual(wwvb.get_dst_next(datetime.datetime(1960, 1, 1)), 0b000111)
+
+    def test_epoch2(self) -> None:
+        """Test that the settable epoch feature works"""
+        self.assertEqual(wwvb.WWVBMinute(0, 1, 1, 0, 0).year, 2000)
+        self.assertEqual(wwvb.WWVBMinute(69, 1, 1, 0, 0).year, 2069)
+        self.assertEqual(wwvb.WWVBMinute(70, 1, 1, 0, 0).year, 1970)
+        self.assertEqual(wwvb.WWVBMinute(99, 1, 1, 0, 0).year, 1999)
+
+        # 4-digit years can always be used
+        self.assertEqual(wwvb.WWVBMinute(2000, 1, 1, 0, 0).year, 2000)
+        self.assertEqual(wwvb.WWVBMinute(2069, 1, 1, 0, 0).year, 2069)
+        self.assertEqual(wwvb.WWVBMinute(1970, 1, 1, 0, 0).year, 1970)
+        self.assertEqual(wwvb.WWVBMinute(1999, 1, 1, 0, 0).year, 1999)
+
+        self.assertEqual(wwvb.WWVBMinute(1900, 1, 1, 0, 0).year, 1900)
+        self.assertEqual(wwvb.WWVBMinute(1969, 1, 1, 0, 0).year, 1969)
+        self.assertEqual(wwvb.WWVBMinute(2070, 1, 1, 0, 0).year, 2070)
+        self.assertEqual(wwvb.WWVBMinute(2099, 1, 1, 0, 0).year, 2099)
+
+        self.assertEqual(WWVBMinute2k(0, 1, 1, 0, 0).year, 2000)
+        self.assertEqual(WWVBMinute2k(99, 1, 1, 0, 0).year, 2099)
+
+        # 4-digit years can always be used
+        self.assertEqual(WWVBMinute2k(2000, 1, 1, 0, 0).year, 2000)
+        self.assertEqual(WWVBMinute2k(2069, 1, 1, 0, 0).year, 2069)
+        self.assertEqual(WWVBMinute2k(1970, 1, 1, 0, 0).year, 1970)
+        self.assertEqual(WWVBMinute2k(1999, 1, 1, 0, 0).year, 1999)
+
+        self.assertEqual(WWVBMinute2k(1900, 1, 1, 0, 0).year, 1900)
+        self.assertEqual(WWVBMinute2k(1969, 1, 1, 0, 0).year, 1969)
+        self.assertEqual(WWVBMinute2k(2070, 1, 1, 0, 0).year, 2070)
+        self.assertEqual(WWVBMinute2k(2099, 1, 1, 0, 0).year, 2099)
 
 
 if __name__ == "__main__":  # pragma no cover
