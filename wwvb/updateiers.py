@@ -101,7 +101,8 @@ def update_iersdata(  # pylint: disable=too-many-locals, too-many-branches, too-
     # this is the final (most recent) wwvb DUT1 value broadcast.  We want to
     # extend it some distance into the future, but how far?  We will use the
     # modified timestamp of the NIST data.
-    assert wwvb_dut1
+    assert wwvb_dut1 is not None
+    assert wwvb_start is not None
     patch(wwvb_start, wwvb_data_stamp + datetime.timedelta(days=1), wwvb_dut1)
 
     with open(target_file, "wt", encoding="utf-8") as output:
