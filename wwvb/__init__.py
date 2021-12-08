@@ -9,6 +9,7 @@
 import collections
 import datetime
 import enum
+import json
 import warnings
 from typing import Dict, Generator, List, Optional, TextIO, Tuple, TypeVar, Union
 
@@ -826,12 +827,17 @@ class WWVBTimecode:
         """Convert the phase signal to a string"""
         return "".join(charset[i] for i in self.phase)
 
+    def to_both_string(self, charset: List[str]) -> str:
+        """Convert both channels to a string"""
+        return "".join(charset[i + j * 3] for i, j in zip(self.am, self.phase))
+
 
 styles = {
     "default": ["0", "1", "2"],
     "duration": ["2", "5", "8"],
     "cradek": ["0", "1", "-"],
     "bar": ["▟█", "▄█", "▄▟"],
+    "sextant": ["🬍🬎", "🬋🬎", "🬋🬍", "🬩🬹", "🬋🬹", "🬋🬩"],
 }
 
 
@@ -858,11 +864,45 @@ def print_timecodes(
         first = False
         pfx = f"{w.year:04d}-{w.days:03d} {w.hour:02d}:{w.min:02d} "
         tc = w.as_timecode()
-        if channel in ("amplitude", "both"):
-            print(f"{pfx} {tc.to_am_string(style_chars)}", file=file)
-            pfx = " " * len(pfx)
-        if channel in ("phase", "both"):
-            print(f"{pfx} {tc.to_pm_string(style_chars)}", file=file)
-        if channel == "both":
+        if len(style_chars) == 6:
+            print(f"{pfx} {tc.to_both_string(style_chars)}", file=file)
             print(file=file)
+            pfx = " " * len(pfx)
+        else:
+            if channel in ("amplitude", "both"):
+                print(f"{pfx} {tc.to_am_string(style_chars)}", file=file)
+                pfx = " " * len(pfx)
+            if channel in ("phase", "both"):
+                print(f"{pfx} {tc.to_pm_string(style_chars)}", file=file)
+            if channel == "both":
+                print(file=file)
         w = w.next_minute()
+
+
+# pylint: disable=too-many-arguments
+def print_timecodes_json(
+    w: WWVBMinute,
+    minutes: int,
+    channel: str,
+    file: TextIO,
+) -> None:
+    """Print a range of timecodes with a header.  This header is in a format understood by WWVBMinute.fromstring"""
+    result = []
+    for _ in range(minutes):
+        data = {
+            "year": w.year,
+            "days": w.days,
+            "hour": w.hour,
+            "minute": w.min,
+        }
+
+        tc = w.as_timecode()
+        if channel in ("amplitude", "both"):
+            data["amplitude"] = tc.to_am_string(["0", "1", "2"])
+        if channel in ("phase", "both"):
+            data["phase"] = tc.to_pm_string(["0", "1"])
+
+        result.append(data)
+        w = w.next_minute()
+    json.dump(result, file)
+    print(file=file)

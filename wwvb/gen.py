@@ -15,6 +15,7 @@ import dateutil.parser
 
 from . import (
     print_timecodes,
+    print_timecodes_json,
     WWVBMinute,
     WWVBMinuteIERS,
     styles,
@@ -79,7 +80,7 @@ def parse_timespec(  # pylint: disable=unused-argument
 @click.option(
     "--style",
     default="default",
-    type=click.Choice(list(styles.keys())),
+    type=click.Choice(sorted(["json"] + list(styles.keys()))),
     help="Style of output",
 )
 @click.option(
@@ -126,9 +127,12 @@ def main(
         extra_args["newls"] = bool(leap_second)
 
     w = Constructor.from_datetime(timespec, **extra_args)  # type: ignore
-    print_timecodes(
-        w, minutes, channel, style, all_timecodes=all_timecodes, file=sys.stdout
-    )
+    if style == "json":
+        print_timecodes_json(w, minutes, channel, file=sys.stdout)
+    else:
+        print_timecodes(
+            w, minutes, channel, style, all_timecodes=all_timecodes, file=sys.stdout
+        )
 
 
 if __name__ == "__main__":  # pragma no branch
