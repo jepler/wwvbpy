@@ -80,14 +80,14 @@ def update_iersdata(  # pylint: disable=too-many-locals, too-many-branches, too-
         offsets[off_start:off_end] = [val] * (off_end - off_start)
 
     wwvb_dut1: Optional[int] = None
-    wwvb_start: datetime.date
+    wwvb_start: Optional[datetime.date] = None
     for row in wwvb_dut1_table.findAll("tr")[1:][::-1]:
         cells = row.findAll("td")
         when = datetime.datetime.strptime(cells[0].text, "%Y-%m-%d").date()
         dut1 = cells[2].text.replace("s", "").replace(" ", "")
         dut1 = int(round(float(dut1) * 10))
         if wwvb_dut1 is not None:
-            assert wwvb_start
+            assert wwvb_start is not None
             patch(wwvb_start, when, wwvb_dut1)
         wwvb_dut1 = dut1
         wwvb_start = when
