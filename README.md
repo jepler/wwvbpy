@@ -66,20 +66,32 @@ channel.
 # Usage
 
 ~~~~
-Usage: wwvbgen.py [options] [dateutil-string | year yday hour minute | year month day hour minute]
+Usage: python -m wwvb.gen [OPTIONS] [TIMESPEC]...
+
+  Generate WWVB timecodes
+
+  TIMESPEC: one of "year yday hour minute" or "year month day hour minute", or
+  else the current minute
 
 Options:
-  -h, --help            show this help message and exit
-  -i, --iers            use IERS data for DUT1 and LS [Default]
-  -I, --no-iers         do not use IERS data for DUT1 and LS
-  -s, --leap-second     force a leap second  [Implies --no-iers]
-  -S, --no-leap-second  force no leap second [Implies --no-iers]
-  -d DUT1, --dut1=DUT1  force dut1           [Implies --no-iers]
-  -m MINUTES, --minutes=MINUTES
-                        number of minutes to generate [Default: 10]
-  --style=STYLE         Style of output (one of: default, duration, cradek,
-                        bar)
-  --channel=MODULATION  Modulation (amplitude, phase, both) to print
+  -i, --iers / -I, --no-iers      Whether to use IESR data for DUT1 and LS.
+                                  (Default: --iers)
+  -s, --leap-second               Force a positive leap second at the end of
+                                  the GMT month (Implies --no-iers)
+  -n, --negative-leap-second      Force a negative leap second at the end of
+                                  the GMT month (Implies --no-iers)
+  -S, --no-leap-second            Force no leap second at the end of the month
+                                  (Implies --no-iers)
+  -d, --dut1 INTEGER              Force the DUT1 value (Implies --no-iers)
+  -m, --minutes INTEGER           Number of minutes to show (default: 10)
+  --style [bar|cradek|default|duration|json|sextant]
+                                  Style of output
+  -t, --all-timecodes / -T, --no-all-timecodes
+                                  Show the 'WWVB timecode' line before each
+                                  minute
+  --channel [amplitude|phase|both]
+                                  Modulation to show (default: amplitude)
+  --help                          Show this message and exit.
 ~~~~
 
 For example, to display the leap second that occurred at the end of 1998,
