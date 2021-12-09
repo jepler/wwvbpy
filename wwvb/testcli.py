@@ -23,15 +23,19 @@ class CLITestCase(unittest.TestCase):
 
     def assertProgramOutput(self, expected: str, *args: str) -> None:
         """Check the output from invoking a program matches the expected"""
+        env = os.environ.copy()
+        env["PYTHONIOENCODING"] = "utf-8"
         actual = subprocess.check_output(
-            args, stdin=subprocess.DEVNULL, encoding="utf-8"
+            args, stdin=subprocess.DEVNULL, encoding="utf-8", env=env
         )
         self.assertMultiLineEqual(expected, actual, "args={args}")
 
     def assertProgramOutputStarts(self, expected: str, *args: str) -> None:
         """Check the output from invoking a program matches the expected"""
+        env = os.environ.copy()
+        env["PYTHONIOENCODING"] = "utf-8"
         actual = subprocess.check_output(
-            args, stdin=subprocess.DEVNULL, encoding="utf-8"
+            args, stdin=subprocess.DEVNULL, encoding="utf-8", env=env
         )
         self.assertMultiLineEqual(expected, actual[: len(expected)], "args={args}")
 
@@ -49,12 +53,15 @@ class CLITestCase(unittest.TestCase):
 
     def assertProgramError(self, *args: str) -> None:
         """Check the output from invoking a program fails"""
+        env = os.environ.copy()
+        env["PYTHONIOENCODING"] = "utf-8"
         with self.assertRaises(subprocess.SubprocessError):
             subprocess.check_output(
                 args,
                 stdin=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL,
                 encoding="utf-8",
+                env=env,
             )
 
     def assertModuleError(self, *args: str) -> None:
@@ -173,6 +180,22 @@ WWVB timecode: year=2020 days=001 hour=12 min=30 dst=0 ut1=-300 ly=1 ls=0
         )
         self.assertModuleOutput(
             """\
+[{"year": 2021, "days": 340, "hour": 3, "minute": 40, "phase": "111110011011010101000100100110011110001110111010111101001011"}, {"year": 2021, "days": 340, "hour": 3, "minute": 41, "phase": "001010011100100011000101110000100001101000001111101100000010"}]
+""",
+            "wwvb.gen",
+            "-m",
+            "2",
+            "--style",
+            "json",
+            "--channel",
+            "phase",
+            "2021-12-6 3:40",
+        )
+
+    def test_sextant(self) -> None:
+        """Test the sextant output format"""
+        self.assertModuleOutput(
+            """\
 WWVB timecode: year=2021 days=340 hour=03 min=40 dst=0 ut1=-100 ly=0 ls=0 --style=sextant
 2021-340 03:40  🬋🬩🬋🬹🬩🬹🬩🬹🬩🬹🬍🬎🬍🬎🬩🬹🬩🬹🬋🬍🬩🬹🬩🬹🬍🬎🬩🬹🬍🬎🬩🬹🬍🬎🬋🬹🬋🬎🬋🬍🬍🬎🬩🬹🬋🬎🬋🬎🬩🬹🬍🬎🬋🬎🬩🬹🬩🬹🬋🬍🬍🬎🬩🬹🬩🬹🬩🬹🬩🬹🬍🬎🬍🬎🬋🬎🬩🬹🬋🬩🬩🬹🬍🬎🬩🬹🬋🬹🬩🬹🬍🬎🬩🬹🬋🬎🬩🬹🬋🬩🬩🬹🬩🬹🬍🬎🬋🬹🬍🬎🬍🬎🬩🬹🬍🬎🬩🬹🬋🬩
 
@@ -184,18 +207,5 @@ WWVB timecode: year=2021 days=340 hour=03 min=40 dst=0 ut1=-100 ly=0 ls=0 --styl
             "2",
             "--style",
             "sextant",
-            "2021-12-6 3:40",
-        )
-        self.assertModuleOutput(
-            """\
-[{"year": 2021, "days": 340, "hour": 3, "minute": 40, "phase": "111110011011010101000100100110011110001110111010111101001011"}, {"year": 2021, "days": 340, "hour": 3, "minute": 41, "phase": "001010011100100011000101110000100001101000001111101100000010"}]
-""",
-            "wwvb.gen",
-            "-m",
-            "2",
-            "--style",
-            "json",
-            "--channel",
-            "phase",
             "2021-12-6 3:40",
         )
