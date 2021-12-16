@@ -86,8 +86,8 @@ def isls(t: DateOrDatetime) -> bool:
 
 
 def isdst(t: datetime.date, tz: datetime.tzinfo = Mountain) -> bool:
-    """Return true if daylight saving time is active at the given moment"""
-    t = datetime.datetime(t.year, t.month, t.day)
+    """Return true if daylight saving time is active at the start of the given UTC day"""
+    t = datetime.datetime(t.year, t.month, t.day, tzinfo=datetime.timezone.utc)
     return bool(t.astimezone(tz).dst())
 
 
