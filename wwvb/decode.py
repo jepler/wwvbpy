@@ -76,7 +76,8 @@ def wwvbreceive() -> Generator[
                 value = yield None
 
 
-if __name__ == "__main__":  # pragma no cover
+def main() -> None:
+    """Read symbols on stdin and print any successfully-decoded minutes"""
     decoder = wwvbreceive()
     next(decoder)
     decoder.send(wwvb.AmplitudeModulation.MARK)
@@ -88,3 +89,7 @@ if __name__ == "__main__":  # pragma no cover
                 w = wwvb.WWVBMinute.from_timecode_am(decoded)
                 if w:
                     print(w)
+
+
+if __name__ == "__main__":  # pragma no cover
+    main()
