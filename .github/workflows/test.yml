@@ -23,8 +23,12 @@ jobs:
         - '3.10'
         - 'pypy-3.7'
         - 'pypy-3.8'
+        os-version:
+        - 'ubuntu-20.04'
+        - 'macos-latest'
+        - 'windows-latest'
 
-    runs-on: ubuntu-20.04
+    runs-on: ${{ matrix.os-version }}
     steps:
     - name: Dump GitHub context
       env:
@@ -43,10 +47,10 @@ jobs:
 
     - name: Check stubs
       if: (! startsWith(matrix.python-version, 'pypy-'))
-      run: make mypy
+      run: make mypy PYTHON=python
 
     - name: Test
-      run: make coverage
+      run: make coverage PYTHON=python
 
     - name: Upload Coverage to Codecov
       if: always()
@@ -61,7 +65,7 @@ jobs:
       if: always()
       uses: actions/upload-artifact@v2
       with:
-        name: coverage for ${{ matrix.python-version }}
+        name: coverage for ${{ matrix.python-version }} on ${{ matrix.os-version }}
         path: coverage.xml
 
   pre-commit:

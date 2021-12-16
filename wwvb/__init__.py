@@ -13,8 +13,7 @@ import json
 import warnings
 from typing import Dict, Generator, List, Optional, TextIO, Tuple, TypeVar, Union
 
-from dateutil.tz import gettz
-
+from .tz import Mountain
 from . import iersdata
 
 HOUR = datetime.timedelta(seconds=3600)
@@ -33,9 +32,6 @@ def _removeprefix(s: str, p: str) -> str:
     if s.startswith(p):
         return s[len(p) :]
     return s
-
-
-Mountain = require(gettz("America/Denver"))  # lgtm [py/call-to-non-callable]
 
 
 def _date(dt: DateOrDatetime) -> datetime.date:
@@ -90,8 +86,8 @@ def isls(t: DateOrDatetime) -> bool:
 
 
 def isdst(t: datetime.date, tz: datetime.tzinfo = Mountain) -> bool:
-    """Return true if daylight saving time is active at the given moment"""
-    t = datetime.datetime(t.year, t.month, t.day)
+    """Return true if daylight saving time is active at the start of the given UTC day"""
+    t = datetime.datetime(t.year, t.month, t.day, tzinfo=datetime.timezone.utc)
     return bool(t.astimezone(tz).dst())
 
 

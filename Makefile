@@ -15,7 +15,7 @@ coverage:
 
 .PHONY: mypy
 mypy:
-	mypy --strict uwwvb.py wwvb
+	mypy --strict --no-warn-unused-ignores uwwvb.py wwvb
 # Copyright (C) 2021 Jeff Epler <jepler@gmail.com>
 # SPDX-FileCopyrightText: 2021 Jeff Epler
 #
