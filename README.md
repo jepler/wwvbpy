@@ -27,6 +27,7 @@ work with historical data, the epoch is arbitrarily assumed to run from 1970 to
 
 Programs include:
  * `wwvbgen`, the main commandline generator program
+ * `wwvbdecode`, the main commandline decoder program
  * `wwvbtk`, visualize the simulated WWVB signal in real-time using Tkinter
  * `dut1table`, print the full history of dut1 values, including estimated future values
  * `updateiers`, download the latest dut1 data including prospective data from IERS and NIST
