@@ -11,6 +11,7 @@ requires = [
     "python-dateutil",
     "setuptools>=45",
     "setuptools_scm[toml]>=6.0",
+    "tzdata",
     "wheel",
 ]
 build-backend = "setuptools.build_meta"

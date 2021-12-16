@@ -8,7 +8,7 @@
 import datetime
 import unittest
 import wwvb
-from wwvb import Mountain
+from wwvb.tz import Mountain
 
 
 class TestDaylight(unittest.TestCase):

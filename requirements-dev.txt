@@ -14,4 +14,6 @@ setuptools>=45; implementation_name=="cpython"
 twine; implementation_name=="cpython"
 types-python-dateutil
 types-requests
+backports.zoneinfo; python_version<"3.9"
+tzdata
 wheel
