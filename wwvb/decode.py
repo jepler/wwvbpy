@@ -76,7 +76,7 @@ def wwvbreceive() -> Generator[
                 value = yield None
 
 
-def main() -> None:  # pragma no cover
+def main() -> None:
     """Read symbols on stdin and print any successfully-decoded minutes"""
     decoder = wwvbreceive()
     next(decoder)

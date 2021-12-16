@@ -209,3 +209,22 @@ WWVB timecode: year=2021 days=340 hour=03 min=40 dst=0 ut1=-100 ly=0 ls=0 --styl
             "sextant",
             "2021-12-6 3:40",
         )
+
+    def test_decode(self) -> None:
+        """Test the commandline decoder"""
+        self.assertModuleOutput(
+            """\
+201100000200100001020011001012000000010200010001020001000002
+year=2021 days=350 hour=22 min=30 dst=0 ut1=-100 ly=0 ls=0
+""",
+            "wwvb.decode",
+            "201100000200100001020011001012000000010200010001020001000002",
+        )
+
+        self.assertModuleOutput(
+            """\
+201101111200100001020011001012000000010200010001020001000002
+""",
+            "wwvb.decode",
+            "201101111200100001020011001012000000010200010001020001000002",
+        )
