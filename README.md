@@ -138,14 +138,11 @@ For a larger range of dates spanning 1973 through approximately one year from
 now, IERS publishes historical and prospective UT1-UTC values to multiple
 decimal places, in a machine readable fixed length format.
 
-wwvbpy merges the WWVB and IERS datasets, favoring the WWVB dataset for
-dates when it is available.
+wwvbpy merges the WWVB and IERS datasets, favoring the WWVB dataset for dates when it is available. There are some caveats to this, which are mostly commented in the `wwvb/updateiers.py` script.
 
 `wwvb/iersdata_dist.py` is updated monthly from github actions or with `iersdata --dist` from within the wwvbpy source tree. However, at this time, releases are not regularly made from the updated information.
 
 A site or user version of the file, `wwvb_iersdata.py` can be created or updated with `iersdata --site` or `iersdata --user`.  If the distributed iersdata is out of date, the generator will prompt you to run the update command.
-
-Note that the NIST page of DUT1 offsets may be incomplete; on 2021-07-04 I noticed that DUT1=-1 was being broadcast, but as of 2019-10-05 the latest data on the NIST page gives the latest DUT1 correction as DUT1=-2 starting on 2019-05-02, as does the current NIST Time and Frequency Bulletin, NISTIR 8346-09 for 2021-09.
 
 Leap seconds are inferred from the DUT1 data as follows: If X and Y are the
 1-digit-rounded DUT1 values for consecutive dates, and `X*Y<0`, then there is a
