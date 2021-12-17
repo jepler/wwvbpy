@@ -16,6 +16,11 @@ coverage:
 .PHONY: mypy
 mypy:
 	mypy --strict --no-warn-unused-ignores uwwvb.py wwvb
+
+.PHONY: update
+update:
+	$(PYTHON) -mwwvb.updateiers --dist
+
 # Copyright (C) 2021 Jeff Epler <jepler@gmail.com>
 # SPDX-FileCopyrightText: 2021 Jeff Epler
 #
