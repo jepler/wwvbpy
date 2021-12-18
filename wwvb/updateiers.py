@@ -103,18 +103,6 @@ def update_iersdata(  # pylint: disable=too-many-locals, too-many-branches, too-
     # modified timestamp of the NIST data.
     assert wwvb_dut1 is not None
     assert wwvb_start is not None
-
-    # As of 2021-12-17, NIST website incorrectly indicates the offset of -200ms
-    # persisted through present.  However, based on private correspondance and
-    # IERS Bulletin D 141 <https://datacenter.iers.org/data/html/bulletind-141.html>
-    # it appears that -100ms should have been broadcast starting on 2021-07-17.
-    gap_start = datetime.date(2021, 7, 17)
-    if wwvb_start < gap_start:
-        patch(wwvb_start, gap_start, wwvb_dut1)
-        wwvb_start = gap_start
-        wwvb_data_stamp = datetime.date(2021, 12, 17)
-        wwvb_dut1 = -1
-
     patch(wwvb_start, wwvb_data_stamp + datetime.timedelta(days=1), wwvb_dut1)
 
     with open(target_file, "wt", encoding="utf-8") as output:
