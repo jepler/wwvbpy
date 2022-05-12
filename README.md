@@ -9,6 +9,7 @@ SPDX-License-Identifier: GPL-3.0-only
 [![PyPI](https://img.shields.io/pypi/v/wwvb)](https://pypi.org/project/wwvb)
 ![Lines of code](https://img.shields.io/tokei/lines/github/jepler/wwvbpy)
 [![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/jepler/wwvbpy.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/jepler/wwvbpy/context:python)
+[![pre-commit.ci status](https://results.pre-commit.ci/badge/github/jepler/wwvbpy/main.svg)](https://results.pre-commit.ci/latest/github/jepler/wwvbpy/main)
 
 # Purpose
 

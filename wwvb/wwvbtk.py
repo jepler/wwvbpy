@@ -6,7 +6,7 @@
 #
 # SPDX-License-Identifier: GPL-3.0-only
 
-from tkinter import Tk, Canvas
+from tkinter import Tk, Canvas  # pylint: disable=import-error
 from typing import Any, Generator, Tuple
 import threading
 import time
