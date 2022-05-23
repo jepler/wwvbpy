@@ -3,12 +3,12 @@
 # SPDX-License-Identifier: Unlicense
 
 repos:
--   repo: https://github.com/python/black
+-   repo: https://github.com/psf/black
     rev: 22.3.0
     hooks:
     - id: black
 -   repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v2.3.0
+    rev: v4.2.0
     hooks:
     -   id: check-yaml
     -   id: end-of-file-fixer
@@ -16,7 +16,7 @@ repos:
     -   id: trailing-whitespace
         exclude: tests
 -   repo: https://github.com/fsfe/reuse-tool
-    rev: v0.12.1
+    rev: v1.0.0
     hooks:
     - id: reuse
 -   repo: local
