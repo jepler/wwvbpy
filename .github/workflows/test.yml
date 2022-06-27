@@ -44,7 +44,9 @@ jobs:
         python-version: ${{ matrix.python-version }}
 
     - name: Install deps
-      run: python -mpip install -r requirements-dev.txt
+      run: |
+        python -mpip install wheel
+        python -mpip install -r requirements-dev.txt
 
     - name: Check stubs
       if: (! startsWith(matrix.python-version, 'pypy-'))

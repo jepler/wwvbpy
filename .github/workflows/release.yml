@@ -26,7 +26,9 @@ jobs:
         python-version: 3.7
 
     - name: Install deps
-      run: python -mpip install -r requirements-dev.txt
+      run: |
+        python -mpip install wheel
+        python -mpip install -r requirements-dev.txt
 
     - name: Test
       run: make coverage
