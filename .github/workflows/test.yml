@@ -26,8 +26,11 @@ jobs:
         - 'pypy-3.8'
         os-version:
         - 'ubuntu-20.04'
-        - 'macos-latest'
-        - 'windows-latest'
+        include:
+          - os-version: 'macos-latest'
+            python-version: '3.10'
+          - os-version: 'windows-latest'
+            python-version: '3.10'
 
     runs-on: ${{ matrix.os-version }}
     steps:
