@@ -24,10 +24,14 @@ jobs:
         - '3.11.0-beta.1 - 3.11.0'
         - 'pypy-3.7'
         - 'pypy-3.8'
+        - 'pypy-3.9'
         os-version:
-        - 'ubuntu-20.04'
-        - 'macos-latest'
-        - 'windows-latest'
+        - 'ubuntu-latest'
+        include:
+          - os-version: 'macos-latest'
+            python-version: '3.10'
+          - os-version: 'windows-latest'
+            python-version: '3.10'
 
     runs-on: ${{ matrix.os-version }}
     steps:
@@ -44,7 +48,9 @@ jobs:
         python-version: ${{ matrix.python-version }}
 
     - name: Install deps
-      run: python -mpip install -r requirements-dev.txt
+      run: |
+        python -mpip install wheel
+        python -mpip install -r requirements-dev.txt
 
     - name: Check stubs
       if: (! startsWith(matrix.python-version, 'pypy-'))
