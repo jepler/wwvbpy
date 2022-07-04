@@ -5,6 +5,7 @@
 
 import sys
 from typing import Generator, List, Optional
+
 import wwvb
 
 # State 1: Unsync'd

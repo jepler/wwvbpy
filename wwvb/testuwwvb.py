@@ -4,16 +4,16 @@
 #
 # SPDX-License-Identifier: GPL-3.0-only
 
-import sys
 import datetime
 import random
-from typing import Union
+import sys
 import unittest
+from typing import Union
 
 import adafruit_datetime
 
-import wwvb
 import uwwvb
+import wwvb
 
 EitherDatetimeOrNone = Union[None, datetime.datetime, adafruit_datetime.datetime]
 
