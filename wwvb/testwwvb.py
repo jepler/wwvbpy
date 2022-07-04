@@ -358,6 +358,12 @@ class WWVBRoundtrip(unittest.TestCase):
             wwvb.get_dst_next(datetime.datetime(2005, 1, 1), tz=tz.ZoneInfo("Cuba")),
             0b101111,
         )
+        date, row = wwvb.get_dst_change_date_and_row(
+            datetime.datetime(2005, 1, 1), tz=tz.ZoneInfo("Cuba")
+        )
+        self.assertIsNone(date)
+        self.assertIsNone(row)
+
         # Australia observes DST in the other half of the year compared to the
         # Northern hemisphere
         self.assertEqual(
