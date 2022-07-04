@@ -3,27 +3,33 @@
 # SPDX-License-Identifier: Unlicense
 
 repos:
--   repo: https://github.com/psf/black
-    rev: 22.3.0
-    hooks:
-    - id: black
--   repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.3.0
-    hooks:
-    -   id: check-yaml
-    -   id: end-of-file-fixer
-        exclude: tests
-    -   id: trailing-whitespace
-        exclude: tests
--   repo: https://github.com/fsfe/reuse-tool
-    rev: v1.0.0
-    hooks:
-    - id: reuse
--   repo: local
-    hooks:
-    -   id: pylint
-        name: pylint
-        entry: pylint
-        language: python
-        types: [python]
-        additional_dependencies: [beautifulsoup4, "pylint==2.13.5", requests, adafruit-circuitpython-datetime, click, python-dateutil]
+- repo: https://github.com/psf/black
+  rev: 22.3.0
+  hooks:
+  - id: black
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v4.3.0
+  hooks:
+  -   id: check-yaml
+  -   id: end-of-file-fixer
+      exclude: tests
+  -   id: trailing-whitespace
+      exclude: tests
+- repo: https://github.com/fsfe/reuse-tool
+  rev: v1.0.0
+  hooks:
+  - id: reuse
+- repo: local
+  hooks:
+  -   id: pylint
+      name: pylint
+      entry: pylint
+      language: python
+      types: [python]
+      additional_dependencies: [beautifulsoup4, "pylint==2.13.5", requests, adafruit-circuitpython-datetime, click, python-dateutil]
+- repo: https://github.com/pycqa/isort
+  rev: 5.10.1
+  hooks:
+    - id: isort
+      name: isort (python)
+      args: ['--profile', 'black']

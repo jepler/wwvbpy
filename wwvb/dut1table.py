@@ -7,7 +7,9 @@
 """Print the table of historical DUT1 values"""
 from datetime import timedelta
 from itertools import groupby
+
 import wwvb
+
 from .iersdata import DUT1_DATA_START, DUT1_OFFSETS
 
 

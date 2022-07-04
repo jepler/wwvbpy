@@ -13,11 +13,11 @@ import itertools
 import os
 import pathlib
 from typing import Callable, List, Optional
+
 import bs4
 import click
 import platformdirs
 import requests
-
 
 DIST_PATH = str(pathlib.Path(__file__).parent / "iersdata_dist.py")
 

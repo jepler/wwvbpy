@@ -7,6 +7,7 @@
 # SPDX-License-Identifier: GPL-3.0-only
 
 import os
+
 import platformdirs
 
 __all__ = ["DUT1_DATA_START", "DUT1_OFFSETS"]

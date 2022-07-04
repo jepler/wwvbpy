@@ -9,17 +9,11 @@
 import datetime
 import sys
 from typing import Any, List, Type
-import click
 
+import click
 import dateutil.parser
 
-from . import (
-    print_timecodes,
-    print_timecodes_json,
-    WWVBMinute,
-    WWVBMinuteIERS,
-    styles,
-)
+from . import WWVBMinute, WWVBMinuteIERS, print_timecodes, print_timecodes_json, styles
 
 
 def parse_timespec(  # pylint: disable=unused-argument
