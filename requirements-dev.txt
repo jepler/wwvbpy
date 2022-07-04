@@ -13,6 +13,7 @@ python-dateutil
 requests; implementation_name=="cpython"
 setuptools>=45; implementation_name=="cpython"
 twine; implementation_name=="cpython"
+types-beautifulsoup4
 types-python-dateutil
 types-requests
 backports.zoneinfo; python_version<"3.9"
