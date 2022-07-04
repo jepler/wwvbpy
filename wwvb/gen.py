@@ -115,18 +115,20 @@ def main(
     if (leap_second is not None) or (dut1 is not None):
         iers = False
 
-    extra_args = {}
+    newut1 = None
+    newls = None
+
     if iers:
         Constructor: Type[WWVBMinute] = WWVBMinuteIERS
     else:
         Constructor = WWVBMinute
         if dut1 is None:
-            extra_args["newut1"] = -500 * (leap_second or 0)
+            newut1 = -500 * (leap_second or 0)
         else:
-            extra_args["newut1"] = dut1
-        extra_args["newls"] = bool(leap_second)
+            newut1 = dut1
+        newls = bool(leap_second)
 
-    w = Constructor.from_datetime(timespec, **extra_args)  # type: ignore
+    w = Constructor.from_datetime(timespec, newls=newls, newut1=newut1)
     if style == "json":
         print_timecodes_json(w, minutes, channel, file=sys.stdout)
     else:
