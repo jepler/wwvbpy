@@ -17,7 +17,8 @@ from typing import Optional
 
 import uwwvb
 import wwvb
-from wwvb import decode, iersdata
+
+from . import decode, iersdata, tz
 
 
 class WWVBMinute2k(wwvb.WWVBMinute):
@@ -351,6 +352,20 @@ class WWVBRoundtrip(unittest.TestCase):
         self.assertIsNone(wwvb.get_dst_change_hour(datetime.datetime(1960, 1, 1)))
 
         self.assertEqual(wwvb.get_dst_next(datetime.datetime(1960, 1, 1)), 0b000111)
+
+        # Cuba followed year-round DST for several years
+        self.assertEqual(
+            wwvb.get_dst_next(datetime.datetime(2005, 1, 1), tz=tz.ZoneInfo("Cuba")),
+            0b101111,
+        )
+        # Australia observes DST in the other half of the year compared to the
+        # Northern hemisphere
+        self.assertEqual(
+            wwvb.get_dst_next(
+                datetime.datetime(2005, 1, 1), tz=tz.ZoneInfo("Australia/Melbourne")
+            ),
+            0b100011,
+        )
 
     def test_epoch2(self) -> None:
         """Test that the settable epoch feature works"""

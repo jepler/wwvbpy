@@ -242,17 +242,17 @@ ftw = [
 
 def get_dst_next(d: DateOrDatetime, tz: datetime.tzinfo = Mountain) -> int:
     """Find the "dst next" value for the phase modulation signal"""
-    dst_now = isdst(d)  # dst_on[1]
-    dst_midwinter = isdst(datetime.datetime(d.year, 1, 1))
-    dst_midsummer = isdst(datetime.datetime(d.year, 7, 1))
+    dst_now = isdst(d, tz)  # dst_on[1]
+    dst_midwinter = isdst(datetime.datetime(d.year, 1, 1), tz)
+    dst_midsummer = isdst(datetime.datetime(d.year, 7, 1), tz)
 
-    if dst_midwinter and dst_midsummer:  # pragma no coverage
+    if dst_midwinter and dst_midsummer:
         return 0b101111
     if not (dst_midwinter or dst_midsummer):
         return 0b000111
 
-    # Are we in NZ or something?
-    if dst_midwinter or not dst_midsummer:  # pragma no coverage
+    # Southern hemisphere
+    if dst_midwinter or not dst_midsummer:
         return 0b100011
 
     dst_change_date, dst_next_row = get_dst_change_date_and_row(d)
