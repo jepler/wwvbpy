@@ -4,12 +4,10 @@
 
 """Implementation of a WWVB state machine & decoder for resource-constrained systems"""
 
+from __future__ import annotations
+
 from collections import namedtuple
 
-try:
-    from typing import List, Optional, Sequence
-except ImportError:  # pragma no coverage
-    pass
 import adafruit_datetime as datetime
 
 ZERO, ONE, MARK = range(3)
@@ -28,10 +26,10 @@ class WWVBDecoder:
 
     def __init__(self) -> None:
         """Construct a WWVBDecoder"""
-        self.minute: List[int] = []
+        self.minute: list[int] = []
         self.state = 1
 
-    def update(self, value: int) -> Optional[List[int]]:
+    def update(self, value: int) -> list[int] | None:
         """Update the _state machine when a new symbol is received.  If a possible complete _minute is received, return it; otherwise, return None"""
         result = None
         if self.state == 1:
@@ -70,7 +68,7 @@ class WWVBDecoder:
         return f"<WWVBDecoder {self.state} {self.minute}>"
 
 
-def get_am_bcd(seq: Sequence[int], *poslist: int) -> Optional[int]:
+def get_am_bcd(seq: list[int], *poslist: int) -> int | None:
     """Convert the bits seq[positions[0]], ... seq[positions[len(positions-1)]] [in MSB order] from BCD to decimal"""
     pos = list(poslist)[::-1]
     val = [int(seq[p]) for p in pos]
@@ -90,8 +88,8 @@ def get_am_bcd(seq: Sequence[int], *poslist: int) -> Optional[int]:
 
 
 def decode_wwvb(  # pylint: disable=too-many-return-statements
-    t: Optional[Sequence[int]],
-) -> Optional[WWVBMinute]:
+    t: list[int] | None,
+) -> WWVBMinute | None:
     """Convert a received minute of wwvb symbols to a WWVBMinute.  Returns None if any error is detected."""
     if not t:
         return None
