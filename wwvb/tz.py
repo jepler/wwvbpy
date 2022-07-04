@@ -19,4 +19,4 @@ else:  # pragma no coverage
 
 Mountain = ZoneInfo("America/Denver")
 
-__all__ = ["Mountain"]
+__all__ = ["Mountain", "ZoneInfo"]
