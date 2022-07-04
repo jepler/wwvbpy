@@ -13,12 +13,13 @@ import itertools
 import os
 import pathlib
 from typing import Callable, List, Optional
-import bs4  # type: ignore
 import click
 import platformdirs
 import requests
 
+from . import bulletind
 
+IERS_URL = "https://datacenter.iers.org/data/csv/finals2000A.all.csv"
 DIST_PATH = str(pathlib.Path(__file__).parent / "iersdata_dist.py")
 
 OLD_TABLE_START: Optional[datetime.date] = None
@@ -32,8 +33,6 @@ try:
     )
 except (ImportError, NameError) as e:
     pass
-IERS_URL = "https://datacenter.iers.org/data/csv/finals2000A.all.csv"
-NIST_URL = "https://www.nist.gov/pml/time-and-frequency-division/atomic-standards/leap-second-and-ut1-utc-information"
 
 
 def update_iersdata(  # pylint: disable=too-many-locals, too-many-branches, too-many-statements
@@ -62,48 +61,24 @@ def update_iersdata(  # pylint: disable=too-many-locals, too-many-branches, too-
                     table_start = datetime.date(1972, 6, 1)
             offsets.append(offs)
 
-    wwvb_text = requests.get(NIST_URL).text
-    wwvb_data = bs4.BeautifulSoup(wwvb_text, features="html.parser")
-    wwvb_dut1_table = wwvb_data.findAll("table")[2]
-    assert wwvb_dut1_table
-    wwvb_data_stamp = (
-        datetime.datetime.fromisoformat(
-            wwvb_data.find("meta", property="article:modified_time").attrs["content"]
-        )
-        .replace(tzinfo=None)
-        .date()
-    )
+    bulletin_d_data = bulletind.get_bulletin_d_data()
 
     def patch(patch_start: datetime.date, patch_end: datetime.date, val: int) -> None:
         off_start = (patch_start - table_start).days
         off_end = (patch_end - table_start).days
         offsets[off_start:off_end] = [val] * (off_end - off_start)
 
-    wwvb_dut1: Optional[int] = None
-    wwvb_start: Optional[datetime.date] = None
-    for row in wwvb_dut1_table.findAll("tr")[1:][::-1]:
-        cells = row.findAll("td")
-        when = datetime.datetime.strptime(cells[0].text, "%Y-%m-%d").date()
-        dut1 = cells[2].text.replace("s", "").replace(" ", "")
-        dut1 = int(round(float(dut1) * 10))
-        if wwvb_dut1 is not None:
-            assert wwvb_start is not None
-            patch(wwvb_start, when, wwvb_dut1)
-        wwvb_dut1 = dut1
-        wwvb_start = when
+    span_end = datetime.datetime.utcnow().date()
+    for row in sorted(bulletin_d_data, key=lambda i: i["startDate"], reverse=True):
+        span_start = datetime.datetime.strptime(row["startDate"], "%Y-%m-%d").date()
+        patch(span_start, span_end, round(10 * row["dut1"]))
+        span_end = span_start
 
     # As of 2021-06-14, NIST website incorrectly indicates the offset of -600ms
     # persisted through 2009-03-12, causing an incorrect leap second inference.
     # Assume instead that NIST started broadcasting +400ms on January 1, 2009,
     # causing the leap second to occur on 2008-12-31.
     patch(datetime.date(2009, 1, 1), datetime.date(2009, 3, 12), 4)
-
-    # this is the final (most recent) wwvb DUT1 value broadcast.  We want to
-    # extend it some distance into the future, but how far?  We will use the
-    # modified timestamp of the NIST data.
-    assert wwvb_dut1 is not None
-    assert wwvb_start is not None
-    patch(wwvb_start, wwvb_data_stamp + datetime.timedelta(days=1), wwvb_dut1)
 
     with open(target_file, "wt", encoding="utf-8") as output:
 
