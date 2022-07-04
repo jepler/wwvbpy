@@ -13,7 +13,7 @@ import itertools
 import os
 import pathlib
 from typing import Callable, List, Optional
-import bs4  # type: ignore
+import bs4
 import click
 import platformdirs
 import requests
@@ -66,10 +66,10 @@ def update_iersdata(  # pylint: disable=too-many-locals, too-many-branches, too-
     wwvb_data = bs4.BeautifulSoup(wwvb_text, features="html.parser")
     wwvb_dut1_table = wwvb_data.findAll("table")[2]
     assert wwvb_dut1_table
+    meta = wwvb_data.find("meta", property="article:modified_time")
+    assert isinstance(meta, bs4.Tag)
     wwvb_data_stamp = (
-        datetime.datetime.fromisoformat(
-            wwvb_data.find("meta", property="article:modified_time").attrs["content"]
-        )
+        datetime.datetime.fromisoformat(meta.attrs["content"])
         .replace(tzinfo=None)
         .date()
     )

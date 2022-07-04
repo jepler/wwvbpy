@@ -13,9 +13,9 @@ from typing import Callable
 ZoneInfo: Callable[[str], datetime.tzinfo]
 
 if sys.version_info >= (3, 9):  # pragma no coverage
-    from zoneinfo import ZoneInfo  # type: ignore
+    from zoneinfo import ZoneInfo
 else:  # pragma no coverage
-    from backports.zoneinfo import ZoneInfo  # type: ignore
+    from backports.zoneinfo import ZoneInfo
 
 Mountain = ZoneInfo("America/Denver")
 
