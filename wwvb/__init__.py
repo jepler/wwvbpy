@@ -104,9 +104,9 @@ def first_sunday_in_month(y: int, m: int) -> datetime.date:
     return first_sunday_on_or_after(datetime.datetime(y, m, 1))
 
 
-def is_dst_change_day(t: datetime.date) -> bool:
+def is_dst_change_day(t: datetime.date, tz: datetime.tzinfo = Mountain) -> bool:
     """Return True if the day is a DST change day"""
-    return isdst(t) != isdst(t + datetime.timedelta(1))
+    return isdst(t, tz) != isdst(t + datetime.timedelta(1), tz)
 
 
 def get_dst_change_hour(
@@ -124,20 +124,20 @@ def get_dst_change_hour(
 
 
 def get_dst_change_date_and_row(
-    d: DateOrDatetime,
+    d: DateOrDatetime, tz: datetime.tzinfo = Mountain
 ) -> Tuple[Optional[datetime.date], Optional[int]]:
     """Classify DST information for the WWVB phase modulation signal"""
-    if isdst(d):
+    if isdst(d, tz):
         n = first_sunday_in_month(d.year, 11)
-        for offset in range(-28, 28, 7):  # pragma no branch
+        for offset in range(-28, 28, 7):
             d1 = n + datetime.timedelta(days=offset)
-            if is_dst_change_day(d1):
+            if is_dst_change_day(d1, tz):
                 return d1, (offset + 28) // 7
     else:
         m = first_sunday_in_month(d.year + (d.month > 3), 3)
         for offset in range(0, 52, 7):
             d1 = m + datetime.timedelta(days=offset)
-            if is_dst_change_day(d1):
+            if is_dst_change_day(d1, tz):
                 return d1, offset // 7
 
     return None, None
@@ -255,7 +255,7 @@ def get_dst_next(d: DateOrDatetime, tz: datetime.tzinfo = Mountain) -> int:
     if dst_midwinter or not dst_midsummer:
         return 0b100011
 
-    dst_change_date, dst_next_row = get_dst_change_date_and_row(d)
+    dst_change_date, dst_next_row = get_dst_change_date_and_row(d, tz)
     if dst_change_date is None or dst_next_row is None:  # pragma no coverage
         return 0b100011
 
