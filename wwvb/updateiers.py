@@ -116,6 +116,7 @@ def update_iersdata(  # pylint: disable=too-many-locals, too-many-branches, too-
         code("# SPDX" "-FileCopyrightText: Public domain")
         code("# SPDX" "-License-Identifier: CC0-1.0")
         code("# fmt: off")
+        code("# isort: skip_file")
         code("# pylint: disable=invalid-name")
         code("import datetime")
 
