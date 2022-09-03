@@ -24,7 +24,7 @@ default: coverage mypy
 .PHONY: coverage
 coverage:
 	$(Q)$(PYTHON) -mcoverage erase
-	$(Q)$(PYTHON) -mcoverage run --branch -p -m unittest discover -s src
+	$(Q)env PYTHONPATH=src $(PYTHON) -mcoverage run --branch -p -m unittest discover -s src
 	$(Q)$(PYTHON) -mcoverage combine -q
 	$(Q)$(PYTHON) -mcoverage html
 	$(Q)$(PYTHON) -mcoverage xml
