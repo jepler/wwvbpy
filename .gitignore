@@ -6,11 +6,9 @@
 /.coverage*
 /coverage.xml
 /dist
-/*.egg-info
+*.egg-info
 /htmlcov
-/iersdata.csv
 __pycache__
 *,cover
 /.reuse
-/wwvbdata.html
-/wwvb/__version__.py
+/src/wwvb/__version__.py

@@ -6,15 +6,15 @@ default: coverage mypy
 .PHONY: coverage
 coverage:
 	$(PYTHON) -mcoverage erase
-	$(PYTHON) -mcoverage run --branch -p -m unittest
-	$(PYTHON) -mcoverage combine
+	$(PYTHON) -mcoverage run --branch -p -m unittest discover -s src
+	$(PYTHON) -mcoverage combine -q
 	$(PYTHON) -mcoverage html
 	$(PYTHON) -mcoverage xml
 	$(PYTHON) -mcoverage report --fail-under=100
 
 .PHONY: mypy
 mypy:
-	mypy --strict --no-warn-unused-ignores uwwvb.py wwvb
+	mypy --strict --no-warn-unused-ignores src
 
 .PHONY: update
 update:
