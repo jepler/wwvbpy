@@ -1,3 +1,21 @@
+ifeq ("$(origin V)", "command line")
+BUILD_VERBOSE=$(V)
+endif
+ifndef BUILD_VERBOSE
+$(info Use make V=1, make V=2 or set BUILD_VERBOSE similarly in your environment to increase build verbosity.)
+BUILD_VERBOSE = 0
+endif
+ifeq ($(BUILD_VERBOSE),0)
+Q = @
+STEPECHO = @:
+else ifeq ($(BUILD_VERBOSE),1)
+Q = @
+STEPECHO = @echo
+else
+Q =
+STEPECHO = @echo
+endif
+
 PYTHON ?= python3
 
 .PHONY: default
@@ -5,20 +23,20 @@ default: coverage mypy
 
 .PHONY: coverage
 coverage:
-	$(PYTHON) -mcoverage erase
-	$(PYTHON) -mcoverage run --branch -p -m unittest
-	$(PYTHON) -mcoverage combine
-	$(PYTHON) -mcoverage html
-	$(PYTHON) -mcoverage xml
-	$(PYTHON) -mcoverage report --fail-under=100
+	$(Q)$(PYTHON) -mcoverage erase
+	$(Q)env PYTHONPATH=src $(PYTHON) -mcoverage run --branch -p -m unittest discover -s src
+	$(Q)$(PYTHON) -mcoverage combine -q
+	$(Q)$(PYTHON) -mcoverage html
+	$(Q)$(PYTHON) -mcoverage xml
+	$(Q)$(PYTHON) -mcoverage report --fail-under=100
 
 .PHONY: mypy
 mypy:
-	mypy --strict --no-warn-unused-ignores uwwvb.py wwvb
+	$(Q)mypy --strict --no-warn-unused-ignores src
 
 .PHONY: update
 update:
-	$(PYTHON) -mwwvb.updateiers --dist
+	$(Q)env PYTHONPATH=src $(PYTHON) -mwwvb.updateiers --dist
 
 # Copyright (C) 2021 Jeff Epler <jepler@gmail.com>
 # SPDX-FileCopyrightText: 2021 Jeff Epler

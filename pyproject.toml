@@ -16,4 +16,4 @@ requires = [
 ]
 build-backend = "setuptools.build_meta"
 [tool.setuptools_scm]
-write_to = "wwvb/__version__.py"
+write_to = "src/wwvb/__version__.py"
