@@ -6,16 +6,7 @@
 #
 # SPDX-License-Identifier: GPL-3.0-only
 
-import datetime
-import sys
-from typing import Callable
-
-ZoneInfo: Callable[[str], datetime.tzinfo]
-
-if sys.version_info >= (3, 9):  # pragma no coverage
-    from zoneinfo import ZoneInfo
-else:  # pragma no coverage
-    from backports.zoneinfo import ZoneInfo
+from zoneinfo import ZoneInfo
 
 Mountain = ZoneInfo("America/Denver")
 

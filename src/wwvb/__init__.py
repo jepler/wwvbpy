@@ -17,6 +17,7 @@ from . import iersdata
 from .tz import Mountain
 
 HOUR = datetime.timedelta(seconds=3600)
+SECOND = datetime.timedelta(seconds=1)
 DateOrDatetime = TypeVar("DateOrDatetime", datetime.date, datetime.datetime)
 T = TypeVar("T")  # pylint: disable=invalid-name
 
@@ -118,7 +119,9 @@ def get_dst_change_hour(
     for i in (1, 2, 3, 4):
         lt1 = (lt0.astimezone(datetime.timezone.utc) + HOUR * i).astimezone(tz)
         dst1 = lt1.dst()
-        if dst0 != dst1:
+        lt2 = lt1 - SECOND
+        dst2 = lt2.dst()
+        if dst0 == dst2 and dst0 != dst1:
             return i - 1
     return None
 
@@ -256,11 +259,12 @@ def get_dst_next(d: DateOrDatetime, tz: datetime.tzinfo = Mountain) -> int:
         return 0b100011
 
     dst_change_date, dst_next_row = get_dst_change_date_and_row(d, tz)
-    if dst_change_date is None or dst_next_row is None:  # pragma no coverage
+    if dst_change_date is None:
         return 0b100011
+    assert dst_next_row is not None
 
     dst_change_hour = get_dst_change_hour(dst_change_date, tz)
-    if dst_change_hour is None:  # pragma no coverage
+    if dst_change_hour is None:
         return 0b100011
 
     return dsttable[dst_now][dst_change_hour][dst_next_row]
