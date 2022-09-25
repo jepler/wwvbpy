@@ -16,6 +16,5 @@ twine; implementation_name=="cpython"
 types-beautifulsoup4
 types-python-dateutil
 types-requests
-backports.zoneinfo; python_version<"3.9"
 tzdata
 wheel
