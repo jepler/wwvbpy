@@ -364,6 +364,23 @@ class WWVBRoundtrip(unittest.TestCase):
         self.assertIsNone(date)
         self.assertIsNone(row)
 
+        # California was weird in 1948
+        self.assertEqual(
+            wwvb.get_dst_next(
+                datetime.datetime(1948, 1, 1), tz=tz.ZoneInfo("America/Los_Angeles")
+            ),
+            0b100011,
+        )
+
+        # Berlin had DST changes on Monday in 1917
+        self.assertEqual(
+            wwvb.get_dst_next(
+                datetime.datetime(1917, 1, 1), tz=tz.ZoneInfo("Europe/Berlin")
+            ),
+            0b100011,
+        )
+
+        #
         # Australia observes DST in the other half of the year compared to the
         # Northern hemisphere
         self.assertEqual(

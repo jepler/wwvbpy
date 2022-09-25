@@ -259,11 +259,12 @@ def get_dst_next(d: DateOrDatetime, tz: datetime.tzinfo = Mountain) -> int:
         return 0b100011
 
     dst_change_date, dst_next_row = get_dst_change_date_and_row(d, tz)
-    if dst_change_date is None or dst_next_row is None:  # pragma no coverage
+    if dst_change_date is None:
         return 0b100011
+    assert dst_next_row is not None
 
     dst_change_hour = get_dst_change_hour(dst_change_date, tz)
-    if dst_change_hour is None:  # pragma no coverage
+    if dst_change_hour is None:
         return 0b100011
 
     return dsttable[dst_now][dst_change_hour][dst_next_row]
