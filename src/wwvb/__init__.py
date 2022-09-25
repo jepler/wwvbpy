@@ -17,6 +17,7 @@ from . import iersdata
 from .tz import Mountain
 
 HOUR = datetime.timedelta(seconds=3600)
+SECOND = datetime.timedelta(seconds=1)
 DateOrDatetime = TypeVar("DateOrDatetime", datetime.date, datetime.datetime)
 T = TypeVar("T")  # pylint: disable=invalid-name
 
@@ -118,7 +119,9 @@ def get_dst_change_hour(
     for i in (1, 2, 3, 4):
         lt1 = (lt0.astimezone(datetime.timezone.utc) + HOUR * i).astimezone(tz)
         dst1 = lt1.dst()
-        if dst0 != dst1:
+        lt2 = lt1 - SECOND
+        dst2 = lt2.dst()
+        if dst0 == dst2 and dst0 != dst1:
             return i - 1
     return None
 
