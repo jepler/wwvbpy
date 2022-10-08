@@ -9,6 +9,7 @@ requires = [
     "requests",
     "platformdirs",
     "python-dateutil",
+    "leapseconddata",
     "setuptools>=45",
     "setuptools_scm[toml]>=6.0",
     "tzdata",

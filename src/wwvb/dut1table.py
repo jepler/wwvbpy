@@ -19,8 +19,9 @@ def main() -> None:
     for key, it in groupby(DUT1_OFFSETS):
         dut1_ms = (ord(key) - ord("k")) / 10.0
         count = len(list(it))
+        end = date + timedelta(days=count - 1)
         dut1_next = wwvb.get_dut1(date + timedelta(days=count), warn_outdated=False)
-        ls = " LS" if dut1_ms * dut1_next < 0 else ""
+        ls = f" LS on {end:%F} 23:59:60 UTC" if dut1_ms * dut1_next < 0 else ""
         print(f"{date:%F} {dut1_ms: 3.1f} {count:4d}{ls}")
         date += timedelta(days=count)
     print(date)
