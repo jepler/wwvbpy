@@ -6,11 +6,12 @@
 #
 # SPDX-License-Identifier: GPL-3.0-only
 
+import datetime
 import os
 
 import platformdirs
 
-__all__ = ["DUT1_DATA_START", "DUT1_OFFSETS"]
+__all__ = ["DUT1_DATA_START", "DUT1_OFFSETS", "start", "span", "end"]
 from .iersdata_dist import DUT1_DATA_START, DUT1_OFFSETS
 
 for location in [
@@ -22,3 +23,9 @@ for location in [
         with open(filename, encoding="utf-8") as f:
             exec(f.read(), globals(), globals())  # pylint: disable=exec-used
         break
+
+start = datetime.datetime.combine(DUT1_DATA_START, datetime.time()).replace(
+    tzinfo=datetime.timezone.utc
+)
+span = datetime.timedelta(days=len(DUT1_OFFSETS))
+end = start + span

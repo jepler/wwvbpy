@@ -2,13 +2,14 @@
 #
 # SPDX-License-Identifier: CC0-1.0
 
-/build
+*,cover
+*.egg-info
 /.coverage*
+/.reuse
+/build
 /coverage.xml
 /dist
-*.egg-info
+/finals2000A.all.csv
 /htmlcov
-__pycache__
-*,cover
-/.reuse
 /src/wwvb/__version__.py
+__pycache__

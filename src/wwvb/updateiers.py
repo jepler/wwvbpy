@@ -33,7 +33,19 @@ try:
 except (ImportError, NameError) as e:
     pass
 IERS_URL = "https://datacenter.iers.org/data/csv/finals2000A.all.csv"
+if os.path.exists("finals2000A.all.csv"):
+    IERS_URL = "finals2000A.all.csv"
+    print("using local", IERS_URL)
 NIST_URL = "https://www.nist.gov/pml/time-and-frequency-division/atomic-standards/leap-second-and-ut1-utc-information"
+
+
+def _get_text(url: str) -> str:
+    """Get a local file or a http/https URL"""
+    if url.startswith("http"):
+        with requests.get(url) as response:
+            return response.text
+    else:
+        return open(url, encoding="utf-8").read()
 
 
 def update_iersdata(  # pylint: disable=too-many-locals, too-many-branches, too-many-statements
@@ -42,25 +54,38 @@ def update_iersdata(  # pylint: disable=too-many-locals, too-many-branches, too-
     """Update iersdata.py"""
 
     offsets: List[int] = []
-    with requests.get(IERS_URL) as iers_data:
-        for r in csv.DictReader(io.StringIO(iers_data.text), delimiter=";"):
-            jd = float(r["MJD"])
-            offs_str = r["UT1-UTC"]
-            if not offs_str:
-                break
-            offs = int(round(float(offs_str) * 10))
-            if not offsets:
-                table_start = datetime.date(1858, 11, 17) + datetime.timedelta(jd)
-                if table_start > datetime.date(1972, 6, 1):
-                    when = datetime.date(1972, 6, 1)
-                    while when < datetime.date(1972, 7, 1):
-                        offsets.append(-2)
-                        when = when + datetime.timedelta(days=1)
-                    while when < table_start:
-                        offsets.append(8)
-                        when = when + datetime.timedelta(days=1)
-                    table_start = datetime.date(1972, 6, 1)
-            offsets.append(offs)
+    iersdata_text = _get_text(IERS_URL)
+    for r in csv.DictReader(io.StringIO(iersdata_text), delimiter=";"):
+        jd = float(r["MJD"])
+        offs_str = r["UT1-UTC"]
+        if not offs_str:
+            break
+        offs = int(round(float(offs_str) * 10))
+        if not offsets:
+            table_start = datetime.date(1858, 11, 17) + datetime.timedelta(jd)
+
+            when = min(datetime.date(1972, 1, 1), table_start)
+            # iers bulletin A doesn't cover 1972, so fake data for those
+            # leap seconds
+            while when < datetime.date(1972, 7, 1):
+                offsets.append(-2)
+                when = when + datetime.timedelta(days=1)
+            while when < datetime.date(1972, 11, 1):
+                offsets.append(8)
+                when = when + datetime.timedelta(days=1)
+            while when < datetime.date(1972, 12, 1):
+                offsets.append(0)
+                when = when + datetime.timedelta(days=1)
+            while when < datetime.date(1973, 1, 1):
+                offsets.append(-2)
+                when = when + datetime.timedelta(days=1)
+            while when < table_start:
+                offsets.append(8)
+                when = when + datetime.timedelta(days=1)
+
+            table_start = min(datetime.date(1972, 1, 1), table_start)
+
+        offsets.append(offs)
 
     wwvb_text = requests.get(NIST_URL).text
     wwvb_data = bs4.BeautifulSoup(wwvb_text, features="html.parser")
