@@ -8,7 +8,7 @@ SPDX-License-Identifier: GPL-3.0-only
 [![Update DUT1 data](https://github.com/jepler/wwvbpy/actions/workflows/cron.yml/badge.svg)](https://github.com/jepler/wwvbpy/actions/workflows/cron.yml)
 [![PyPI](https://img.shields.io/pypi/v/wwvb)](https://pypi.org/project/wwvb)
 ![Lines of code](https://img.shields.io/tokei/lines/github/jepler/wwvbpy)
-[![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/jepler/wwvbpy.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/jepler/wwvbpy/context:python)
+[![CodeQL](https://github.com/jepler/wwvbpy/actions/workflows/codeql.yml/badge.svg)](https://github.com/jepler/wwvbpy/actions/workflows/codeql.yml)
 [![pre-commit.ci status](https://results.pre-commit.ci/badge/github/jepler/wwvbpy/main.svg)](https://results.pre-commit.ci/latest/github/jepler/wwvbpy/main)
 
 # Purpose
