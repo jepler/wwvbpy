@@ -28,7 +28,7 @@ repos:
       types: [python]
       additional_dependencies: [beautifulsoup4, "pylint==2.13.5", requests, adafruit-circuitpython-datetime, click, python-dateutil, leapseconddata]
 - repo: https://github.com/pycqa/isort
-  rev: 5.11.1
+  rev: v5.11.3
   hooks:
     - id: isort
       name: isort (python)
