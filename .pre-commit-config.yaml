@@ -22,14 +22,11 @@ repos:
   rev: v1.1.0
   hooks:
   - id: reuse
-- repo: local
+- repo: https://github.com/pycqa/pylint
+  rev: v2.15.5
   hooks:
-  -   id: pylint
-      name: pylint
-      entry: pylint
-      language: python
-      types: [python]
-      additional_dependencies: [beautifulsoup4, "pylint==2.13.5", requests, adafruit-circuitpython-datetime, click, python-dateutil, leapseconddata]
+  - id: pylint
+    additional_dependencies: [beautifulsoup4, requests, adafruit-circuitpython-datetime, click, python-dateutil, leapseconddata]
 - repo: https://github.com/pycqa/isort
   rev: 5.12.0
   hooks:

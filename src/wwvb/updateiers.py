@@ -42,7 +42,7 @@ NIST_URL = "https://www.nist.gov/pml/time-and-frequency-division/atomic-standard
 def _get_text(url: str) -> str:
     """Get a local file or a http/https URL"""
     if url.startswith("http"):
-        with requests.get(url) as response:
+        with requests.get(url, timeout=30) as response:
             return response.text
     else:
         return open(url, encoding="utf-8").read()
@@ -87,7 +87,7 @@ def update_iersdata(  # pylint: disable=too-many-locals, too-many-branches, too-
 
         offsets.append(offs)
 
-    wwvb_text = requests.get(NIST_URL).text
+    wwvb_text = _get_text(NIST_URL)
     wwvb_data = bs4.BeautifulSoup(wwvb_text, features="html.parser")
     wwvb_dut1_table = wwvb_data.findAll("table")[2]
     assert wwvb_dut1_table
@@ -138,8 +138,8 @@ def update_iersdata(  # pylint: disable=too-many-locals, too-many-branches, too-
 
         code("# -*- python3 -*-")
         code('"""File generated from public data - not subject to copyright"""')
-        code("# SPDX" "-FileCopyrightText: Public domain")
-        code("# SPDX" "-License-Identifier: CC0-1.0")
+        code("# SPDX" + "-FileCopyrightText: Public domain")
+        code("# SPDX" + "-License-Identifier: CC0-1.0")
         code("# fmt: off")
         code("# isort: skip_file")
         code("# pylint: disable=invalid-name")
