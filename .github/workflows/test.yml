@@ -48,6 +48,8 @@ jobs:
         python -mpip install wheel
         python -mpip install -r requirements-dev.txt
 
+    - name: pre-commit
+      run: pre-commit run --all
     - name: Check stubs
       if: (! startsWith(matrix.python-version, 'pypy-'))
       run: make mypy PYTHON=python
