@@ -108,9 +108,7 @@ class WWVBRoundtrip(unittest.TestCase):
             minute = minute.next_minute()
         self.assertTrue(any_leap_second)
 
-    def test_cover_fill_pm_timecode_extended(  # pylint: disable=no-self-use
-        self,
-    ) -> None:
+    def test_cover_fill_pm_timecode_extended(self) -> None:
         """Get full coverage of the function pm_timecode_extended"""
         for dt in (
             datetime.datetime(1992, 1, 1),

@@ -15,6 +15,7 @@ on:
 jobs:
   test:
     strategy:
+      fail-fast: false
       matrix:
         python-version:
         - '3.9'
@@ -48,6 +49,9 @@ jobs:
         python -mpip install wheel
         python -mpip install -r requirements-dev.txt
 
+    - name: pre-commit
+      run: pre-commit run --all
+
     - name: Check stubs
       if: (! startsWith(matrix.python-version, 'pypy-'))
       run: make mypy PYTHON=python
@@ -57,7 +61,7 @@ jobs:
 
     - name: Upload Coverage to Codecov
       if: always()
-      uses: codecov/codecov-action@v2
+      uses: codecov/codecov-action@v3
       env:
         PYTHON: ${{ matrix.python-version }}
       with:
