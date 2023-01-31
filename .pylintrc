@@ -10,4 +10,3 @@ disable=duplicate-code,line-too-long,protected-access
 [BASIC]
 argument-rgx=[a-z][a-z0-9_]*
 variable-naming-style=any
-good_names=dt,t,i,j,k,ex,_
