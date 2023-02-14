@@ -104,7 +104,8 @@ def main(
 ) -> None:
     """Generate WWVB timecodes
 
-    TIMESPEC: one of "year yday hour minute" or "year month day hour minute", or else the current minute"""
+    TIMESPEC: one of "year yday hour minute" or "year month day hour minute", or else the current minute
+    """
 
     if (leap_second is not None) or (dut1 is not None):
         iers = False
