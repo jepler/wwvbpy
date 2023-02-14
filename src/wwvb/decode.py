@@ -24,10 +24,8 @@ always_zero = set((4, 10, 11, 14, 20, 21, 34, 35, 44, 54))
 
 
 def wwvbreceive() -> (
-    Generator[  # pylint: disable=too-many-branches
-        Optional[wwvb.WWVBTimecode], wwvb.AmplitudeModulation, None
-    ]
-):
+    Generator[Optional[wwvb.WWVBTimecode], wwvb.AmplitudeModulation, None]
+):  # pylint: disable=too-many-branches
     """A stateful decoder of WWVB signals"""
     minute: List[wwvb.AmplitudeModulation] = []
     state = 1
