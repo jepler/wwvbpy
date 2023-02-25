@@ -116,7 +116,7 @@ def get_dst_change_hour(
     """Return the hour when DST changes"""
     lt0 = datetime.datetime(t.year, t.month, t.day, hour=0, tzinfo=tz)
     dst0 = lt0.dst()
-    for i in (1, 2, 3, 4):
+    for i in (1, 2, 3):
         lt1 = (lt0.astimezone(datetime.timezone.utc) + HOUR * i).astimezone(tz)
         dst1 = lt1.dst()
         lt2 = lt1 - SECOND

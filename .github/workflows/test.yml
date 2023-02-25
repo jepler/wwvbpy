@@ -26,9 +26,9 @@ jobs:
         - 'ubuntu-latest'
         include:
           - os-version: 'macos-latest'
-            python-version: '3.10'
+            python-version: '3.x'
           - os-version: 'windows-latest'
-            python-version: '3.10'
+            python-version: '3.x'
 
     runs-on: ${{ matrix.os-version }}
     steps:
