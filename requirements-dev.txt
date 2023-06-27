@@ -13,7 +13,7 @@ platformdirs
 pre-commit
 python-dateutil
 requests; implementation_name=="cpython"
-setuptools>=45; implementation_name=="cpython"
+setuptools>=68; implementation_name=="cpython"
 twine; implementation_name=="cpython"
 types-beautifulsoup4
 types-python-dateutil
