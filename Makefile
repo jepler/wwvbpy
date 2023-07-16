@@ -21,14 +21,15 @@ PYTHON ?= python3
 .PHONY: default
 default: coverage mypy
 
+COVERAGE_INCLUDE=--include "src/**/*.py"
 .PHONY: coverage
 coverage:
 	$(Q)$(PYTHON) -mcoverage erase
 	$(Q)env PYTHONPATH=src $(PYTHON) -mcoverage run --branch -p -m unittest discover -s src
 	$(Q)$(PYTHON) -mcoverage combine -q
-	$(Q)$(PYTHON) -mcoverage html
-	$(Q)$(PYTHON) -mcoverage xml
-	$(Q)$(PYTHON) -mcoverage report --fail-under=100
+	$(Q)$(PYTHON) -mcoverage html $(COVERAGE_INCLUDE)
+	$(Q)$(PYTHON) -mcoverage xml $(COVERAGE_INCLUDE)
+	$(Q)$(PYTHON) -mcoverage report --fail-under=100 $(COVERAGE_INCLUDE)
 
 .PHONY: mypy
 mypy:
