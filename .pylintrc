@@ -2,7 +2,7 @@
 #
 #SPDX-License-Identifier: GPL-3.0-only
 [MASTER]
-py-version=3.7
+py-version=3.11
 
 [MESSAGES CONTROL]
 disable=duplicate-code,line-too-long,protected-access
