@@ -33,11 +33,6 @@ jobs:
 
     runs-on: ${{ matrix.os-version }}
     steps:
-    - name: Dump GitHub context
-      env:
-        GITHUB_CONTEXT: ${{ toJson(github) }}
-      run: echo "$GITHUB_CONTEXT"
-
     - uses: actions/checkout@v3
 
     - name: Set up Python
@@ -49,9 +44,6 @@ jobs:
       run: |
         python -mpip install wheel
         python -mpip install -r requirements-dev.txt
-
-    - name: pre-commit
-      run: pre-commit run --all
 
     - name: Check stubs
       if: (! startsWith(matrix.python-version, 'pypy-'))
@@ -75,3 +67,16 @@ jobs:
       with:
         name: coverage for ${{ matrix.python-version }} on ${{ matrix.os-version }}
         path: coverage.xml
+
+  pre-commit:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'
+
+    - name: pre-commit
+      run: pip install pre-commit && pre-commit run --all
