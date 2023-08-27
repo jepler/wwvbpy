@@ -10,3 +10,11 @@ disable=duplicate-code,line-too-long,protected-access
 [BASIC]
 argument-rgx=[a-z][a-z0-9_]*
 variable-naming-style=any
+
+[TYPECHECK]
+signature-mutators=click.decorators.option,
+                   click.decorators.argument,
+                   click.decorators.version_option,
+                   click.decorators.help_option,
+                   click.decorators.pass_context,
+                   click.decorators.confirmation_option

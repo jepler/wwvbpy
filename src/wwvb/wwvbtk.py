@@ -141,4 +141,4 @@ def main(colors: list[str], size: int, min_size: int | None) -> None:
 
 
 if __name__ == "__main__":
-    main()  # pylint: disable=no-value-for-parameter
+    main()
