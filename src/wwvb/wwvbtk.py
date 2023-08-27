@@ -10,7 +10,7 @@ import functools
 import threading
 import time
 from tkinter import Canvas, TclError, Tk  # pylint: disable=import-error
-from typing import Any, Generator, Tuple
+from typing import Any, Generator, Optional, Tuple
 
 import click
 
@@ -55,7 +55,7 @@ DEFAULT_COLORS = "#3c3c3c #3c3c3c #3c3c3c #cc3c3c #88883c #3ccc3c"
 @click.option("--colors", callback=validate_colors, default=DEFAULT_COLORS)
 @click.option("--size", default=48)
 @click.option("--min-size", default=None)
-def main(colors: list[str], size: int, min_size: int | None) -> None:
+def main(colors: list[str], size: int, min_size: Optional[int]) -> None:
     """Visualize the WWVB signal in realtime"""
 
     if min_size is None:
