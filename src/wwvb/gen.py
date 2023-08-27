@@ -133,4 +133,4 @@ def main(
 
 
 if __name__ == "__main__":  # pragma no branch
-    main()  # pylint: disable=no-value-for-parameter
+    main()
