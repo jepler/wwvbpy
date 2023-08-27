@@ -6,16 +6,58 @@
 #
 # SPDX-License-Identifier: GPL-3.0-only
 
+import functools
 import threading
 import time
-from tkinter import Canvas, Tk  # pylint: disable=import-error
+from tkinter import Canvas, TclError, Tk  # pylint: disable=import-error
 from typing import Any, Generator, Tuple
+
+import click
 
 import wwvb
 
 
-def main() -> None:
+@functools.cache
+def _app():
+    """Create the Tk application object lazily"""
+    return Tk()
+
+
+def validate_colors(ctx, param, value):  # pylint: disable=unused-argument
+    """Check that all colors in a string are valid, splitting it to a list"""
+    app = _app()
+    colors = value.split()
+    if len(colors) not in (2, 3, 4, 6):
+        raise click.BadParameter(f"Give 2, 3, 4 or 6 colors (not {len(colors)}")
+    for c in colors:
+        try:
+            app.winfo_rgb(c)
+        except TclError as e:
+            raise click.BadParameter(f"Invalid color {c}") from e
+
+    if len(colors) == 2:
+        off, on = colors
+        return [off, off, off, on, on, on]
+    if len(colors) == 3:
+        return colors + colors
+    if len(colors) == 4:
+        off, c1, c2, c3 = colors
+        return [off, off, off, c1, c2, c3]
+    return colors
+
+
+DEFAULT_COLORS = "#3c3c3c #3c3c3c #3c3c3c #cc3c3c #88883c #3ccc3c"
+
+
+@click.command
+@click.option("--colors", callback=validate_colors, default=DEFAULT_COLORS)
+@click.option("--size", default=48)
+@click.option("--min-size", default=None)
+def main(colors: list[str], size: int, min_size: int | None) -> None:
     """Visualize the WWVB signal in realtime"""
+
+    if min_size is None:
+        min_size = size
 
     def sleep_deadline(deadline: float) -> None:
         """Sleep until a deadline"""
@@ -53,12 +95,12 @@ def main() -> None:
                     continue
                 yield stamp, code
 
-    colors = ["#3c3c3c", "#cc3c3c", "#88883c", "#3ccc3c"]
-    app = Tk()
-    app.wm_minsize(48, 48)
-    canvas = Canvas(app, width=48, height=48, highlightthickness=0)
-    canvas.pack(fill="both", expand=True)
+    app = _app()
+    app.wm_minsize(min_size, min_size)
+    canvas = Canvas(app, width=size, height=size, highlightthickness=0)
     circle = canvas.create_oval(4, 4, 44, 44, outline="black", fill=colors[0])
+    canvas.pack(fill="both", expand=True)
+    app.wm_deiconify()
 
     def resize_canvas(event: Any) -> None:
         """Keep the circle filling the window when it is resized"""
@@ -77,11 +119,11 @@ def main() -> None:
 
     def led_on(i: int) -> None:
         """Turn the canvas's virtual LED on"""
-        canvas.itemconfigure(circle, fill=colors[i + 1])
+        canvas.itemconfigure(circle, fill=colors[i + 3])
 
-    def led_off() -> None:
+    def led_off(i: int) -> None:
         """Turn the canvas's virtual LED off"""
-        canvas.itemconfigure(circle, fill=colors[0])
+        canvas.itemconfigure(circle, fill=colors[i])
 
     def thread_func() -> None:
         """Update the canvas virtual LED"""
@@ -90,7 +132,7 @@ def main() -> None:
             led_on(code)
             app.update()
             sleep_deadline(stamp + 0.2 + 0.3 * int(code))
-            led_off()
+            led_off(code)
             app.update()
 
     thread = threading.Thread(target=thread_func, daemon=True)
@@ -99,4 +141,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # pylint: disable=no-value-for-parameter
