@@ -18,12 +18,14 @@ import wwvb
 
 
 @functools.cache
-def _app():
+def _app() -> Tk:
     """Create the Tk application object lazily"""
     return Tk()
 
 
-def validate_colors(ctx, param, value):  # pylint: disable=unused-argument
+def validate_colors(  # pylint: disable=unused-argument
+    ctx: Any, param: Any, value: str
+) -> list[str]:
     """Check that all colors in a string are valid, splitting it to a list"""
     app = _app()
     colors = value.split()
