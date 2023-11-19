@@ -31,7 +31,7 @@ def parse_timespec(  # pylint: disable=unused-argument
             )
         if len(value) == 1:
             return dateutil.parser.parse(value[0])
-        if len(value) == 0:  # pragma no cover
+        if len(value) == 0:
             return datetime.datetime.now(datetime.timezone.utc)
         raise ValueError("Unexpected number of arguments")
     except ValueError as e:
