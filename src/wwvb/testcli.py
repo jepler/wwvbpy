@@ -211,6 +211,15 @@ WWVB timecode: year=2021 days=340 hour=03 min=40 dst=0 ut1=-100 ly=0 ls=0 --styl
             "2021-12-6 3:40",
         )
 
+    def test_now(self) -> None:
+        """Test outputting timecodes for 'now'"""
+        self.assertModuleOutputStarts(
+            "WWVB timecode: year=",
+            "wwvb.gen",
+            "-m",
+            "1",
+        )
+
     def test_decode(self) -> None:
         """Test the commandline decoder"""
         self.assertModuleOutput(

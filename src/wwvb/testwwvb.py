@@ -53,7 +53,7 @@ class WWVBTestCase(unittest.TestCase):
                         channel = o[10:]
                     elif o.startswith("--style="):
                         style = o[8:]
-                    else:  # pragma: no cover
+                    else:
                         raise ValueError(f"Unknown option {repr(o)}")
                 num_minutes = len(lines) - 2
                 if channel == "both":
@@ -335,6 +335,7 @@ class WWVBRoundtrip(unittest.TestCase):
         """Ensure that the 'maybe_warn_update' function is covered"""
         with self.assertWarnsRegex(Warning, "updateiers"):
             wwvb._maybe_warn_update(datetime.date(1970, 1, 1))
+            wwvb._maybe_warn_update(datetime.datetime(1970, 1, 1, 0, 0))
 
     def test_undefined(self) -> None:
         """Ensure that the check for unset elements in am works"""
