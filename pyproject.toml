@@ -18,3 +18,8 @@ requires = [
 build-backend = "setuptools.build_meta"
 [tool.setuptools_scm]
 write_to = "src/wwvb/__version__.py"
+[tool.ruff.lint]
+select = ["E", "F"]
+ignore = ["E741"]
+[tool.ruff]
+line-length = 120

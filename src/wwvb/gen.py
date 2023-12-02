@@ -26,9 +26,7 @@ def parse_timespec(  # pylint: disable=unused-argument
             return datetime.datetime(year, month, day, hour, minute)
         if len(value) == 4:
             year, yday, hour, minute = map(int, value)
-            return datetime.datetime(year, 1, 1, hour, minute) + datetime.timedelta(
-                days=yday - 1
-            )
+            return datetime.datetime(year, 1, 1, hour, minute) + datetime.timedelta(days=yday - 1)
         if len(value) == 1:
             return dateutil.parser.parse(value[0])
         if len(value) == 0:
@@ -68,9 +66,7 @@ def parse_timespec(  # pylint: disable=unused-argument
     help="Force no leap second at the end of the month (Implies --no-iers)",
 )
 @click.option("--dut1", "-d", type=int, help="Force the DUT1 value (Implies --no-iers)")
-@click.option(
-    "--minutes", "-m", default=10, help="Number of minutes to show (default: 10)"
-)
+@click.option("--minutes", "-m", default=10, help="Number of minutes to show (default: 10)")
 @click.option(
     "--style",
     default="default",
@@ -127,9 +123,7 @@ def main(
     if style == "json":
         print_timecodes_json(w, minutes, channel, file=sys.stdout)
     else:
-        print_timecodes(
-            w, minutes, channel, style, all_timecodes=all_timecodes, file=sys.stdout
-        )
+        print_timecodes(w, minutes, channel, style, all_timecodes=all_timecodes, file=sys.stdout)
 
 
 if __name__ == "__main__":  # pragma no branch

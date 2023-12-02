@@ -16,9 +16,7 @@ always_mark = set((0, 9, 19, 29, 39, 49, 59))
 always_zero = set((4, 10, 11, 14, 20, 21, 34, 35, 44, 54))
 bcd_weights = (1, 2, 4, 8, 10, 20, 40, 80, 100, 200, 400, 800)
 
-WWVBMinute = namedtuple(
-    "WWVBMinute", ["year", "days", "hour", "minute", "dst", "ut1", "ls", "ly"]
-)
+WWVBMinute = namedtuple("WWVBMinute", ["year", "days", "hour", "minute", "dst", "ut1", "ls", "ly"])
 
 
 class WWVBDecoder:
@@ -30,7 +28,9 @@ class WWVBDecoder:
         self.state = 1
 
     def update(self, value: int) -> list[int] | None:
-        """Update the _state machine when a new symbol is received.  If a possible complete _minute is received, return it; otherwise, return None"""
+        """Update the _state machine when a new symbol is received.
+
+        If a possible complete _minute is received, return it; otherwise, return None"""
         result = None
         if self.state == 1:
             self.minute = []

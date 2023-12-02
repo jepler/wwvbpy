@@ -23,15 +23,12 @@ DIST_PATH = str(pathlib.Path(__file__).parent / "iersdata_dist.py")
 
 OLD_TABLE_START: Optional[datetime.date] = None
 OLD_TABLE_END: Optional[datetime.date] = None
-try:
+if os.path.exists(DIST_PATH):
     import wwvb.iersdata_dist
 
     OLD_TABLE_START = wwvb.iersdata_dist.DUT1_DATA_START
-    OLD_TABLE_END = OLD_TABLE_START + datetime.timedelta(
-        days=len(wwvb.iersdata_dist.DUT1_OFFSETS) - 1
-    )
-except (ImportError, NameError) as e:
-    pass
+    OLD_TABLE_END = OLD_TABLE_START + datetime.timedelta(days=len(wwvb.iersdata_dist.DUT1_OFFSETS) - 1)
+
 IERS_URL = "https://datacenter.iers.org/data/csv/finals2000A.all.csv"
 if os.path.exists("finals2000A.all.csv"):
     IERS_URL = "finals2000A.all.csv"
@@ -93,11 +90,7 @@ def update_iersdata(  # pylint: disable=too-many-locals, too-many-branches, too-
     assert wwvb_dut1_table
     meta = wwvb_data.find("meta", property="article:modified_time")
     assert isinstance(meta, bs4.Tag)
-    wwvb_data_stamp = (
-        datetime.datetime.fromisoformat(meta.attrs["content"])
-        .replace(tzinfo=None)
-        .date()
-    )
+    wwvb_data_stamp = datetime.datetime.fromisoformat(meta.attrs["content"]).replace(tzinfo=None).date()
 
     def patch(patch_start: datetime.date, patch_end: datetime.date, val: int) -> None:
         off_start = (patch_start - table_start).days
@@ -149,9 +142,7 @@ def update_iersdata(  # pylint: disable=too-many-locals, too-many-branches, too-
         code(f"DUT1_DATA_START = {repr(table_start)}")
         c = sorted(chr(ord("a") + ch + 10) for ch in set(offsets))
         code(f"{','.join(c)} = tuple({repr(''.join(c))})")
-        code(
-            f"DUT1_OFFSETS = str( # {table_start.year:04d}{table_start.month:02d}{table_start.day:02d}"
-        )
+        code(f"DUT1_OFFSETS = str( # {table_start.year:04d}{table_start.month:02d}{table_start.day:02d}")
         line = ""
         j = 0
 
@@ -194,9 +185,7 @@ def iersdata_path(callback: Callable[[str, str], str]) -> str:
     default=iersdata_path(platformdirs.user_data_dir),
 )
 @click.option("--dist", "location", flag_value=DIST_PATH)
-@click.option(
-    "--site", "location", flag_value=iersdata_path(platformdirs.site_data_dir)
-)
+@click.option("--site", "location", flag_value=iersdata_path(platformdirs.site_data_dir))
 def main(location: str) -> None:
     """Update DUT1 data"""
     print("will write to", location)

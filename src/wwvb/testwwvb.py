@@ -85,9 +85,7 @@ class WWVBRoundtrip(unittest.TestCase):
 
     def test_decode(self) -> None:
         """Test that a range of minutes including a leap second are correctly decoded by the state-based decoder"""
-        minute = wwvb.WWVBMinuteIERS.from_datetime(
-            datetime.datetime(1992, 6, 30, 23, 50)
-        )
+        minute = wwvb.WWVBMinuteIERS.from_datetime(datetime.datetime(1992, 6, 30, 23, 50))
         decoder = decode.wwvbreceive()
         next(decoder)
         decoder.send(wwvb.AmplitudeModulation.MARK)
@@ -126,17 +124,13 @@ class WWVBRoundtrip(unittest.TestCase):
     def test_roundtrip(self) -> None:
         """Test that a wide of minutes are correctly decoded by the state-based decoder"""
         dt = datetime.datetime(1992, 1, 1, 0, 0)
-        delta = datetime.timedelta(
-            minutes=915 if sys.implementation.name == "cpython" else 86400 - 915
-        )
+        delta = datetime.timedelta(minutes=915 if sys.implementation.name == "cpython" else 86400 - 915)
         while dt.year < 1993:
             minute = wwvb.WWVBMinuteIERS.from_datetime(dt)
             assert minute is not None
             timecode = minute.as_timecode().am
             assert timecode
-            decoded_minute: Optional[
-                wwvb.WWVBMinute
-            ] = wwvb.WWVBMinuteIERS.from_timecode_am(minute.as_timecode())
+            decoded_minute: Optional[wwvb.WWVBMinute] = wwvb.WWVBMinuteIERS.from_timecode_am(minute.as_timecode())
             assert decoded_minute
             decoded = decoded_minute.as_timecode().am
             self.assertEqual(
@@ -148,9 +142,7 @@ class WWVBRoundtrip(unittest.TestCase):
 
     def test_noise(self) -> None:
         """Test against pseudorandom noise"""
-        minute = wwvb.WWVBMinuteIERS.from_datetime(
-            datetime.datetime(1992, 6, 30, 23, 50)
-        )
+        minute = wwvb.WWVBMinuteIERS.from_datetime(datetime.datetime(1992, 6, 30, 23, 50))
         r = random.Random(408)
         junk = [
             r.choice(
@@ -180,9 +172,7 @@ class WWVBRoundtrip(unittest.TestCase):
 
     def test_noise2(self) -> None:
         """Test of the full minute decoder with targeted errors to get full coverage"""
-        minute = wwvb.WWVBMinuteIERS.from_datetime(
-            datetime.datetime(2012, 6, 30, 23, 50)
-        )
+        minute = wwvb.WWVBMinuteIERS.from_datetime(datetime.datetime(2012, 6, 30, 23, 50))
         timecode = minute.as_timecode()
         decoded = wwvb.WWVBMinute.from_timecode_am(timecode)
         self.assertIsNotNone(decoded)
@@ -217,9 +207,7 @@ class WWVBRoundtrip(unittest.TestCase):
 
     def test_noise3(self) -> None:
         """Test impossible BCD values"""
-        minute = wwvb.WWVBMinuteIERS.from_datetime(
-            datetime.datetime(2012, 6, 30, 23, 50)
-        )
+        minute = wwvb.WWVBMinuteIERS.from_datetime(datetime.datetime(2012, 6, 30, 23, 50))
         timecode = minute.as_timecode()
 
         for poslist in [
@@ -241,16 +229,12 @@ class WWVBRoundtrip(unittest.TestCase):
 
     def test_previous_next_minute(self) -> None:
         """Test that previous minute and next minute are inverses"""
-        minute = wwvb.WWVBMinuteIERS.from_datetime(
-            datetime.datetime(1992, 6, 30, 23, 50)
-        )
+        minute = wwvb.WWVBMinuteIERS.from_datetime(datetime.datetime(1992, 6, 30, 23, 50))
         self.assertEqual(minute, minute.next_minute().previous_minute())
 
     def test_timecode_str(self) -> None:
         """Test the str() and repr() methods"""
-        minute = wwvb.WWVBMinuteIERS.from_datetime(
-            datetime.datetime(1992, 6, 30, 23, 50)
-        )
+        minute = wwvb.WWVBMinuteIERS.from_datetime(datetime.datetime(1992, 6, 30, 23, 50))
         timecode = minute.as_timecode()
         self.assertEqual(
             str(timecode),
@@ -268,9 +252,7 @@ class WWVBRoundtrip(unittest.TestCase):
         sm1 = s - datetime.timedelta(days=1)
         self.assertEqual(wwvb.get_dut1(s), wwvb.get_dut1(sm1))
 
-        e = iersdata.DUT1_DATA_START + datetime.timedelta(
-            days=len(iersdata.DUT1_OFFSETS) - 1
-        )
+        e = iersdata.DUT1_DATA_START + datetime.timedelta(days=len(iersdata.DUT1_OFFSETS) - 1)
         ep1 = e + datetime.timedelta(days=1)
 
         self.assertEqual(wwvb.get_dut1(e), wwvb.get_dut1(ep1))
@@ -290,17 +272,11 @@ class WWVBRoundtrip(unittest.TestCase):
 
         s = "WWVB timecode: year=1998 days=365 hour=23 min=56 dst=0 ut1=-300 ly=0 ls=1"
         t = "year=1998 days=365 hour=23 min=56 dst=0 ut1=-300 ly=0 ls=1"
-        self.assertEqual(
-            wwvb.WWVBMinuteIERS.fromstring(s), wwvb.WWVBMinuteIERS.fromstring(t)
-        )
+        self.assertEqual(wwvb.WWVBMinuteIERS.fromstring(s), wwvb.WWVBMinuteIERS.fromstring(t))
         t = "year=1998 days=365 hour=23 min=56 dst=0 ut1=-300 ls=1"
-        self.assertEqual(
-            wwvb.WWVBMinuteIERS.fromstring(s), wwvb.WWVBMinuteIERS.fromstring(t)
-        )
+        self.assertEqual(wwvb.WWVBMinuteIERS.fromstring(s), wwvb.WWVBMinuteIERS.fromstring(t))
         t = "year=1998 days=365 hour=23 min=56 dst=0"
-        self.assertEqual(
-            wwvb.WWVBMinuteIERS.fromstring(s), wwvb.WWVBMinuteIERS.fromstring(t)
-        )
+        self.assertEqual(wwvb.WWVBMinuteIERS.fromstring(s), wwvb.WWVBMinuteIERS.fromstring(t))
 
     def test_from_datetime(self) -> None:
         """Test the from_datetime() classmethod"""
@@ -322,9 +298,7 @@ class WWVBRoundtrip(unittest.TestCase):
             wwvb.WWVBMinute(2021, 1, 1, 1, ls=False)
 
         with self.assertRaises(ValueError):
-            wwvb.WWVBMinute.fromstring(
-                "year=1998 days=365 hour=23 min=56 dst=0 ut1=-300 ly=0 ls=1 boo=1"
-            )
+            wwvb.WWVBMinute.fromstring("year=1998 days=365 hour=23 min=56 dst=0 ut1=-300 ly=0 ls=1 boo=1")
 
     def test_deprecated(self) -> None:
         """Ensure that the 'maybe_warn_update' function is covered"""
@@ -357,25 +331,19 @@ class WWVBRoundtrip(unittest.TestCase):
             wwvb.get_dst_next(datetime.datetime(2005, 1, 1), tz=tz.ZoneInfo("Cuba")),
             0b101111,
         )
-        date, row = wwvb.get_dst_change_date_and_row(
-            datetime.datetime(2005, 1, 1), tz=tz.ZoneInfo("Cuba")
-        )
+        date, row = wwvb.get_dst_change_date_and_row(datetime.datetime(2005, 1, 1), tz=tz.ZoneInfo("Cuba"))
         self.assertIsNone(date)
         self.assertIsNone(row)
 
         # California was weird in 1948
         self.assertEqual(
-            wwvb.get_dst_next(
-                datetime.datetime(1948, 1, 1), tz=tz.ZoneInfo("America/Los_Angeles")
-            ),
+            wwvb.get_dst_next(datetime.datetime(1948, 1, 1), tz=tz.ZoneInfo("America/Los_Angeles")),
             0b100011,
         )
 
         # Berlin had DST changes on Monday in 1917
         self.assertEqual(
-            wwvb.get_dst_next(
-                datetime.datetime(1917, 1, 1), tz=tz.ZoneInfo("Europe/Berlin")
-            ),
+            wwvb.get_dst_next(datetime.datetime(1917, 1, 1), tz=tz.ZoneInfo("Europe/Berlin")),
             0b100011,
         )
 
@@ -383,9 +351,7 @@ class WWVBRoundtrip(unittest.TestCase):
         # Australia observes DST in the other half of the year compared to the
         # Northern hemisphere
         self.assertEqual(
-            wwvb.get_dst_next(
-                datetime.datetime(2005, 1, 1), tz=tz.ZoneInfo("Australia/Melbourne")
-            ),
+            wwvb.get_dst_next(datetime.datetime(2005, 1, 1), tz=tz.ZoneInfo("Australia/Melbourne")),
             0b100011,
         )
 

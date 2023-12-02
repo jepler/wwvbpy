@@ -79,9 +79,7 @@ def main(colors: list[str], size: int, min_size: Optional[int]) -> None:
                 yield timestamp + i, code
             timestamp = timestamp + 60
 
-    def wwvbsmarttick() -> (
-        Generator[Tuple[float, wwvb.AmplitudeModulation], None, None]
-    ):
+    def wwvbsmarttick() -> Generator[Tuple[float, wwvb.AmplitudeModulation], None, None]:
         """Yield consecutive values of the WWVB amplitude signal but deal with time
         progressing unexpectedly, such as when the computer is suspended or NTP steps
         the clock backwards

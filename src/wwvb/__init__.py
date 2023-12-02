@@ -49,9 +49,7 @@ def _maybe_warn_update(dt: datetime.date) -> None:
     # prospective available now.
     today = datetime.date.today()
     if _date(dt) < today + datetime.timedelta(days=330):
-        warnings.warn(
-            "Note: Running `updateiers` may provide better DUT1 and LS information"
-        )
+        warnings.warn("Note: Running `updateiers` may provide better DUT1 and LS information")
 
 
 def get_dut1(dt: DateOrDatetime, *, warn_outdated: bool = True) -> float:
@@ -110,9 +108,7 @@ def is_dst_change_day(t: datetime.date, tz: datetime.tzinfo = Mountain) -> bool:
     return isdst(t, tz) != isdst(t + datetime.timedelta(1), tz)
 
 
-def get_dst_change_hour(
-    t: DateOrDatetime, tz: datetime.tzinfo = Mountain
-) -> Optional[int]:
+def get_dst_change_hour(t: DateOrDatetime, tz: datetime.tzinfo = Mountain) -> Optional[int]:
     """Return the hour when DST changes"""
     lt0 = datetime.datetime(t.year, t.month, t.day, hour=0, tzinfo=tz)
     dst0 = lt0.dst()
@@ -291,7 +287,9 @@ def extract_bit(v: int, p: int) -> bool:
 
 
 def hamming_parity(value: int) -> int:
-    """Compute the "hamming parity" of a 26-bit number, such as the minute-of-century [See Enhanced WWVB Broadcast Format 4.3]"""
+    """Compute the "hamming parity" of a 26-bit number, such as the minute-of-century
+
+    For more details, see Enhanced WWVB Broadcast Format 4.3"""
     parity = 0
     for i in range(4, -1, -1):
         bit = 0
@@ -324,7 +322,9 @@ _WWVBMinute = collections.namedtuple("_WWVBMinute", "year days hour min dst ut1 
 
 
 class WWVBMinute(_WWVBMinute):
-    """Uniquely identifies a minute of time in the WWVB system. To use ut1 and ls information from IERS, create a WWVBMinuteIERS value instead."""
+    """Uniquely identifies a minute of time in the WWVB system.
+
+    To use ut1 and ls information from IERS, create a WWVBMinuteIERS value instead."""
 
     year: int
     hour: int
@@ -391,7 +391,11 @@ class WWVBMinute(_WWVBMinute):
 
     def __str__(self) -> str:
         """Implement str()"""
-        return f"year={self.year:4d} days={self.days:03d} hour={self.hour:02d} min={self.min:02d} dst={self.dst} ut1={self.ut1} ly={int(self.ly)} ls={int(self.ls)}"
+        return (
+            f"year={self.year:4d} days={self.days:03d} hour={self.hour:02d} "
+            f"min={self.min:02d} dst={self.dst} ut1={self.ut1} ly={int(self.ly)} "
+            f"ls={int(self.ls)}"
+        )
 
     def as_datetime_utc(self) -> datetime.datetime:
         """Convert to a UTC datetime"""
@@ -401,9 +405,7 @@ class WWVBMinute(_WWVBMinute):
 
     as_datetime = as_datetime_utc
 
-    def as_datetime_local(
-        self, standard_time_offset: int = 7 * 3600, dst_observed: bool = True
-    ) -> datetime.datetime:
+    def as_datetime_local(self, standard_time_offset: int = 7 * 3600, dst_observed: bool = True) -> datetime.datetime:
         """Convert to a local datetime according to the DST bits"""
         u = self.as_datetime_utc()
         offset = datetime.timedelta(seconds=-standard_time_offset)
@@ -471,12 +473,7 @@ class WWVBMinute(_WWVBMinute):
         century = (self.year // 100) * 100
         # note: This relies on timedelta seconds never including leapseconds!
         return (
-            int(
-                (
-                    self.as_datetime()
-                    - datetime.datetime(century, 1, 1, tzinfo=datetime.timezone.utc)
-                ).total_seconds()
-            )
+            int((self.as_datetime() - datetime.datetime(century, 1, 1, tzinfo=datetime.timezone.utc)).total_seconds())
             // 60
         )
 
@@ -497,9 +494,7 @@ class WWVBMinute(_WWVBMinute):
         t.am[36] = t.am[38] = AmplitudeModulation(ut1_sign)
         t.am[37] = AmplitudeModulation(not ut1_sign)
         t._put_am_bcd(abs(self.ut1) // 100, 40, 41, 42, 43)
-        t._put_am_bcd(
-            self.year, 45, 46, 47, 48, 50, 51, 52, 53
-        )  # Implicitly discards all but lowest 2 digits of year
+        t._put_am_bcd(self.year, 45, 46, 47, 48, 50, 51, 52, 53)  # Implicitly discards all but lowest 2 digits of year
         t.am[55] = AmplitudeModulation(self.ly)
         t.am[56] = AmplitudeModulation(self.ls)
         t._put_am_bcd(self.dst, 57, 58)
@@ -604,16 +599,12 @@ class WWVBMinute(_WWVBMinute):
         else:
             self.fill_pm_timecode_regular(t)
 
-    def next_minute(
-        self, newut1: Optional[int] = None, newls: Optional[bool] = None
-    ) -> "WWVBMinute":
+    def next_minute(self, newut1: Optional[int] = None, newls: Optional[bool] = None) -> "WWVBMinute":
         """Return an object representing the next minute"""
         d = self.as_datetime() + datetime.timedelta(minutes=1)
         return self.from_datetime(d, newut1, newls, self)
 
-    def previous_minute(
-        self, newut1: Optional[int] = None, newls: Optional[bool] = None
-    ) -> "WWVBMinute":
+    def previous_minute(self, newut1: Optional[int] = None, newls: Optional[bool] = None) -> "WWVBMinute":
         """Return an object representing the previous minute"""
         d = self.as_datetime() - datetime.timedelta(minutes=1)
         return self.from_datetime(d, newut1, newls, self)
@@ -717,9 +708,7 @@ class WWVBMinuteIERS(WWVBMinute):
     """A WWVBMinute that uses a database of DUT1 information"""
 
     @classmethod
-    def _get_dut1_info(
-        cls, year: int, days: int, old_time: Optional[WWVBMinute] = None
-    ) -> Tuple[int, bool]:
+    def _get_dut1_info(cls, year: int, days: int, old_time: Optional[WWVBMinute] = None) -> Tuple[int, bool]:
         d = datetime.datetime(year, 1, 1) + datetime.timedelta(days - 1)
         return int(round(get_dut1(d) * 10)) * 100, isls(d)
 
@@ -763,7 +752,10 @@ class WWVBTimecode:
         self.phase = [PhaseModulation.UNSET] * sz
 
     def _get_am_bcd(self, *poslist: int) -> Optional[int]:
-        """Convert the bits seq[positions[0]], ... seq[positions[len(positions-1)]] [in MSB order] from BCD to decimal"""
+        """Convert AM data to BCD
+
+        The the bits ``self.am[poslist[i]]`` in MSB order are converted from
+        BCD to integer"""
         pos = reversed(poslist)
         val = [bool(self.am[p]) for p in pos]
         result = 0
@@ -779,7 +771,11 @@ class WWVBTimecode:
         return result
 
     def _put_am_bcd(self, v: int, *poslist: int) -> None:
-        """Treating 'poslist' as a sequence of indices, update the AM signal with the value as a BCD number"""
+        """Insert BCD coded data into the AM signal
+
+        The bits at ``self.am[poslist[i]]`` in MSB order are filled with
+        the conversion of `v` to BCD
+        Treating 'poslist' as a sequence of indices, update the AM signal with the value as a BCD number"""
         pos = list(poslist)[::-1]
         for p, b in zip(pos, bcd_bits(v)):
             if b:
@@ -798,9 +794,7 @@ class WWVBTimecode:
 
     def __str__(self) -> str:
         """implement str()"""
-        undefined = [
-            i for i in range(len(self.am)) if self.am[i] == AmplitudeModulation.UNSET
-        ]
+        undefined = [i for i in range(len(self.am)) if self.am[i] == AmplitudeModulation.UNSET]
         if undefined:
             warnings.warn(f"am{undefined} is unset")
 

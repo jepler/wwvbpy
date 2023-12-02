@@ -8,48 +8,57 @@
 
 # pylint: disable=invalid-name
 
+import json
 import os
 import subprocess
 import sys
 import unittest
+from typing import Any, Sequence
 
-coverage_add = (
-    ("-m", "coverage", "run", "--branch", "-p") if "COVERAGE_RUN" in os.environ else ()
-)
+coverage_add = ("-m", "coverage", "run", "--branch", "-p") if "COVERAGE_RUN" in os.environ else ()
 
 
 class CLITestCase(unittest.TestCase):
     """Test various CLI commands within wwvbpy"""
 
-    def assertProgramOutput(self, expected: str, *args: str) -> None:
-        """Check the output from invoking a program matches the expected"""
+    def programOutput(self, *args: str) -> str:
         env = os.environ.copy()
         env["PYTHONIOENCODING"] = "utf-8"
-        actual = subprocess.check_output(
-            args, stdin=subprocess.DEVNULL, encoding="utf-8", env=env
-        )
+        return subprocess.check_output(args, stdin=subprocess.DEVNULL, encoding="utf-8", env=env)
+
+    def moduleArgs(self, *args: str) -> Sequence[str]:
+        return tuple((sys.executable, *coverage_add, "-m", *args))
+
+    def moduleOutput(self, *args: str) -> str:
+        return self.programOutput(sys.executable, *coverage_add, "-m", *args)
+
+    def assertProgramOutput(self, expected: str, *args: str) -> None:
+        """Check the output from invoking a program matches the expected"""
+        actual = self.programOutput(*args)
         self.assertMultiLineEqual(expected, actual, f"args={args}")
 
     def assertProgramOutputStarts(self, expected: str, *args: str) -> None:
         """Check the output from invoking a program matches the expected"""
-        env = os.environ.copy()
-        env["PYTHONIOENCODING"] = "utf-8"
-        actual = subprocess.check_output(
-            args, stdin=subprocess.DEVNULL, encoding="utf-8", env=env
-        )
+        actual = self.programOutput(*args)
         self.assertMultiLineEqual(expected, actual[: len(expected)], f"args={args}")
 
     def assertModuleOutput(self, expected: str, *args: str) -> None:
         """Check the output from invoking a `python -m modulename` program matches the expected"""
-        return self.assertProgramOutput(
-            expected, sys.executable, *coverage_add, "-m", *args
-        )
+        actual = self.moduleOutput(*args)
+        self.assertMultiLineEqual(expected, actual, f"args={args}")
+
+    def assertStarts(self, expected: str, actual: str, *args: str) -> None:
+        self.assertMultiLineEqual(expected, actual[: len(expected)], f"args={args}")
+
+    def assertModuleJson(self, expected: Any, *args: str) -> None:
+        """Check the output from invoking a `python -m modulename` program matches the expected"""
+        actual = self.moduleOutput(*args)
+        self.assertEqual(json.loads(actual), expected)
 
     def assertModuleOutputStarts(self, expected: str, *args: str) -> None:
         """Check the output from invoking a `python -m modulename` program matches the expected"""
-        return self.assertProgramOutputStarts(
-            expected, sys.executable, *coverage_add, "-m", *args
-        )
+        actual = self.moduleOutput(*args)
+        self.assertStarts(expected, actual, *args)
 
     def assertProgramError(self, *args: str) -> None:
         """Check the output from invoking a program fails"""
@@ -57,16 +66,12 @@ class CLITestCase(unittest.TestCase):
         env["PYTHONIOENCODING"] = "utf-8"
         with self.assertRaises(subprocess.SubprocessError):
             subprocess.check_output(
-                args,
-                stdin=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
-                encoding="utf-8",
-                env=env,
+                args, stdin=subprocess.DEVNULL, stderr=subprocess.DEVNULL, encoding="utf-8", env=env
             )
 
     def assertModuleError(self, *args: str) -> None:
         """Check the output from invoking a `python -m modulename` program fails"""
-        return self.assertProgramError(sys.executable, *coverage_add, "-m", *args)
+        self.assertProgramError(*self.moduleArgs(*args))
 
     def test_gen(self) -> None:
         """test wwvb.gen"""
@@ -153,10 +158,25 @@ WWVB timecode: year=2020 days=001 hour=12 min=30 dst=0 ut1=-300 ly=1 ls=0
 
     def test_json(self) -> None:
         """Test the JSON output format"""
-        self.assertModuleOutput(
-            """\
-[{"year": 2021, "days": 340, "hour": 3, "minute": 40, "amplitude": "210000000200000001120011001002000000010200010001020001000002", "phase": "111110011011010101000100100110011110001110111010111101001011"}, {"year": 2021, "days": 340, "hour": 3, "minute": 41, "amplitude": "210000001200000001120011001002000000010200010001020001000002", "phase": "001010011100100011000101110000100001101000001111101100000010"}]
-""",
+        self.assertModuleJson(
+            [
+                {
+                    "year": 2021,
+                    "days": 340,
+                    "hour": 3,
+                    "minute": 40,
+                    "amplitude": "210000000200000001120011001002000000010200010001020001000002",
+                    "phase": "111110011011010101000100100110011110001110111010111101001011",
+                },
+                {
+                    "year": 2021,
+                    "days": 340,
+                    "hour": 3,
+                    "minute": 41,
+                    "amplitude": "210000001200000001120011001002000000010200010001020001000002",
+                    "phase": "001010011100100011000101110000100001101000001111101100000010",
+                },
+            ],
             "wwvb.gen",
             "-m",
             "2",
@@ -166,10 +186,23 @@ WWVB timecode: year=2020 days=001 hour=12 min=30 dst=0 ut1=-300 ly=1 ls=0
             "both",
             "2021-12-6 3:40",
         )
-        self.assertModuleOutput(
-            """\
-[{"year": 2021, "days": 340, "hour": 3, "minute": 40, "amplitude": "210000000200000001120011001002000000010200010001020001000002"}, {"year": 2021, "days": 340, "hour": 3, "minute": 41, "amplitude": "210000001200000001120011001002000000010200010001020001000002"}]
-""",
+        self.assertModuleJson(
+            [
+                {
+                    "year": 2021,
+                    "days": 340,
+                    "hour": 3,
+                    "minute": 40,
+                    "amplitude": "210000000200000001120011001002000000010200010001020001000002",
+                },
+                {
+                    "year": 2021,
+                    "days": 340,
+                    "hour": 3,
+                    "minute": 41,
+                    "amplitude": "210000001200000001120011001002000000010200010001020001000002",
+                },
+            ],
             "wwvb.gen",
             "-m",
             "2",
@@ -179,10 +212,23 @@ WWVB timecode: year=2020 days=001 hour=12 min=30 dst=0 ut1=-300 ly=1 ls=0
             "amplitude",
             "2021-12-6 3:40",
         )
-        self.assertModuleOutput(
-            """\
-[{"year": 2021, "days": 340, "hour": 3, "minute": 40, "phase": "111110011011010101000100100110011110001110111010111101001011"}, {"year": 2021, "days": 340, "hour": 3, "minute": 41, "phase": "001010011100100011000101110000100001101000001111101100000010"}]
-""",
+        self.assertModuleJson(
+            [
+                {
+                    "year": 2021,
+                    "days": 340,
+                    "hour": 3,
+                    "minute": 40,
+                    "phase": "111110011011010101000100100110011110001110111010111101001011",
+                },
+                {
+                    "year": 2021,
+                    "days": 340,
+                    "hour": 3,
+                    "minute": 41,
+                    "phase": "001010011100100011000101110000100001101000001111101100000010",
+                },
+            ],
             "wwvb.gen",
             "-m",
             "2",
@@ -198,9 +244,11 @@ WWVB timecode: year=2020 days=001 hour=12 min=30 dst=0 ut1=-300 ly=1 ls=0
         self.assertModuleOutput(
             """\
 WWVB timecode: year=2021 days=340 hour=03 min=40 dst=0 ut1=-100 ly=0 ls=0 --style=sextant
-2021-340 03:40  🬋🬩🬋🬹🬩🬹🬩🬹🬩🬹🬍🬎🬍🬎🬩🬹🬩🬹🬋🬍🬩🬹🬩🬹🬍🬎🬩🬹🬍🬎🬩🬹🬍🬎🬋🬹🬋🬎🬋🬍🬍🬎🬩🬹🬋🬎🬋🬎🬩🬹🬍🬎🬋🬎🬩🬹🬩🬹🬋🬍🬍🬎🬩🬹🬩🬹🬩🬹🬩🬹🬍🬎🬍🬎🬋🬎🬩🬹🬋🬩🬩🬹🬍🬎🬩🬹🬋🬹🬩🬹🬍🬎🬩🬹🬋🬎🬩🬹🬋🬩🬩🬹🬩🬹🬍🬎🬋🬹🬍🬎🬍🬎🬩🬹🬍🬎🬩🬹🬋🬩
+2021-340 03:40  \
+🬋🬩🬋🬹🬩🬹🬩🬹🬩🬹🬍🬎🬍🬎🬩🬹🬩🬹🬋🬍🬩🬹🬩🬹🬍🬎🬩🬹🬍🬎🬩🬹🬍🬎🬋🬹🬋🬎🬋🬍🬍🬎🬩🬹🬋🬎🬋🬎🬩🬹🬍🬎🬋🬎🬩🬹🬩🬹🬋🬍🬍🬎🬩🬹🬩🬹🬩🬹🬩🬹🬍🬎🬍🬎🬋🬎🬩🬹🬋🬩🬩🬹🬍🬎🬩🬹🬋🬹🬩🬹🬍🬎🬩🬹🬋🬎🬩🬹🬋🬩🬩🬹🬩🬹🬍🬎🬋🬹🬍🬎🬍🬎🬩🬹🬍🬎🬩🬹🬋🬩
 
-2021-340 03:41  🬋🬍🬋🬎🬩🬹🬍🬎🬩🬹🬍🬎🬍🬎🬩🬹🬋🬹🬋🬩🬍🬎🬍🬎🬩🬹🬍🬎🬍🬎🬍🬎🬩🬹🬋🬹🬋🬎🬋🬍🬍🬎🬩🬹🬋🬎🬋🬹🬩🬹🬩🬹🬋🬎🬍🬎🬍🬎🬋🬍🬩🬹🬍🬎🬍🬎🬍🬎🬍🬎🬩🬹🬩🬹🬋🬎🬩🬹🬋🬍🬍🬎🬍🬎🬍🬎🬋🬎🬩🬹🬩🬹🬩🬹🬋🬹🬩🬹🬋🬍🬩🬹🬩🬹🬍🬎🬋🬎🬍🬎🬍🬎🬍🬎🬍🬎🬩🬹🬋🬍
+2021-340 03:41  \
+🬋🬍🬋🬎🬩🬹🬍🬎🬩🬹🬍🬎🬍🬎🬩🬹🬋🬹🬋🬩🬍🬎🬍🬎🬩🬹🬍🬎🬍🬎🬍🬎🬩🬹🬋🬹🬋🬎🬋🬍🬍🬎🬩🬹🬋🬎🬋🬹🬩🬹🬩🬹🬋🬎🬍🬎🬍🬎🬋🬍🬩🬹🬍🬎🬍🬎🬍🬎🬍🬎🬩🬹🬩🬹🬋🬎🬩🬹🬋🬍🬍🬎🬍🬎🬍🬎🬋🬎🬩🬹🬩🬹🬩🬹🬋🬹🬩🬹🬋🬍🬩🬹🬩🬹🬍🬎🬋🬎🬍🬎🬍🬎🬍🬎🬍🬎🬩🬹🬋🬍
 
 """,
             "wwvb.gen",

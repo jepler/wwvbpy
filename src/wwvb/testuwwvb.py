@@ -24,7 +24,9 @@ class WWVBRoundtrip(unittest.TestCase):
     def assertDateTimeEqualExceptTzInfo(  # pylint: disable=invalid-name
         self, a: EitherDatetimeOrNone, b: EitherDatetimeOrNone
     ) -> None:
-        """Test two datetime objects for equality, excluding tzinfo, and allowing adafruit_datetime and core datetime modules to compare equal"""
+        """Test two datetime objects for equality
+
+        This equality test excludes tzinfo, and allows adafruit_datetime and core datetime modules to compare equal"""
         assert a
         assert b
         self.assertEqual(
@@ -35,9 +37,7 @@ class WWVBRoundtrip(unittest.TestCase):
     def test_decode(self) -> None:
         """Test decoding of some minutes including a leap second.
         Each minute must decode and match the primary decoder."""
-        minute = wwvb.WWVBMinuteIERS.from_datetime(
-            datetime.datetime(2012, 6, 30, 23, 50)
-        )
+        minute = wwvb.WWVBMinuteIERS.from_datetime(datetime.datetime(2012, 6, 30, 23, 50))
         assert minute
         decoder = uwwvb.WWVBDecoder()
         decoder.update(uwwvb.MARK)
@@ -60,17 +60,13 @@ class WWVBRoundtrip(unittest.TestCase):
     def test_roundtrip(self) -> None:
         """Test that some big range of times all decode the same as the primary decoder"""
         dt = datetime.datetime(2002, 1, 1, 0, 0)
-        delta = datetime.timedelta(
-            minutes=7182 if sys.implementation.name == "cpython" else 86400 - 7182
-        )
+        delta = datetime.timedelta(minutes=7182 if sys.implementation.name == "cpython" else 86400 - 7182)
         while dt.year < 2013:
             minute = wwvb.WWVBMinuteIERS.from_datetime(dt)
             assert minute
             decoded = uwwvb.decode_wwvb([int(i) for i in minute.as_timecode().am])
             assert decoded
-            self.assertDateTimeEqualExceptTzInfo(
-                minute.as_datetime_utc(), uwwvb.as_datetime_utc(decoded)
-            )
+            self.assertDateTimeEqualExceptTzInfo(minute.as_datetime_utc(), uwwvb.as_datetime_utc(decoded))
             dt = dt + delta
 
     def test_dst(self) -> None:
@@ -93,9 +89,7 @@ class WWVBRoundtrip(unittest.TestCase):
             minute = wwvb.WWVBMinuteIERS.from_datetime(dt)
             decoded = uwwvb.decode_wwvb([int(i) for i in minute.as_timecode().am])
             assert decoded
-            self.assertDateTimeEqualExceptTzInfo(
-                minute.as_datetime_local(), uwwvb.as_datetime_local(decoded)
-            )
+            self.assertDateTimeEqualExceptTzInfo(minute.as_datetime_local(), uwwvb.as_datetime_local(decoded))
 
             decoded = uwwvb.decode_wwvb([int(i) for i in minute.as_timecode().am])
             assert decoded
@@ -106,9 +100,7 @@ class WWVBRoundtrip(unittest.TestCase):
 
     def test_noise(self) -> None:
         """Test of the state-machine decoder when faced with pseudorandom noise"""
-        minute = wwvb.WWVBMinuteIERS.from_datetime(
-            datetime.datetime(2012, 6, 30, 23, 50)
-        )
+        minute = wwvb.WWVBMinuteIERS.from_datetime(datetime.datetime(2012, 6, 30, 23, 50))
         r = random.Random(408)
         junk = [
             r.choice(
@@ -141,9 +133,7 @@ class WWVBRoundtrip(unittest.TestCase):
 
     def test_noise2(self) -> None:
         """Test of the full minute decoder with targeted errors to get full coverage"""
-        minute = wwvb.WWVBMinuteIERS.from_datetime(
-            datetime.datetime(2012, 6, 30, 23, 50)
-        )
+        minute = wwvb.WWVBMinuteIERS.from_datetime(datetime.datetime(2012, 6, 30, 23, 50))
         timecode = minute.as_timecode()
         decoded = uwwvb.decode_wwvb([int(i) for i in timecode.am])
         self.assertIsNotNone(decoded)
@@ -178,9 +168,7 @@ class WWVBRoundtrip(unittest.TestCase):
 
     def test_noise3(self) -> None:
         """Test impossible BCD values"""
-        minute = wwvb.WWVBMinuteIERS.from_datetime(
-            datetime.datetime(2012, 6, 30, 23, 50)
-        )
+        minute = wwvb.WWVBMinuteIERS.from_datetime(datetime.datetime(2012, 6, 30, 23, 50))
         timecode = minute.as_timecode()
 
         for poslist in [
