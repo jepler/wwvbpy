@@ -24,8 +24,6 @@ for location in [
             exec(f.read(), globals(), globals())  # pylint: disable=exec-used
         break
 
-start = datetime.datetime.combine(DUT1_DATA_START, datetime.time()).replace(
-    tzinfo=datetime.timezone.utc
-)
+start = datetime.datetime.combine(DUT1_DATA_START, datetime.time()).replace(tzinfo=datetime.timezone.utc)
 span = datetime.timedelta(days=len(DUT1_OFFSETS))
 end = start + span

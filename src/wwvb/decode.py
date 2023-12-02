@@ -23,9 +23,7 @@ import wwvb
 always_zero = set((4, 10, 11, 14, 20, 21, 34, 35, 44, 54))
 
 
-def wwvbreceive() -> (
-    Generator[Optional[wwvb.WWVBTimecode], wwvb.AmplitudeModulation, None]
-):  # pylint: disable=too-many-branches
+def wwvbreceive() -> Generator[Optional[wwvb.WWVBTimecode], wwvb.AmplitudeModulation, None]:  # pylint: disable=too-many-branches
     """A stateful decoder of WWVB signals"""
     minute: List[wwvb.AmplitudeModulation] = []
     state = 1
@@ -60,10 +58,7 @@ def wwvbreceive() -> (
             elif len(minute) % 10 and value == wwvb.AmplitudeModulation.MARK:
                 # print("UNEXPECTED MARK")
                 state = 1
-            elif (
-                len(minute) - 1 in always_zero
-                and value != wwvb.AmplitudeModulation.ZERO
-            ):
+            elif len(minute) - 1 in always_zero and value != wwvb.AmplitudeModulation.ZERO:
                 # print("UNEXPECTED NONZERO")
                 state = 1
             elif len(minute) == 60:
