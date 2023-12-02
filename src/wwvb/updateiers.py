@@ -23,13 +23,12 @@ DIST_PATH = str(pathlib.Path(__file__).parent / "iersdata_dist.py")
 
 OLD_TABLE_START: Optional[datetime.date] = None
 OLD_TABLE_END: Optional[datetime.date] = None
-try:
+if os.path.exists(DIST_PATH):
     import wwvb.iersdata_dist
 
     OLD_TABLE_START = wwvb.iersdata_dist.DUT1_DATA_START
     OLD_TABLE_END = OLD_TABLE_START + datetime.timedelta(days=len(wwvb.iersdata_dist.DUT1_OFFSETS) - 1)
-except (ImportError, NameError):
-    pass
+
 IERS_URL = "https://datacenter.iers.org/data/csv/finals2000A.all.csv"
 if os.path.exists("finals2000A.all.csv"):
     IERS_URL = "finals2000A.all.csv"
