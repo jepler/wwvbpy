@@ -23,7 +23,7 @@ jobs:
         - '3.11'
         - '3.12'
         - '3.13.0-alpha.0 - 3.13'
-        - 'pypy-3.9'
+        - 'pypy-3.10'
         os-version:
         - 'ubuntu-latest'
         include:
