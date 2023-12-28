@@ -55,6 +55,8 @@ BUILDDIR      = _build
 html:
 	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 
+# Pass the desired coverage tracer name to subprocesses
+export COVERAGE_CORE
 
 # Copyright (C) 2021 Jeff Epler <jepler@gmail.com>
 # SPDX-FileCopyrightText: 2021 Jeff Epler
