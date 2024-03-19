@@ -5,6 +5,7 @@
 # SPDX-License-Identifier: GPL-3.0-only
 
 """Print the table of historical DUT1 values"""
+
 from datetime import timedelta
 from itertools import groupby
 
