@@ -16,9 +16,7 @@ import dateutil.parser
 from . import WWVBMinute, WWVBMinuteIERS, print_timecodes, print_timecodes_json, styles
 
 
-def parse_timespec(  # pylint: disable=unused-argument
-    ctx: Any, param: Any, value: List[str]
-) -> datetime.datetime:
+def parse_timespec(ctx: Any, param: Any, value: List[str]) -> datetime.datetime:
     """Parse a time specifier from the commandline"""
     try:
         if len(value) == 5:
@@ -87,7 +85,6 @@ def parse_timespec(  # pylint: disable=unused-argument
     help="Modulation to show (default: amplitude)",
 )
 @click.argument("timespec", type=str, nargs=-1, callback=parse_timespec)
-# pylint: disable=too-many-arguments, too-many-locals
 def main(
     iers: bool,
     leap_second: bool,

@@ -21,7 +21,7 @@ for location in [
     filename = os.path.join(location, "wwvbpy_iersdata.py")
     if os.path.exists(filename):
         with open(filename, encoding="utf-8") as f:
-            exec(f.read(), globals(), globals())  # pylint: disable=exec-used
+            exec(f.read(), globals(), globals())
         break
 
 start = datetime.datetime.combine(DUT1_DATA_START, datetime.time()).replace(tzinfo=datetime.timezone.utc)

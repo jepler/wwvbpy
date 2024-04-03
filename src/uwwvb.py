@@ -87,7 +87,7 @@ def get_am_bcd(seq: list[int], *poslist: int) -> int | None:
     return result
 
 
-def decode_wwvb(  # pylint: disable=too-many-return-statements
+def decode_wwvb(
     t: list[int] | None,
 ) -> WWVBMinute | None:
     """Convert a received minute of wwvb symbols to a WWVBMinute.  Returns None if any error is detected."""
