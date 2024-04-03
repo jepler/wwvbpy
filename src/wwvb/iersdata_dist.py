@@ -1,8 +1,8 @@
 # -*- python3 -*-
+# fmt: off
 """File generated from public data - not subject to copyright"""
 # SPDX-FileCopyrightText: Public domain
 # SPDX-License-Identifier: CC0-1.0
-# fmt: off
 # isort: skip_file
 # pylint: disable=invalid-name
 import datetime
