@@ -6,8 +6,6 @@
 #
 # SPDX-License-Identifier: GPL-3.0-only
 
-# pylint: disable=invalid-name
-
 import json
 import os
 import subprocess

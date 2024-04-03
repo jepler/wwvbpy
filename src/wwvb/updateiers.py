@@ -45,7 +45,7 @@ def _get_text(url: str) -> str:
         return open(url, encoding="utf-8").read()
 
 
-def update_iersdata(  # pylint: disable=too-many-locals, too-many-branches, too-many-statements
+def update_iersdata(
     target_file: str,
 ) -> None:
     """Update iersdata.py"""
@@ -130,12 +130,11 @@ def update_iersdata(  # pylint: disable=too-many-locals, too-many-branches, too-
             print(*args, file=output)
 
         code("# -*- python3 -*-")
+        code("# fmt: off")
         code('"""File generated from public data - not subject to copyright"""')
         code("# SPDX" + "-FileCopyrightText: Public domain")
         code("# SPDX" + "-License-Identifier: CC0-1.0")
-        code("# fmt: off")
         code("# isort: skip_file")
-        code("# pylint: disable=invalid-name")
         code("import datetime")
 
         code("__all__ = ['DUT1_DATA_START', 'DUT1_OFFSETS']")

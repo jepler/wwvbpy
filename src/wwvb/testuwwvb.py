@@ -21,9 +21,7 @@ EitherDatetimeOrNone = Union[None, datetime.datetime, adafruit_datetime.datetime
 class WWVBRoundtrip(unittest.TestCase):
     """tests of uwwvb.py"""
 
-    def assertDateTimeEqualExceptTzInfo(  # pylint: disable=invalid-name
-        self, a: EitherDatetimeOrNone, b: EitherDatetimeOrNone
-    ) -> None:
+    def assertDateTimeEqualExceptTzInfo(self, a: EitherDatetimeOrNone, b: EitherDatetimeOrNone) -> None:
         """Test two datetime objects for equality
 
         This equality test excludes tzinfo, and allows adafruit_datetime and core datetime modules to compare equal"""

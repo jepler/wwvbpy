@@ -19,7 +19,7 @@ from .tz import Mountain
 HOUR = datetime.timedelta(seconds=3600)
 SECOND = datetime.timedelta(seconds=1)
 DateOrDatetime = TypeVar("DateOrDatetime", datetime.date, datetime.datetime)
-T = TypeVar("T")  # pylint: disable=invalid-name
+T = TypeVar("T")
 
 
 def require(x: Optional[T]) -> T:
@@ -336,7 +336,7 @@ class WWVBMinute(_WWVBMinute):
 
     epoch: int = 1970
 
-    def __new__(  # pylint: disable=too-many-arguments
+    def __new__(
         cls,
         year: int,
         days: int,
@@ -534,9 +534,7 @@ class WWVBMinute(_WWVBMinute):
         for i in range(60):
             t._put_pm_bit(i, full_seq[i + offset])
 
-    def fill_pm_timecode_regular(  # pylint: disable=too-many-statements
-        self, t: "WWVBTimecode"
-    ) -> None:
+    def fill_pm_timecode_regular(self, t: "WWVBTimecode") -> None:
         """Except during minutes 10..15 and 40..45, the amplitude signal holds 'regular information'"""
         t._put_pm_bin(0, 13, SYNC_T)
 
@@ -610,9 +608,7 @@ class WWVBMinute(_WWVBMinute):
         return self.from_datetime(d, newut1, newls, self)
 
     @classmethod
-    def _get_dut1_info(  # pylint: disable=unused-argument
-        cls: type, year: int, days: int, old_time: "Optional[WWVBMinute]" = None
-    ) -> Tuple[int, bool]:
+    def _get_dut1_info(cls: type, year: int, days: int, old_time: "Optional[WWVBMinute]" = None) -> Tuple[int, bool]:
         """Return the DUT1 information for a given day, possibly propagating information from a previous timestamp"""
         if old_time is not None:
             if old_time.minute_length() != 60:
@@ -664,9 +660,7 @@ class WWVBMinute(_WWVBMinute):
         return cls(u.tm_year, u.tm_yday, u.tm_hour, u.tm_min, ut1=newut1, ls=newls)
 
     @classmethod
-    def from_timecode_am(  # pylint: disable=too-many-return-statements
-        cls, t: "WWVBTimecode"
-    ) -> Optional["WWVBMinute"]:
+    def from_timecode_am(cls, t: "WWVBTimecode") -> Optional["WWVBMinute"]:
         """Construct a WWVBMinute from a WWVBTimecode"""
         for i in (0, 9, 19, 29, 39, 49, 59):
             if t.am[i] != AmplitudeModulation.MARK:
@@ -748,7 +742,7 @@ class WWVBTimecode:
     phase: List[PhaseModulation]
 
     def __init__(self, sz: int) -> None:
-        self.am = [AmplitudeModulation.UNSET] * sz  # pylint: disable=invalid-name
+        self.am = [AmplitudeModulation.UNSET] * sz
         self.phase = [PhaseModulation.UNSET] * sz
 
     def _get_am_bcd(self, *poslist: int) -> Optional[int]:
@@ -835,7 +829,6 @@ styles = {
 }
 
 
-# pylint: disable=too-many-arguments
 def print_timecodes(
     w: WWVBMinute,
     minutes: int,
@@ -873,7 +866,6 @@ def print_timecodes(
         w = w.next_minute()
 
 
-# pylint: disable=too-many-arguments
 def print_timecodes_json(
     w: WWVBMinute,
     minutes: int,

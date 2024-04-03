@@ -1,4 +1,3 @@
-# pylint: disable=all
 # fmt: off
 # Configuration file for the Sphinx documentation builder.
 #

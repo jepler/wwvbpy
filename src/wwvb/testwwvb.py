@@ -27,7 +27,6 @@ class WWVBMinute2k(wwvb.WWVBMinute):
     epoch = 2000
 
 
-# pylint: disable=too-many-locals
 class WWVBTestCase(unittest.TestCase):
     """Test each expected output in tests/.  Some outputs are from another program, some are from us"""
 

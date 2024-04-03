@@ -9,7 +9,7 @@
 import functools
 import threading
 import time
-from tkinter import Canvas, TclError, Tk  # pylint: disable=import-error
+from tkinter import Canvas, TclError, Tk
 from typing import Any, Generator, Optional, Tuple
 
 import click
@@ -23,9 +23,7 @@ def _app() -> Tk:
     return Tk()
 
 
-def validate_colors(  # pylint: disable=unused-argument
-    ctx: Any, param: Any, value: str
-) -> list[str]:
+def validate_colors(ctx: Any, param: Any, value: str) -> list[str]:
     """Check that all colors in a string are valid, splitting it to a list"""
     app = _app()
     colors = value.split()
