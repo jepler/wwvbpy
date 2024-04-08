@@ -7,7 +7,7 @@ default_language_version:
 
 repos:
 - repo: https://github.com/pre-commit/pre-commit-hooks
-  rev: v4.5.0
+  rev: v4.6.0
   hooks:
   -   id: check-yaml
   -   id: end-of-file-fixer
@@ -15,7 +15,7 @@ repos:
   -   id: trailing-whitespace
       exclude: tests
 - repo: https://github.com/fsfe/reuse-tool
-  rev: v3.0.1
+  rev: v3.0.2
   hooks:
   - id: reuse
 - repo: https://github.com/astral-sh/ruff-pre-commit
