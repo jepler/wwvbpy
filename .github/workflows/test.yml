@@ -41,10 +41,10 @@ jobs:
 
     runs-on: ${{ matrix.os-version }}
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
 
@@ -62,18 +62,18 @@ jobs:
 
     - name: Upload Coverage as artifact
       if: always()
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
-        name: coverage for ${{ matrix.python-version }} on ${{ matrix.os-version }}
+        name: coverage for ${{ matrix.python-version }} on ${{ matrix.os-version }} ${{ matrix.coverage-core }}
         path: coverage.xml
 
   pre-commit:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: '3.x'
 
