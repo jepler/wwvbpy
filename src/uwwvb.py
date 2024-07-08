@@ -2,6 +2,8 @@
 #
 # SPDX-License-Identifier: GPL-3.0-only
 
+# ruff: noqa: C405 PYI024 PLR2004 FBT001 FBT002
+
 """Implementation of a WWVB state machine & decoder for resource-constrained systems"""
 
 from __future__ import annotations
@@ -30,7 +32,8 @@ class WWVBDecoder:
     def update(self, value: int) -> list[int] | None:
         """Update the _state machine when a new symbol is received.
 
-        If a possible complete _minute is received, return it; otherwise, return None"""
+        If a possible complete _minute is received, return it; otherwise, return None
+        """
         result = None
         if self.state == 1:
             self.minute = []

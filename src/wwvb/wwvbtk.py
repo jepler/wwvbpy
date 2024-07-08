@@ -5,12 +5,13 @@
 # SPDX-FileCopyrightText: 2021 Jeff Epler
 #
 # SPDX-License-Identifier: GPL-3.0-only
+from __future__ import annotations
 
 import functools
 import threading
 import time
 from tkinter import Canvas, TclError, Tk
-from typing import Any, Generator, Optional, Tuple
+from typing import Any, Generator
 
 import click
 
@@ -23,7 +24,7 @@ def _app() -> Tk:
     return Tk()
 
 
-def validate_colors(ctx: Any, param: Any, value: str) -> list[str]:
+def validate_colors(ctx: Any, param: Any, value: str) -> list[str]:  # noqa: ARG001
     """Check that all colors in a string are valid, splitting it to a list"""
     app = _app()
     colors = value.split()
@@ -53,9 +54,8 @@ DEFAULT_COLORS = "#3c3c3c #3c3c3c #3c3c3c #cc3c3c #88883c #3ccc3c"
 @click.option("--colors", callback=validate_colors, default=DEFAULT_COLORS)
 @click.option("--size", default=48)
 @click.option("--min-size", default=None)
-def main(colors: list[str], size: int, min_size: Optional[int]) -> None:
+def main(colors: list[str], size: int, min_size: int | None) -> None:  # noqa: PLR0915
     """Visualize the WWVB signal in realtime"""
-
     if min_size is None:
         min_size = size
 
@@ -65,7 +65,7 @@ def main(colors: list[str], size: int, min_size: Optional[int]) -> None:
         if deadline > now:
             time.sleep(deadline - now)
 
-    def wwvbtick() -> Generator[Tuple[float, wwvb.AmplitudeModulation], None, None]:
+    def wwvbtick() -> Generator[tuple[float, wwvb.AmplitudeModulation], None, None]:
         """Yield consecutive values of the WWVB amplitude signal, going from minute to minute"""
         timestamp = time.time() // 60 * 60
 
@@ -77,13 +77,15 @@ def main(colors: list[str], size: int, min_size: Optional[int]) -> None:
                 yield timestamp + i, code
             timestamp = timestamp + 60
 
-    def wwvbsmarttick() -> Generator[Tuple[float, wwvb.AmplitudeModulation], None, None]:
-        """Yield consecutive values of the WWVB amplitude signal but deal with time
-        progressing unexpectedly, such as when the computer is suspended or NTP steps
-        the clock backwards
+    def wwvbsmarttick() -> Generator[tuple[float, wwvb.AmplitudeModulation], None, None]:
+        """Yield consecutive values of the WWVB amplitude signal
+
+        .. but deal with time progressing unexpectedly, such as when the
+        computer is suspended or NTP steps the clock backwards
 
         When time goes backwards or advances by more than a minute, get a fresh
-        wwvbtick object; otherwise, discard time signals more than 1s in the past."""
+        wwvbtick object; otherwise, discard time signals more than 1s in the past.
+        """
         while True:
             for stamp, code in wwvbtick():
                 now = time.time()

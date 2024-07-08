@@ -6,32 +6,34 @@
 
 """Update the DUT1 and LS data based on online sources"""
 
+from __future__ import annotations
+
 import csv
 import datetime
 import io
 import itertools
-import os
 import pathlib
-from typing import Callable, List, Optional
+from typing import Callable
 
 import bs4
 import click
 import platformdirs
 import requests
 
-DIST_PATH = str(pathlib.Path(__file__).parent / "iersdata_dist.py")
+DIST_PATH = pathlib.Path(__file__).parent / "iersdata_dist.py"
 
-OLD_TABLE_START: Optional[datetime.date] = None
-OLD_TABLE_END: Optional[datetime.date] = None
-if os.path.exists(DIST_PATH):
+OLD_TABLE_START: datetime.date | None = None
+OLD_TABLE_END: datetime.date | None = None
+if DIST_PATH.exists():
     import wwvb.iersdata_dist
 
     OLD_TABLE_START = wwvb.iersdata_dist.DUT1_DATA_START
     OLD_TABLE_END = OLD_TABLE_START + datetime.timedelta(days=len(wwvb.iersdata_dist.DUT1_OFFSETS) - 1)
 
 IERS_URL = "https://datacenter.iers.org/data/csv/finals2000A.all.csv"
-if os.path.exists("finals2000A.all.csv"):
-    IERS_URL = "finals2000A.all.csv"
+IERS_PATH = pathlib.Path("finals2000A.all.csv")
+if IERS_PATH.exists():
+    IERS_URL = str(IERS_PATH)
     print("using local", IERS_URL)
 NIST_URL = "https://www.nist.gov/pml/time-and-frequency-division/atomic-standards/leap-second-and-ut1-utc-information"
 
@@ -42,15 +44,14 @@ def _get_text(url: str) -> str:
         with requests.get(url, timeout=30) as response:
             return response.text
     else:
-        return open(url, encoding="utf-8").read()
+        return pathlib.Path(url).read_text(encoding="utf-8")
 
 
-def update_iersdata(
-    target_file: str,
+def update_iersdata(  # noqa: PLR0915, PLR0912
+    target_path: pathlib.Path,
 ) -> None:
     """Update iersdata.py"""
-
-    offsets: List[int] = []
+    offsets: list[int] = []
     iersdata_text = _get_text(IERS_URL)
     for r in csv.DictReader(io.StringIO(iersdata_text), delimiter=";"):
         jd = float(r["MJD"])
@@ -97,11 +98,11 @@ def update_iersdata(
         off_end = (patch_end - table_start).days
         offsets[off_start:off_end] = [val] * (off_end - off_start)
 
-    wwvb_dut1: Optional[int] = None
-    wwvb_start: Optional[datetime.date] = None
+    wwvb_dut1: int | None = None
+    wwvb_start: datetime.date | None = None
     for row in wwvb_dut1_table.findAll("tr")[1:][::-1]:
         cells = row.findAll("td")
-        when = datetime.datetime.strptime(cells[0].text, "%Y-%m-%d").date()
+        when = datetime.datetime.strptime(cells[0].text + "+0000", "%Y-%m-%d%z").date()
         dut1 = cells[2].text.replace("s", "").replace(" ", "")
         dut1 = int(round(float(dut1) * 10))
         if wwvb_dut1 is not None:
@@ -123,7 +124,7 @@ def update_iersdata(
     assert wwvb_start is not None
     patch(wwvb_start, wwvb_data_stamp + datetime.timedelta(days=1), wwvb_dut1)
 
-    with open(target_file, "wt", encoding="utf-8") as output:
+    with target_path.open("w", encoding="utf-8") as output:
 
         def code(*args: str) -> None:
             """Print to the output file"""
@@ -138,9 +139,9 @@ def update_iersdata(
         code("import datetime")
 
         code("__all__ = ['DUT1_DATA_START', 'DUT1_OFFSETS']")
-        code(f"DUT1_DATA_START = {repr(table_start)}")
+        code(f"DUT1_DATA_START = {table_start!r}")
         c = sorted(chr(ord("a") + ch + 10) for ch in set(offsets))
-        code(f"{','.join(c)} = tuple({repr(''.join(c))})")
+        code(f"{','.join(c)} = tuple({''.join(c)!r})")
         code(f"DUT1_OFFSETS = str( # {table_start.year:04d}{table_start.month:02d}{table_start.day:02d}")
         line = ""
         j = 0
@@ -151,10 +152,7 @@ def update_iersdata(
             sz = len(list(it))
             if j:
                 part = part + "+"
-            if sz < 2:
-                part = part + ch
-            else:
-                part = part + f"{ch}*{sz}"
+            part = part + ch if sz < 2 else part + f"{ch}*{sz}"
             j += sz
             if len(line + part) > 60:
                 d = table_start + datetime.timedelta(j - 1)
@@ -171,25 +169,30 @@ def update_iersdata(
     print(f"iersdata covers {table_start} .. {table_end}")
 
 
-def iersdata_path(callback: Callable[[str, str], str]) -> str:
+def iersdata_path(callback: Callable[[str, str], pathlib.Path]) -> pathlib.Path:
     """Find out the path for this directory"""
-    return os.path.join(callback("wwvbpy", "unpythonic.net"), "wwvb_iersdata.py")
+    print("iersdata_path", callback)
+    r = callback("wwvbpy", "unpythonic.net") / "wwvb_iersdata.py"
+    print(f"iersdata_path {r=!r}")
+    return r
 
 
 @click.command()
 @click.option(
     "--user",
     "location",
-    flag_value=iersdata_path(platformdirs.user_data_dir),
-    default=iersdata_path(platformdirs.user_data_dir),
+    flag_value=iersdata_path(platformdirs.user_data_path),
+    default=iersdata_path(platformdirs.user_data_path),
+    type=pathlib.Path,
 )
 @click.option("--dist", "location", flag_value=DIST_PATH)
-@click.option("--site", "location", flag_value=iersdata_path(platformdirs.site_data_dir))
+@click.option("--site", "location", flag_value=iersdata_path(platformdirs.site_data_path))
 def main(location: str) -> None:
     """Update DUT1 data"""
-    print("will write to", location)
-    os.makedirs(os.path.dirname(location), exist_ok=True)
-    update_iersdata(location)
+    path = pathlib.Path(location)
+    print(f"will write to {location!r}")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    update_iersdata(path)
 
 
 if __name__ == "__main__":

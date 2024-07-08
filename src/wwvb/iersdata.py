@@ -7,7 +7,7 @@
 # SPDX-License-Identifier: GPL-3.0-only
 
 import datetime
-import os
+import pathlib
 
 import platformdirs
 
@@ -18,10 +18,9 @@ for location in [
     platformdirs.user_data_dir("wwvbpy", "unpythonic.net"),
     platformdirs.site_data_dir("wwvbpy", "unpythonic.net"),
 ]:  # pragma no cover
-    filename = os.path.join(location, "wwvbpy_iersdata.py")
-    if os.path.exists(filename):
-        with open(filename, encoding="utf-8") as f:
-            exec(f.read(), globals(), globals())
+    path = pathlib.Path(location) / "wwvbpy_iersdata.py"
+    if path.exists():
+        exec(path.read_text(encoding="utf-8"), globals(), globals())
         break
 
 start = datetime.datetime.combine(DUT1_DATA_START, datetime.time()).replace(tzinfo=datetime.timezone.utc)

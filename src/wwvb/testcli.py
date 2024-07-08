@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 """Test most wwvblib commandline programs"""
 
+# ruff: noqa: N802 D102
 # Copyright (C) 2011-2020 Jeff Epler <jepler@gmail.com>
 # SPDX-FileCopyrightText: 2021 Jeff Epler
 #
@@ -25,7 +26,7 @@ class CLITestCase(unittest.TestCase):
         return subprocess.check_output(args, stdin=subprocess.DEVNULL, encoding="utf-8", env=env)
 
     def moduleArgs(self, *args: str) -> Sequence[str]:
-        return tuple((sys.executable, *coverage_add, "-m", *args))
+        return (sys.executable, *coverage_add, "-m", *args)
 
     def moduleOutput(self, *args: str) -> str:
         return self.programOutput(sys.executable, *coverage_add, "-m", *args)
@@ -64,7 +65,11 @@ class CLITestCase(unittest.TestCase):
         env["PYTHONIOENCODING"] = "utf-8"
         with self.assertRaises(subprocess.SubprocessError):
             subprocess.check_output(
-                args, stdin=subprocess.DEVNULL, stderr=subprocess.DEVNULL, encoding="utf-8", env=env
+                args,
+                stdin=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                encoding="utf-8",
+                env=env,
             )
 
     def assertModuleError(self, *args: str) -> None:
@@ -72,7 +77,7 @@ class CLITestCase(unittest.TestCase):
         self.assertProgramError(*self.moduleArgs(*args))
 
     def test_gen(self) -> None:
-        """test wwvb.gen"""
+        """Test wwvb.gen"""
         self.assertModuleOutput(
             """\
 WWVB timecode: year=2020 days=001 hour=12 min=30 dst=0 ut1=-200 ly=1 ls=0
