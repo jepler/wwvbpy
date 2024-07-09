@@ -22,7 +22,7 @@ SECOND = datetime.timedelta(seconds=1)
 T = TypeVar("T")
 
 
-def require(x: T | None) -> T:
+def _require(x: T | None) -> T:
     """Check an Optional item is not None."""
     assert x is not None
     return x
@@ -93,7 +93,7 @@ def isdst(t: datetime.date, tz: datetime.tzinfo = Mountain) -> bool:
     return bool(utc_daystart.astimezone(tz).dst())
 
 
-def first_sunday_on_or_after(dt: datetime.date) -> datetime.date:
+def _first_sunday_on_or_after(dt: datetime.date) -> datetime.date:
     """Return the first sunday on or after the reference time"""
     days_to_go = 6 - dt.weekday()
     if days_to_go:
@@ -101,17 +101,17 @@ def first_sunday_on_or_after(dt: datetime.date) -> datetime.date:
     return dt
 
 
-def first_sunday_in_month(y: int, m: int) -> datetime.date:
+def _first_sunday_in_month(y: int, m: int) -> datetime.date:
     """Find the first sunday in a given month"""
-    return first_sunday_on_or_after(datetime.datetime(y, m, 1, tzinfo=datetime.timezone.utc))
+    return _first_sunday_on_or_after(datetime.datetime(y, m, 1, tzinfo=datetime.timezone.utc))
 
 
-def is_dst_change_day(t: datetime.date, tz: datetime.tzinfo = Mountain) -> bool:
+def _is_dst_change_day(t: datetime.date, tz: datetime.tzinfo = Mountain) -> bool:
     """Return True if the day is a DST change day"""
     return isdst(t, tz) != isdst(t + datetime.timedelta(1), tz)
 
 
-def get_dst_change_hour(t: datetime.date, tz: datetime.tzinfo = Mountain) -> int | None:
+def _get_dst_change_hour(t: datetime.date, tz: datetime.tzinfo = Mountain) -> int | None:
     """Return the hour when DST changes"""
     lt0 = datetime.datetime(t.year, t.month, t.day, hour=0, tzinfo=tz)
     dst0 = lt0.dst()
@@ -125,29 +125,29 @@ def get_dst_change_hour(t: datetime.date, tz: datetime.tzinfo = Mountain) -> int
     return None
 
 
-def get_dst_change_date_and_row(
+def _get_dst_change_date_and_row(
     d: datetime.date,
     tz: datetime.tzinfo = Mountain,
 ) -> tuple[datetime.date | None, int | None]:
     """Classify DST information for the WWVB phase modulation signal"""
     if isdst(d, tz):
-        n = first_sunday_in_month(d.year, 11)
+        n = _first_sunday_in_month(d.year, 11)
         for offset in range(-28, 28, 7):
             d1 = n + datetime.timedelta(days=offset)
-            if is_dst_change_day(d1, tz):
+            if _is_dst_change_day(d1, tz):
                 return d1, (offset + 28) // 7
     else:
-        m = first_sunday_in_month(d.year + (d.month > 3), 3)
+        m = _first_sunday_in_month(d.year + (d.month > 3), 3)
         for offset in range(0, 52, 7):
             d1 = m + datetime.timedelta(days=offset)
-            if is_dst_change_day(d1, tz):
+            if _is_dst_change_day(d1, tz):
                 return d1, offset // 7
 
     return None, None
 
 
 # "Table 8", likely with transcrption errors
-dsttable = [
+_dsttable = [
     [
         [
             0b110001,
@@ -215,17 +215,17 @@ dsttable = [
 ]
 
 
-def lfsr_gen(x: list[int]) -> None:
+def _lfsr_gen(x: list[int]) -> None:
     """Generate the next bit of the 6-minute codes sequence"""
     x.append(x[-7] ^ x[-6] ^ x[-5] ^ x[-2])
 
 
-lfsr_seq = [1] * 7
-while len(lfsr_seq) < 255:
-    lfsr_gen(lfsr_seq)
+_lfsr_seq = [1] * 7
+while len(_lfsr_seq) < 255:
+    _lfsr_gen(_lfsr_seq)
 
 # Table 12 - Fixed 106-bit timing word
-ftw = [
+_ftw = [
     int(c)
     for c in "1101000111"
     "0101100101"
@@ -241,7 +241,7 @@ ftw = [
 ]
 
 
-def get_dst_next(d: datetime.date, tz: datetime.tzinfo = Mountain) -> int:
+def _get_dst_next(d: datetime.date, tz: datetime.tzinfo = Mountain) -> int:
     """Find the "dst next" value for the phase modulation signal"""
     dst_now = isdst(d, tz)  # dst_on[1]
     dst_midwinter = isdst(datetime.datetime(d.year, 1, 1, tzinfo=datetime.timezone.utc), tz)
@@ -256,19 +256,19 @@ def get_dst_next(d: datetime.date, tz: datetime.tzinfo = Mountain) -> int:
     if dst_midwinter or not dst_midsummer:
         return 0b100011
 
-    dst_change_date, dst_next_row = get_dst_change_date_and_row(d, tz)
+    dst_change_date, dst_next_row = _get_dst_change_date_and_row(d, tz)
     if dst_change_date is None:
         return 0b100011
     assert dst_next_row is not None
 
-    dst_change_hour = get_dst_change_hour(dst_change_date, tz)
+    dst_change_hour = _get_dst_change_hour(dst_change_date, tz)
     if dst_change_hour is None:
         return 0b100011
 
-    return dsttable[dst_now][dst_change_hour][dst_next_row]
+    return _dsttable[dst_now][dst_change_hour][dst_next_row]
 
 
-hamming_weight = [
+_hamming_weight = [
     [23, 21, 20, 17, 16, 15, 14, 13, 9, 8, 6, 5, 4, 2, 0],
     [24, 22, 21, 18, 17, 16, 15, 14, 10, 9, 7, 6, 5, 3, 1],
     [25, 23, 22, 19, 18, 17, 16, 15, 11, 10, 8, 7, 6, 4, 2],
@@ -283,12 +283,12 @@ SYNC_T = 0x768
 SYNC_M = 0x1A3A
 
 
-def extract_bit(v: int, p: int) -> bool:
+def _extract_bit(v: int, p: int) -> bool:
     """Extract bit 'p' from integer 'v' as a bool"""
     return bool((v >> p) & 1)
 
 
-def hamming_parity(value: int) -> int:
+def _hamming_parity(value: int) -> int:
     """Compute the "hamming parity" of a 26-bit number, such as the minute-of-century
 
     For more details, see Enhanced WWVB Broadcast Format 4.3
@@ -297,12 +297,12 @@ def hamming_parity(value: int) -> int:
     for i in range(4, -1, -1):
         bit = 0
         for j in range(15):
-            bit ^= extract_bit(value, hamming_weight[i][j])
+            bit ^= _extract_bit(value, _hamming_weight[i][j])
         parity = (parity << 1) | bit
     return parity
 
 
-dst_ls_lut = [
+_dst_ls_lut = [
     0b01000,
     0b10101,
     0b10110,
@@ -535,8 +535,8 @@ class WWVBMinute(_WWVBMinute):
         elif self.hour < 11:
             seqno = seqno + 91
 
-        info_seq = lfsr_seq[seqno : seqno + 127]
-        full_seq = info_seq + ftw + info_seq[::-1]
+        info_seq = _lfsr_seq[seqno : seqno + 127]
+        full_seq = info_seq + _ftw + info_seq[::-1]
         assert len(full_seq) == 360
 
         offset = minno * 60
@@ -550,50 +550,50 @@ class WWVBMinute(_WWVBMinute):
         moc = self.minute_of_century
         leap_sec = self.leap_sec
         dst_on = self.dst
-        dst_ls = dst_ls_lut[dst_on | (leap_sec << 2)]
-        dst_next = get_dst_next(self.as_datetime())
-        t._put_pm_bin(13, 5, hamming_parity(moc))
-        t._put_pm_bit(18, extract_bit(moc, 25))
-        t._put_pm_bit(19, extract_bit(moc, 0))
-        t._put_pm_bit(20, extract_bit(moc, 24))
-        t._put_pm_bit(21, extract_bit(moc, 23))
-        t._put_pm_bit(22, extract_bit(moc, 22))
-        t._put_pm_bit(23, extract_bit(moc, 21))
-        t._put_pm_bit(24, extract_bit(moc, 20))
-        t._put_pm_bit(25, extract_bit(moc, 19))
-        t._put_pm_bit(26, extract_bit(moc, 18))
-        t._put_pm_bit(27, extract_bit(moc, 17))
-        t._put_pm_bit(28, extract_bit(moc, 16))
+        dst_ls = _dst_ls_lut[dst_on | (leap_sec << 2)]
+        dst_next = _get_dst_next(self.as_datetime())
+        t._put_pm_bin(13, 5, _hamming_parity(moc))
+        t._put_pm_bit(18, _extract_bit(moc, 25))
+        t._put_pm_bit(19, _extract_bit(moc, 0))
+        t._put_pm_bit(20, _extract_bit(moc, 24))
+        t._put_pm_bit(21, _extract_bit(moc, 23))
+        t._put_pm_bit(22, _extract_bit(moc, 22))
+        t._put_pm_bit(23, _extract_bit(moc, 21))
+        t._put_pm_bit(24, _extract_bit(moc, 20))
+        t._put_pm_bit(25, _extract_bit(moc, 19))
+        t._put_pm_bit(26, _extract_bit(moc, 18))
+        t._put_pm_bit(27, _extract_bit(moc, 17))
+        t._put_pm_bit(28, _extract_bit(moc, 16))
         t._put_pm_bit(29, False)  # noqa: FBT003 # Reserved
-        t._put_pm_bit(30, extract_bit(moc, 15))
-        t._put_pm_bit(31, extract_bit(moc, 14))
-        t._put_pm_bit(32, extract_bit(moc, 13))
-        t._put_pm_bit(33, extract_bit(moc, 12))
-        t._put_pm_bit(34, extract_bit(moc, 11))
-        t._put_pm_bit(35, extract_bit(moc, 10))
-        t._put_pm_bit(36, extract_bit(moc, 9))
-        t._put_pm_bit(37, extract_bit(moc, 8))
-        t._put_pm_bit(38, extract_bit(moc, 7))
+        t._put_pm_bit(30, _extract_bit(moc, 15))
+        t._put_pm_bit(31, _extract_bit(moc, 14))
+        t._put_pm_bit(32, _extract_bit(moc, 13))
+        t._put_pm_bit(33, _extract_bit(moc, 12))
+        t._put_pm_bit(34, _extract_bit(moc, 11))
+        t._put_pm_bit(35, _extract_bit(moc, 10))
+        t._put_pm_bit(36, _extract_bit(moc, 9))
+        t._put_pm_bit(37, _extract_bit(moc, 8))
+        t._put_pm_bit(38, _extract_bit(moc, 7))
         t._put_pm_bit(39, True)  # noqa: FBT003 # Reserved
-        t._put_pm_bit(40, extract_bit(moc, 6))
-        t._put_pm_bit(41, extract_bit(moc, 5))
-        t._put_pm_bit(42, extract_bit(moc, 4))
-        t._put_pm_bit(43, extract_bit(moc, 3))
-        t._put_pm_bit(44, extract_bit(moc, 2))
-        t._put_pm_bit(45, extract_bit(moc, 1))
-        t._put_pm_bit(46, extract_bit(moc, 0))
-        t._put_pm_bit(47, extract_bit(dst_ls, 4))
-        t._put_pm_bit(48, extract_bit(dst_ls, 3))
+        t._put_pm_bit(40, _extract_bit(moc, 6))
+        t._put_pm_bit(41, _extract_bit(moc, 5))
+        t._put_pm_bit(42, _extract_bit(moc, 4))
+        t._put_pm_bit(43, _extract_bit(moc, 3))
+        t._put_pm_bit(44, _extract_bit(moc, 2))
+        t._put_pm_bit(45, _extract_bit(moc, 1))
+        t._put_pm_bit(46, _extract_bit(moc, 0))
+        t._put_pm_bit(47, _extract_bit(dst_ls, 4))
+        t._put_pm_bit(48, _extract_bit(dst_ls, 3))
         t._put_pm_bit(49, True)  # noqa: FBT003 # Notice
-        t._put_pm_bit(50, extract_bit(dst_ls, 2))
-        t._put_pm_bit(51, extract_bit(dst_ls, 1))
-        t._put_pm_bit(52, extract_bit(dst_ls, 0))
-        t._put_pm_bit(53, extract_bit(dst_next, 5))
-        t._put_pm_bit(54, extract_bit(dst_next, 4))
-        t._put_pm_bit(55, extract_bit(dst_next, 3))
-        t._put_pm_bit(56, extract_bit(dst_next, 2))
-        t._put_pm_bit(57, extract_bit(dst_next, 1))
-        t._put_pm_bit(58, extract_bit(dst_next, 0))
+        t._put_pm_bit(50, _extract_bit(dst_ls, 2))
+        t._put_pm_bit(51, _extract_bit(dst_ls, 1))
+        t._put_pm_bit(52, _extract_bit(dst_ls, 0))
+        t._put_pm_bit(53, _extract_bit(dst_next, 5))
+        t._put_pm_bit(54, _extract_bit(dst_next, 4))
+        t._put_pm_bit(55, _extract_bit(dst_next, 3))
+        t._put_pm_bit(56, _extract_bit(dst_next, 2))
+        t._put_pm_bit(57, _extract_bit(dst_next, 1))
+        t._put_pm_bit(58, _extract_bit(dst_next, 0))
         if len(t.phase) > 59:
             t._put_pm_bit(59, PhaseModulation.ZERO)
         if len(t.phase) > 60:
@@ -700,7 +700,7 @@ class WWVBMinute(_WWVBMinute):
         if days > 366 or (not ly and days > 365):
             return None
         ls = bool(t.am[56])
-        dst = require(t._get_am_bcd(57, 58))
+        dst = _require(t._get_am_bcd(57, 58))
         return cls(year, days, hour, minute, dst, ut1, ls, ly)
 
 
@@ -713,7 +713,7 @@ class WWVBMinuteIERS(WWVBMinute):
         return int(round(get_dut1(d) * 10)) * 100, isls(d)
 
 
-def bcd_bits(n: int) -> Generator[bool, None, None]:
+def _bcd_bits(n: int) -> Generator[bool, None, None]:
     """Return the bcd representation of n, starting with the least significant bit"""
     while True:
         d = n % 10
@@ -780,7 +780,7 @@ class WWVBTimecode:
         Treating 'poslist' as a sequence of indices, update the AM signal with the value as a BCD number
         """
         pos = list(poslist)[::-1]
-        for p, b in zip(pos, bcd_bits(v)):
+        for p, b in zip(pos, _bcd_bits(v)):
             if b:
                 self.am[p] = AmplitudeModulation.ONE
             else:
@@ -793,7 +793,7 @@ class WWVBTimecode:
     def _put_pm_bin(self, st: int, n: int, v: int) -> None:
         """Update an n-digit binary number in the Phase Modulation signal"""
         for i in range(n):
-            self._put_pm_bit(st + i, extract_bit(v, (n - i - 1)))
+            self._put_pm_bit(st + i, _extract_bit(v, (n - i - 1)))
 
     def __str__(self) -> str:
         """Implement str()"""

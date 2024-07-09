@@ -317,20 +317,20 @@ class WWVBRoundtrip(unittest.TestCase):
 
     def test_tz(self) -> None:
         """Get a little more coverage in the dst change functions"""
-        date, row = wwvb.get_dst_change_date_and_row(datetime.datetime(1960, 1, 1, tzinfo=datetime.timezone.utc))
+        date, row = wwvb._get_dst_change_date_and_row(datetime.datetime(1960, 1, 1, tzinfo=datetime.timezone.utc))
         self.assertIsNone(date)
         self.assertIsNone(row)
 
-        self.assertIsNone(wwvb.get_dst_change_hour(datetime.datetime(1960, 1, 1, tzinfo=datetime.timezone.utc)))
+        self.assertIsNone(wwvb._get_dst_change_hour(datetime.datetime(1960, 1, 1, tzinfo=datetime.timezone.utc)))
 
-        self.assertEqual(wwvb.get_dst_next(datetime.datetime(1960, 1, 1, tzinfo=datetime.timezone.utc)), 0b000111)
+        self.assertEqual(wwvb._get_dst_next(datetime.datetime(1960, 1, 1, tzinfo=datetime.timezone.utc)), 0b000111)
 
         # Cuba followed year-round DST for several years
         self.assertEqual(
-            wwvb.get_dst_next(datetime.datetime(2005, 1, 1, tzinfo=datetime.timezone.utc), tz=tz.ZoneInfo("Cuba")),
+            wwvb._get_dst_next(datetime.datetime(2005, 1, 1, tzinfo=datetime.timezone.utc), tz=tz.ZoneInfo("Cuba")),
             0b101111,
         )
-        date, row = wwvb.get_dst_change_date_and_row(
+        date, row = wwvb._get_dst_change_date_and_row(
             datetime.datetime(2005, 1, 1, tzinfo=datetime.timezone.utc),
             tz=tz.ZoneInfo("Cuba"),
         )
@@ -339,7 +339,7 @@ class WWVBRoundtrip(unittest.TestCase):
 
         # California was weird in 1948
         self.assertEqual(
-            wwvb.get_dst_next(
+            wwvb._get_dst_next(
                 datetime.datetime(1948, 1, 1, tzinfo=datetime.timezone.utc),
                 tz=tz.ZoneInfo("America/Los_Angeles"),
             ),
@@ -348,7 +348,7 @@ class WWVBRoundtrip(unittest.TestCase):
 
         # Berlin had DST changes on Monday in 1917
         self.assertEqual(
-            wwvb.get_dst_next(
+            wwvb._get_dst_next(
                 datetime.datetime(1917, 1, 1, tzinfo=datetime.timezone.utc),
                 tz=tz.ZoneInfo("Europe/Berlin"),
             ),
@@ -359,7 +359,7 @@ class WWVBRoundtrip(unittest.TestCase):
         # Australia observes DST in the other half of the year compared to the
         # Northern hemisphere
         self.assertEqual(
-            wwvb.get_dst_next(
+            wwvb._get_dst_next(
                 datetime.datetime(2005, 1, 1, tzinfo=datetime.timezone.utc),
                 tz=tz.ZoneInfo("Australia/Melbourne"),
             ),
