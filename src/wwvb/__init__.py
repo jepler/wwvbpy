@@ -19,7 +19,6 @@ from .tz import Mountain
 
 HOUR = datetime.timedelta(seconds=3600)
 SECOND = datetime.timedelta(seconds=1)
-DateOrDatetime = TypeVar("DateOrDatetime", datetime.date, datetime.datetime)
 T = TypeVar("T")
 
 
@@ -35,7 +34,7 @@ def _removeprefix(s: str, p: str) -> str:
     return s
 
 
-def _date(dt: DateOrDatetime) -> datetime.date:
+def _date(dt: datetime.date) -> datetime.date:
     """Return the date object itself, or the date property of a datetime"""
     if isinstance(dt, datetime.datetime):
         return dt.date()
@@ -56,7 +55,7 @@ def _maybe_warn_update(dt: datetime.date, stacklevel: int = 1) -> None:
         )
 
 
-def get_dut1(dt: DateOrDatetime, *, warn_outdated: bool = True) -> float:
+def get_dut1(dt: datetime.date, *, warn_outdated: bool = True) -> float:
     """Return the DUT1 number for the given timestamp"""
     date = _date(dt)
     i = (date - iersdata.DUT1_DATA_START).days
@@ -78,7 +77,7 @@ def isly(year: int) -> bool:
     return d1.year == d2.year
 
 
-def isls(t: DateOrDatetime) -> bool:
+def isls(t: datetime.date) -> bool:
     """Return True if a leap second occurs at the end of this month"""
     dut1_today = get_dut1(t)
     month_today = t.month
@@ -94,7 +93,7 @@ def isdst(t: datetime.date, tz: datetime.tzinfo = Mountain) -> bool:
     return bool(utc_daystart.astimezone(tz).dst())
 
 
-def first_sunday_on_or_after(dt: DateOrDatetime) -> DateOrDatetime:
+def first_sunday_on_or_after(dt: datetime.date) -> datetime.date:
     """Return the first sunday on or after the reference time"""
     days_to_go = 6 - dt.weekday()
     if days_to_go:
@@ -112,7 +111,7 @@ def is_dst_change_day(t: datetime.date, tz: datetime.tzinfo = Mountain) -> bool:
     return isdst(t, tz) != isdst(t + datetime.timedelta(1), tz)
 
 
-def get_dst_change_hour(t: DateOrDatetime, tz: datetime.tzinfo = Mountain) -> int | None:
+def get_dst_change_hour(t: datetime.date, tz: datetime.tzinfo = Mountain) -> int | None:
     """Return the hour when DST changes"""
     lt0 = datetime.datetime(t.year, t.month, t.day, hour=0, tzinfo=tz)
     dst0 = lt0.dst()
@@ -127,7 +126,7 @@ def get_dst_change_hour(t: DateOrDatetime, tz: datetime.tzinfo = Mountain) -> in
 
 
 def get_dst_change_date_and_row(
-    d: DateOrDatetime,
+    d: datetime.date,
     tz: datetime.tzinfo = Mountain,
 ) -> tuple[datetime.date | None, int | None]:
     """Classify DST information for the WWVB phase modulation signal"""
@@ -242,7 +241,7 @@ ftw = [
 ]
 
 
-def get_dst_next(d: DateOrDatetime, tz: datetime.tzinfo = Mountain) -> int:
+def get_dst_next(d: datetime.date, tz: datetime.tzinfo = Mountain) -> int:
     """Find the "dst next" value for the phase modulation signal"""
     dst_now = isdst(d, tz)  # dst_on[1]
     dst_midwinter = isdst(datetime.datetime(d.year, 1, 1, tzinfo=datetime.timezone.utc), tz)
