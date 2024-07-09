@@ -13,6 +13,22 @@ on:
     types: [rerequested]
 
 jobs:
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+
+    - uses: actions/checkout@v4
+
+    - name: Install deps
+      run: python -mpip install -r requirements-dev.txt
+
+    - name: Build HTML docs
+      run: make html
+
   test:
     strategy:
       fail-fast: false
