@@ -3,8 +3,10 @@
 # SPDX-License-Identifier: GPL-3.0-only
 """A stateful decoder of WWVB signals"""
 
+from __future__ import annotations
+
 import sys
-from typing import Generator, List, Optional
+from typing import Generator
 
 import wwvb
 
@@ -20,12 +22,12 @@ import wwvb
 # State 4: Decoding a minute, starting in second 1
 #  Second
 
-always_zero = set((4, 10, 11, 14, 20, 21, 34, 35, 44, 54))
+always_zero = {4, 10, 11, 14, 20, 21, 34, 35, 44, 54}
 
 
-def wwvbreceive() -> Generator[Optional[wwvb.WWVBTimecode], wwvb.AmplitudeModulation, None]:
-    """A stateful decoder of WWVB signals"""
-    minute: List[wwvb.AmplitudeModulation] = []
+def wwvbreceive() -> Generator[wwvb.WWVBTimecode | None, wwvb.AmplitudeModulation, None]:
+    """Decode WWVB signals statefully."""
+    minute: list[wwvb.AmplitudeModulation] = []
     state = 1
 
     value = yield None
@@ -38,10 +40,7 @@ def wwvbreceive() -> Generator[Optional[wwvb.WWVBTimecode], wwvb.AmplitudeModula
             value = yield None
 
         elif state == 2:
-            if value == wwvb.AmplitudeModulation.MARK:
-                state = 3
-            else:
-                state = 1
+            state = 3 if value == wwvb.AmplitudeModulation.MARK else 1
             value = yield None
 
         elif state == 3:

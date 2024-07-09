@@ -2,6 +2,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
+# ruff: noqa
 import sys
 from time import struct_time
 from typing import (

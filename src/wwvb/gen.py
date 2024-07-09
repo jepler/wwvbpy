@@ -6,9 +6,11 @@
 #
 # SPDX-License-Identifier: GPL-3.0-only
 
+from __future__ import annotations
+
 import datetime
 import sys
-from typing import Any, List, Type
+from typing import Any
 
 import click
 import dateutil.parser
@@ -16,15 +18,17 @@ import dateutil.parser
 from . import WWVBMinute, WWVBMinuteIERS, print_timecodes, print_timecodes_json, styles
 
 
-def parse_timespec(ctx: Any, param: Any, value: List[str]) -> datetime.datetime:
+def parse_timespec(ctx: Any, param: Any, value: list[str]) -> datetime.datetime:  # noqa: ARG001
     """Parse a time specifier from the commandline"""
     try:
         if len(value) == 5:
             year, month, day, hour, minute = map(int, value)
-            return datetime.datetime(year, month, day, hour, minute)
+            return datetime.datetime(year, month, day, hour, minute, tzinfo=datetime.timezone.utc)
         if len(value) == 4:
             year, yday, hour, minute = map(int, value)
-            return datetime.datetime(year, 1, 1, hour, minute) + datetime.timedelta(days=yday - 1)
+            return datetime.datetime(year, 1, 1, hour, minute, tzinfo=datetime.timezone.utc) + datetime.timedelta(
+                days=yday - 1,
+            )
         if len(value) == 1:
             return dateutil.parser.parse(value[0])
         if len(value) == 0:
@@ -68,7 +72,7 @@ def parse_timespec(ctx: Any, param: Any, value: List[str]) -> datetime.datetime:
 @click.option(
     "--style",
     default="default",
-    type=click.Choice(sorted(["json"] + list(styles.keys()))),
+    type=click.Choice(sorted(["json", *list(styles.keys())])),
     help="Style of output",
 )
 @click.option(
@@ -86,6 +90,7 @@ def parse_timespec(ctx: Any, param: Any, value: List[str]) -> datetime.datetime:
 )
 @click.argument("timespec", type=str, nargs=-1, callback=parse_timespec)
 def main(
+    *,
     iers: bool,
     leap_second: bool,
     dut1: int,
@@ -99,7 +104,6 @@ def main(
 
     TIMESPEC: one of "year yday hour minute" or "year month day hour minute", or else the current minute
     """
-
     if (leap_second is not None) or (dut1 is not None):
         iers = False
 
@@ -107,16 +111,13 @@ def main(
     newls = None
 
     if iers:
-        Constructor: Type[WWVBMinute] = WWVBMinuteIERS
+        constructor: type[WWVBMinute] = WWVBMinuteIERS
     else:
-        Constructor = WWVBMinute
-        if dut1 is None:
-            newut1 = -500 * (leap_second or 0)
-        else:
-            newut1 = dut1
+        constructor = WWVBMinute
+        newut1 = -500 * (leap_second or 0) if dut1 is None else dut1
         newls = bool(leap_second)
 
-    w = Constructor.from_datetime(timespec, newls=newls, newut1=newut1)
+    w = constructor.from_datetime(timespec, newls=newls, newut1=newut1)
     if style == "json":
         print_timecodes_json(w, minutes, channel, file=sys.stdout)
     else:
