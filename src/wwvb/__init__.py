@@ -329,13 +329,28 @@ class _WWVBMinute(NamedTuple):
     """
 
     year: int
+    """2-digit year within the WWVB epoch"""
+
     days: int
+    """1-based day of year"""
+
     hour: int
+    """UTC hour of day"""
+
     min: int
+    """Minute of hour"""
+
     dst: int
+    """2-bit DST code """
+
     ut1: int
+    """UT1 offset in units of 100ms, range -900 to +900ms"""
+
     ls: bool
+    """Leap second warning flag"""
+
     ly: bool
+    """Leap year flag"""
 
 
 class WWVBMinute(_WWVBMinute):
@@ -463,14 +478,14 @@ class WWVBMinute(_WWVBMinute):
         """Fill a WWVBTimecode structure representing this minute.  Fills both the amplitude and phase codes."""
         t = WWVBTimecode(self.minute_length())
 
-        self.fill_am_timecode(t)
-        self.fill_pm_timecode(t)
+        self._fill_am_timecode(t)
+        self._fill_pm_timecode(t)
 
         return t
 
     @property
-    def leap_sec(self) -> int:
-        """Return the 2-bit leap_sec value used by the PM code"""
+    def _leap_sec(self) -> int:
+        """Return the 2-bit _leap_sec value used by the PM code"""
         if not self.ls:
             return 0
         if self.ut1 < 0:
@@ -487,7 +502,7 @@ class WWVBMinute(_WWVBMinute):
             // 60
         )
 
-    def fill_am_timecode(self, t: WWVBTimecode) -> None:
+    def _fill_am_timecode(self, t: WWVBTimecode) -> None:
         """Fill the amplitude (AM) portion of a timecode object"""
         for i in [0, 9, 19, 29, 39, 49]:
             t.am[i] = AmplitudeModulation.MARK
@@ -509,7 +524,7 @@ class WWVBMinute(_WWVBMinute):
         t.am[56] = AmplitudeModulation(self.ls)
         t._put_am_bcd(self.dst, 57, 58)
 
-    def fill_pm_timecode_extended(self, t: WWVBTimecode) -> None:
+    def _fill_pm_timecode_extended(self, t: WWVBTimecode) -> None:
         """During minutes 10..15 and 40..45, the amplitude signal holds 'extended information'"""
         assert 10 <= self.min < 16 or 40 <= self.min < 46
         minno = self.min % 10
@@ -543,14 +558,14 @@ class WWVBMinute(_WWVBMinute):
         for i in range(60):
             t._put_pm_bit(i, full_seq[i + offset])
 
-    def fill_pm_timecode_regular(self, t: WWVBTimecode) -> None:  # noqa: PLR0915
+    def _fill_pm_timecode_regular(self, t: WWVBTimecode) -> None:  # noqa: PLR0915
         """Except during minutes 10..15 and 40..45, the amplitude signal holds 'regular information'"""
         t._put_pm_bin(0, 13, SYNC_T)
 
         moc = self.minute_of_century
-        leap_sec = self.leap_sec
+        _leap_sec = self._leap_sec
         dst_on = self.dst
-        dst_ls = _dst_ls_lut[dst_on | (leap_sec << 2)]
+        dst_ls = _dst_ls_lut[dst_on | (_leap_sec << 2)]
         dst_next = _get_dst_next(self.as_datetime())
         t._put_pm_bin(13, 5, _hamming_parity(moc))
         t._put_pm_bit(18, _extract_bit(moc, 25))
@@ -599,12 +614,12 @@ class WWVBMinute(_WWVBMinute):
         if len(t.phase) > 60:
             t._put_pm_bit(60, PhaseModulation.ZERO)
 
-    def fill_pm_timecode(self, t: WWVBTimecode) -> None:
+    def _fill_pm_timecode(self, t: WWVBTimecode) -> None:
         """Fill the phase portion of a timecode object"""
         if 10 <= self.min < 16 or 40 <= self.min < 46:
-            self.fill_pm_timecode_extended(t)
+            self._fill_pm_timecode_extended(t)
         else:
-            self.fill_pm_timecode_regular(t)
+            self._fill_pm_timecode_regular(t)
 
     def next_minute(self, newut1: int | None = None, newls: bool | None = None) -> WWVBMinute:
         """Return an object representing the next minute"""
@@ -745,7 +760,10 @@ class WWVBTimecode:
     """Represent the amplitude and/or phase signal, usually over 1 minute"""
 
     am: list[AmplitudeModulation]
+    """The amplitude modulation data"""
+
     phase: list[PhaseModulation]
+    """The phase modulation data"""
 
     def __init__(self, sz: int) -> None:
         """Construct a WWVB timecode ``sz`` seconds long"""
@@ -881,7 +899,21 @@ def print_timecodes_json(
     channel: str,
     file: TextIO,
 ) -> None:
-    """Print a range of timecodes with a header.  This header is in a format understood by WWVBMinute.fromstring"""
+    """Print a range of timecodes in JSON format.
+
+    The result is a json array of minute data. Each minute data is an object with the following members:
+
+        * year (int)
+        * days (int)
+        * hour (int)
+        * minute (int)
+        * amplitude (string; only if channel is amplitude or both)
+        * phase: (string; only if channel is phase or both)
+
+    The amplitude and phase strings are of length 60 during most minutes, length 61
+    during a minute that includes a (positive) leap second, and theoretically
+    length 59 in the case of a negative leap second.
+    """
     result = []
     for _ in range(minutes):
         data: dict[str, Any] = {
