@@ -30,13 +30,13 @@ class WWVBMinute2k(wwvb.WWVBMinute):
 
 
 class WWVBTestCase(unittest.TestCase):
-    """Test each expected output in tests/.  Some outputs are from another program, some are from us"""
+    """Test each expected output in wwvbgen_testcases/.  Some outputs are from another program, some are from us"""
 
     maxDiff = 131072
 
     def test_cases(self) -> None:
         """Generate a test case for each expected output in tests/"""
-        for test in pathlib.Path("tests").glob("*"):
+        for test in ((pathlib.Path(__file__).parent) / "wwvbgen_testcases").glob("*"):
             with self.subTest(test=test):
                 text = test.read_text(encoding="utf-8")
                 lines = [line for line in text.split("\n") if not line.startswith("#")]
