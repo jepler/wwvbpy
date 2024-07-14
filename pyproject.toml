@@ -4,18 +4,18 @@
 
 [build-system]
 requires = [
-    "beautifulsoup4",
-    "click",
-    "requests",
-    "platformdirs",
-    "python-dateutil",
-    "leapseconddata",
     "setuptools>=68",
     "setuptools_scm[toml]>=6.0",
-    "tzdata",
-    "wheel",
 ]
 build-backend = "setuptools.build_meta"
+[tool.setuptool]
+package_dir = {"" = "src"}
+
+[tool.setuptools.dynamic]
+readme = {file = ["README.md"], content-type="text/markdown"}
+dependencies = {file = "requirements.txt"}
+[tool.setuptools.package-data]
+"pkgname" = ["py.typed"]
 [tool.setuptools_scm]
 write_to = "src/wwvb/__version__.py"
 [tool.ruff.lint]
@@ -23,3 +23,30 @@ select = ["E", "F", "D", "I", "N", "UP", "YTT", "BLE", "B", "FBT", "A", "COM", "
 ignore = ["D203", "D213", "D400", "D415", "ISC001", "E741", "C901", "PLR0911", "PLR2004", "PLR0913"]
 [tool.ruff]
 line-length = 120
+[project]
+name = "wwvb"
+authors = [{name = "Jeff Epler", email = "jepler@gmail.com"}]
+description = "Generate WWVB timecodes for any desired time"
+dynamic = ["readme","version","dependencies"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: Implementation :: PyPy",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Operating System :: OS Independent",
+]
+requires-python = ">=3.9"
+[project.urls]
+homepage = "https://github.com/jepler/wwvbpy"
+repository = "https://github.com/jepler/wwvbpy"
+
+[project.scripts]
+wwvbgen = "wwvb.gen:main"
+wwvbdecode = "wwvb.decode:main"
+dut1table = "wwvb.dut1table:main"
+updateiers = "wwvb.updateiers:main"
+[project.gui-scripts]
+wwvbtk = "wwvb.wwvbtk:main"
