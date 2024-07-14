@@ -41,19 +41,13 @@ jobs:
         - '3.13.0-alpha.0 - 3.13'
         os-version:
         - 'ubuntu-latest'
-        coverage-core:
-        - 'ctrace'
         include:
           - os-version: 'macos-latest'
             python-version: '3.x'
           - os-version: 'windows-latest'
             python-version: '3.x'
           - os-version: 'ubuntu-latest'
-            python-version: '3.12'
-            coverage-core: 'sysmon'
-          - os-version: 'ubuntu-latest'
             python-version: 'pypy-3.10'
-            coverage-core: 'pytrace'
 
     runs-on: ${{ matrix.os-version }}
     steps:
@@ -74,13 +68,13 @@ jobs:
       run: make mypy PYTHON=python
 
     - name: Test
-      run: make coverage PYTHON=python COVERAGE_CORE=${{ matrix.coverage-core }}
+      run: make coverage PYTHON=python
 
     - name: Upload Coverage as artifact
       if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: coverage for ${{ matrix.python-version }} on ${{ matrix.os-version }} ${{ matrix.coverage-core }}
+        name: coverage for ${{ matrix.python-version }} on ${{ matrix.os-version }}
         path: coverage.xml
 
   pre-commit:
