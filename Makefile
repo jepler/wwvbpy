@@ -46,7 +46,7 @@ update:
 # from the environment for the first two.
 SPHINXOPTS    ?= -a -E -j auto
 SPHINXBUILD   ?= sphinx-build
-SOURCEDIR     = .
+SOURCEDIR     = doc
 BUILDDIR      = _build
 
 # Route particular targets to Sphinx using the new
