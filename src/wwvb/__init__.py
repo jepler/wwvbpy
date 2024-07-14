@@ -17,7 +17,7 @@ from typing import TYPE_CHECKING, Any, NamedTuple, TextIO, TypeVar
 from . import iersdata
 from .tz import Mountain
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from collections.abc import Generator
 
 HOUR = datetime.timedelta(seconds=3600)
