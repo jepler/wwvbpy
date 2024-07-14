@@ -874,6 +874,8 @@ def print_timecodes(
     style_chars = styles.get(style, ["0", "1", "2"])
     first = True
     for _ in range(minutes):
+        if not first and channel == "both":
+            print(file=file)
         if first or all_timecodes:
             if not first:
                 print(file=file)
