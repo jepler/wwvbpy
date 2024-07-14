@@ -11,11 +11,14 @@ import functools
 import threading
 import time
 from tkinter import Canvas, TclError, Tk
-from typing import Any, Generator
+from typing import TYPE_CHECKING, Any
 
 import click
 
 import wwvb
+
+if TYPE_CHECKING:
+    from collections.abc import Generator
 
 
 @functools.cache

@@ -12,10 +12,13 @@ import datetime
 import enum
 import json
 import warnings
-from typing import Any, Generator, NamedTuple, TextIO, TypeVar
+from typing import TYPE_CHECKING, Any, NamedTuple, TextIO, TypeVar
 
 from . import iersdata
 from .tz import Mountain
+
+if TYPE_CHECKING:  # pragma: no cover
+    from collections.abc import Generator
 
 HOUR = datetime.timedelta(seconds=3600)
 SECOND = datetime.timedelta(seconds=1)
@@ -871,6 +874,8 @@ def print_timecodes(
     style_chars = styles.get(style, ["0", "1", "2"])
     first = True
     for _ in range(minutes):
+        if not first and channel == "both":
+            print(file=file)
         if first or all_timecodes:
             if not first:
                 print(file=file)
@@ -888,8 +893,6 @@ def print_timecodes(
                 pfx = " " * len(pfx)
             if channel in ("phase", "both"):
                 print(f"{pfx} {tc.to_pm_string(style_chars)}", file=file)
-            if channel == "both":
-                print(file=file)
         w = w.next_minute()
 
 

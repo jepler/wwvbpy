@@ -6,9 +6,12 @@
 from __future__ import annotations
 
 import sys
-from typing import Generator
+from typing import TYPE_CHECKING
 
 import wwvb
+
+if TYPE_CHECKING:  # pragma: no cover
+    from collections.abc import Generator
 
 # State 1: Unsync'd
 #  Marker: State 2

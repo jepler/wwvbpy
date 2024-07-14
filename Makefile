@@ -25,7 +25,7 @@ COVERAGE_INCLUDE=--include "src/**/*.py"
 .PHONY: coverage
 coverage:
 	$(Q)$(PYTHON) -mcoverage erase
-	$(Q)env PYTHONPATH=src $(PYTHON) -mcoverage run --branch -p -m unittest discover -s src
+	$(Q)env PYTHONPATH=src $(PYTHON) -mcoverage run --branch -p -m unittest discover -s test
 	$(Q)$(PYTHON) -mcoverage combine -q
 	$(Q)$(PYTHON) -mcoverage html $(COVERAGE_INCLUDE)
 	$(Q)$(PYTHON) -mcoverage xml $(COVERAGE_INCLUDE)
@@ -46,7 +46,7 @@ update:
 # from the environment for the first two.
 SPHINXOPTS    ?= -a -E -j auto
 SPHINXBUILD   ?= sphinx-build
-SOURCEDIR     = .
+SOURCEDIR     = doc
 BUILDDIR      = _build
 
 # Route particular targets to Sphinx using the new

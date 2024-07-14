@@ -12,7 +12,8 @@ import os
 import subprocess
 import sys
 import unittest
-from typing import Any, Sequence
+from collections.abc import Sequence
+from typing import Any
 
 coverage_add = ("-m", "coverage", "run", "--branch", "-p") if "COVERAGE_RUN" in os.environ else ()
 
