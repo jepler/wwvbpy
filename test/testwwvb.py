@@ -397,5 +397,5 @@ class WWVBRoundtrip(unittest.TestCase):
         self.assertEqual(WWVBMinute2k(2099, 1, 1, 0, 0).year, 2099)
 
 
-if __name__ == "__main__":  # pragma no cover
+if __name__ == "__main__":
     unittest.main()

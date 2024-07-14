@@ -124,5 +124,5 @@ def main(
         print_timecodes(w, minutes, channel, style, all_timecodes=all_timecodes, file=sys.stdout)
 
 
-if __name__ == "__main__":  # pragma no branch
+if __name__ == "__main__":
     main()
