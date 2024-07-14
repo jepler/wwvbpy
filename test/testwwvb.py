@@ -3,8 +3,7 @@
 
 """Test most wwvblib functionality"""
 
-# Copyright (C) 2011-2020 Jeff Epler <jepler@gmail.com>
-# SPDX-FileCopyrightText: 2021 Jeff Epler
+# SPDX-FileCopyrightText: 2011-2024 Jeff Epler
 #
 # SPDX-License-Identifier: GPL-3.0-only
 
