@@ -28,5 +28,5 @@ def main() -> None:
     print(date)
 
 
-if __name__ == "__main__":  # pragma no branch
+if __name__ == "__main__":
     main()

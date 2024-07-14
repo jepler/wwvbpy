@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 
 import wwvb
 
-if TYPE_CHECKING:  # pragma: no cover
+if TYPE_CHECKING:
     from collections.abc import Generator
 
 # State 1: Unsync'd
@@ -89,5 +89,5 @@ def main() -> None:
                     print(w)
 
 
-if __name__ == "__main__":  # pragma no cover
+if __name__ == "__main__":
     main()

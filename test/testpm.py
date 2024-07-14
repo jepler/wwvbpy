@@ -29,5 +29,5 @@ class TestPhaseModulation(unittest.TestCase):
         self.assertEqual(ref_pm, test_pm)
 
 
-if __name__ == "__main__":  # pragma: no cover
+if __name__ == "__main__":
     unittest.main()

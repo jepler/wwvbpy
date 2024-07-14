@@ -17,9 +17,9 @@ from .iersdata_dist import DUT1_DATA_START, DUT1_OFFSETS
 for location in [
     platformdirs.user_data_dir("wwvbpy", "unpythonic.net"),
     platformdirs.site_data_dir("wwvbpy", "unpythonic.net"),
-]:  # pragma no cover
+]:
     path = pathlib.Path(location) / "wwvbpy_iersdata.py"
-    if path.exists():
+    if path.exists():  # pragma no cover
         exec(path.read_text(encoding="utf-8"), globals(), globals())
         break
 
