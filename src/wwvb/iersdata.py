@@ -23,6 +23,6 @@ for location in [
         exec(path.read_text(encoding="utf-8"), globals(), globals())
         break
 
-start = datetime.datetime.combine(DUT1_DATA_START, datetime.time()).replace(tzinfo=datetime.timezone.utc)
+start = datetime.datetime.combine(DUT1_DATA_START, datetime.time(), tzinfo=datetime.timezone.utc)
 span = datetime.timedelta(days=len(DUT1_OFFSETS))
 end = start + span

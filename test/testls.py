@@ -53,7 +53,7 @@ class TestLeapSecond(unittest.TestCase):
                 leap.append(nm)
             else:
                 assert not our_is_ls
-            d = datetime.datetime.combine(nm, datetime.time()).replace(tzinfo=datetime.timezone.utc)
+            d = datetime.datetime.combine(nm, datetime.time(), tzinfo=datetime.timezone.utc)
         self.assertEqual(leap, bench)
 
 
