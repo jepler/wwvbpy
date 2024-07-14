@@ -25,7 +25,7 @@ COVERAGE_INCLUDE=--include "src/**/*.py"
 .PHONY: coverage
 coverage:
 	$(Q)$(PYTHON) -mcoverage erase
-	$(Q)env PYTHONPATH=src $(PYTHON) -mcoverage run --branch -p -m unittest discover -s src
+	$(Q)env PYTHONPATH=src $(PYTHON) -mcoverage run --branch -p -m unittest discover -s test
 	$(Q)$(PYTHON) -mcoverage combine -q
 	$(Q)$(PYTHON) -mcoverage html $(COVERAGE_INCLUDE)
 	$(Q)$(PYTHON) -mcoverage xml $(COVERAGE_INCLUDE)

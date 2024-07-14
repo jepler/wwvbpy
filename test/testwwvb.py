@@ -19,10 +19,8 @@ import sys
 import unittest
 
 import uwwvb
-
 import wwvb
-
-from . import decode, iersdata, tz
+from wwvb import decode, iersdata, tz
 
 
 class WWVBMinute2k(wwvb.WWVBMinute):

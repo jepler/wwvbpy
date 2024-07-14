@@ -9,10 +9,8 @@ import datetime
 import unittest
 
 import leapseconddata
-
 import wwvb
-
-from . import iersdata
+from wwvb import iersdata
 
 ONE_DAY = datetime.timedelta(days=1)
 

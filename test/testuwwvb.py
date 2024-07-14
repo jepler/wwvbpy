@@ -9,12 +9,11 @@ import datetime
 import random
 import sys
 import unittest
+import zoneinfo
 from typing import Union
 
 import adafruit_datetime
 import uwwvb
-import zoneinfo
-
 import wwvb
 
 EitherDatetimeOrNone = Union[None, datetime.datetime, adafruit_datetime.datetime]
