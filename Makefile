@@ -55,7 +55,6 @@ BUILDDIR      = _build
 html:
 	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 
-# Copyright (C) 2021 Jeff Epler <jepler@gmail.com>
-# SPDX-FileCopyrightText: 2021 Jeff Epler
+# SPDX-FileCopyrightText: 2024 Jeff Epler
 #
 # SPDX-License-Identifier: GPL-3.0-only

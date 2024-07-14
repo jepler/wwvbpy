@@ -1,8 +1,7 @@
 # -*- python3 -*-
 """Retrieve iers data, possibly from user or site data or from the wwvbpy distribution"""
 
-# Copyright (C) 2021 Jeff Epler <jepler@gmail.com>
-# SPDX-FileCopyrightText: 2021 Jeff Epler
+# SPDX-FileCopyrightText: 2011-2024 Jeff Epler
 #
 # SPDX-License-Identifier: GPL-3.0-only
 
