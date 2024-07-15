@@ -17,6 +17,11 @@ STEPECHO = @echo
 endif
 
 PYTHON ?= python3
+ifeq ($(OS),Windows_NT)
+ENVPYTHON ?= _env/Scripts/python.exe
+else
+ENVPYTHON ?= _env/bin/python3
+endif
 
 .PHONY: default
 default: coverage mypy
@@ -30,6 +35,12 @@ coverage:
 	$(Q)$(PYTHON) -mcoverage html $(COVERAGE_INCLUDE)
 	$(Q)$(PYTHON) -mcoverage xml $(COVERAGE_INCLUDE)
 	$(Q)$(PYTHON) -mcoverage report --fail-under=100 $(COVERAGE_INCLUDE)
+
+.PHONY: test_venv
+test_venv:
+	$(Q)$(PYTHON) -mvenv --clear _env
+	$(Q)$(ENVPYTHON) -mpip install .
+	$(Q)$(ENVPYTHON) -m unittest discover -s test
 
 .PHONY: mypy
 mypy:
@@ -53,7 +64,7 @@ BUILDDIR      = _build
 # "make mode" option.  $(O) is meant as a shortcut for $(SPHINXOPTS).
 .PHONY: html
 html:
-	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
+	$(Q)$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 
 # SPDX-FileCopyrightText: 2024 Jeff Epler
 #

@@ -67,8 +67,11 @@ jobs:
       if: (! startsWith(matrix.python-version, 'pypy-'))
       run: make mypy PYTHON=python
 
-    - name: Test
+    - name: Coverage
       run: make coverage PYTHON=python
+
+    - name: Test installed version
+      run: make test_venv PYTHON=python
 
     - name: Upload Coverage as artifact
       if: always()
