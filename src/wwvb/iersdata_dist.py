@@ -5,9 +5,9 @@
 # SPDX-License-Identifier: CC0-1.0
 # isort: skip_file
 import datetime
-__all__ = ["DUT1_DATA_START", "DUT1_OFFSETS"]
+__all__ = ['DUT1_DATA_START', 'DUT1_OFFSETS']
 DUT1_DATA_START = datetime.date(1972, 1, 1)
-d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s = tuple("defghijklmnopqrs")
+d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s = tuple('defghijklmnopqrs')
 DUT1_OFFSETS = str( # 19720101
     i*182+s*123+k*30+i*31+s*19+r*31+q*29+p*28+o*30+n*36+m*40     # 19730909
     +l*39+k*33+j*31+i*31+h*18+r*19+q*38+p*32+o*31+n*33+m*48+l*45 # 19741010
@@ -34,5 +34,6 @@ DUT1_OFFSETS = str( # 19720101
     +i*126+h*176+g*97+f*91+e*52+o*116+n*98+m*70+l*133+k*91+j*91  # 20140507
     +i*77+h*140+g*91+f*84+e*70+d*34+n*72+m*76+l*66+k*53+j*56     # 20160831
     +i*105+h*77+g*45+q*25+p*63+o*91+n*154+m*105+l*190+k*118      # 20190501
-    +j*105+i*807+j*376+k*772+l*40+k*264+l*33,                     # 20250809
+    +j*105+i*807+j*376+k*770+l*71+k*46+l*7+k*6+l*22+k*6+l*4      # 20250709
+    +k*146+l*59                                                  # 20250906
 )
