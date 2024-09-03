@@ -5,22 +5,32 @@
 #
 # SPDX-License-Identifier: GPL-3.0-only
 
+import binascii
 import datetime
-import pathlib
+import gzip
+import importlib.resources
+import json
 
 import platformdirs
 
 __all__ = ["DUT1_DATA_START", "DUT1_OFFSETS", "start", "span", "end"]
-from .iersdata_dist import DUT1_DATA_START, DUT1_OFFSETS
 
-for location in [
-    platformdirs.user_data_dir("wwvbpy", "unpythonic.net"),
-    platformdirs.site_data_dir("wwvbpy", "unpythonic.net"),
+content: dict[str, str] = {"START": "1970-01-01", "OFFSETS_GZ": "H4sIAFNx1mYC/wMAAAAAAAAAAAA="}
+
+path = importlib.resources.files("wwvb") / "iersdata.json"
+content = json.loads(path.read_text(encoding="utf-8"))
+
+for location in [  # pragma no cover
+    platformdirs.user_data_path("wwvbpy", "unpythonic.net"),
+    platformdirs.site_data_path("wwvbpy", "unpythonic.net"),
 ]:
-    path = pathlib.Path(location) / "wwvbpy_iersdata.py"
-    if path.exists():  # pragma no cover
-        exec(path.read_text(encoding="utf-8"), globals(), globals())
+    path = location / "iersdata.json"
+    if path.exists():
+        content = json.loads(path.read_text(encoding="utf-8"))
         break
+
+DUT1_DATA_START = datetime.date.fromisoformat(content["START"])
+DUT1_OFFSETS = gzip.decompress(binascii.a2b_base64(content["OFFSETS_GZ"])).decode("ascii")
 
 start = datetime.datetime.combine(DUT1_DATA_START, datetime.time(), tzinfo=datetime.timezone.utc)
 span = datetime.timedelta(days=len(DUT1_OFFSETS))

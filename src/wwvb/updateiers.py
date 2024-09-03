@@ -8,10 +8,12 @@
 
 from __future__ import annotations
 
+import binascii
 import csv
 import datetime
+import gzip
 import io
-import itertools
+import json
 import pathlib
 from typing import Callable
 
@@ -20,15 +22,7 @@ import click
 import platformdirs
 import requests
 
-DIST_PATH = pathlib.Path(__file__).parent / "iersdata_dist.py"
-
-OLD_TABLE_START: datetime.date | None = None
-OLD_TABLE_END: datetime.date | None = None
-if DIST_PATH.exists():
-    import wwvb.iersdata_dist
-
-    OLD_TABLE_START = wwvb.iersdata_dist.DUT1_DATA_START
-    OLD_TABLE_END = OLD_TABLE_START + datetime.timedelta(days=len(wwvb.iersdata_dist.DUT1_OFFSETS) - 1)
+DIST_PATH = pathlib.Path(__file__).parent / "iersdata.json"
 
 IERS_URL = "https://datacenter.iers.org/data/csv/finals2000A.all.csv"
 IERS_PATH = pathlib.Path("finals2000A.all.csv")
@@ -47,7 +41,7 @@ def _get_text(url: str) -> str:
         return pathlib.Path(url).read_text(encoding="utf-8")
 
 
-def update_iersdata(  # noqa: PLR0915, PLR0912
+def update_iersdata(  # noqa: PLR0915
     target_path: pathlib.Path,
 ) -> None:
     """Update iersdata.py"""
@@ -124,57 +118,25 @@ def update_iersdata(  # noqa: PLR0915, PLR0912
     assert wwvb_start is not None
     patch(wwvb_start, wwvb_data_stamp + datetime.timedelta(days=1), wwvb_dut1)
 
-    with target_path.open("w", encoding="utf-8") as output:
-
-        def code(*args: str) -> None:
-            """Print to the output file"""
-            print(*args, file=output)
-
-        code("# -*- python3 -*-")
-        code("# fmt: off")
-        code('"""File generated from public data - not subject to copyright"""')
-        code("# SPDX" + "-FileCopyrightText: Public domain")
-        code("# SPDX" + "-License-Identifier: CC0-1.0")
-        code("# isort: skip_file")
-        code("import datetime")
-
-        code("__all__ = ['DUT1_DATA_START', 'DUT1_OFFSETS']")
-        code(f"DUT1_DATA_START = {table_start!r}")
-        c = sorted(chr(ord("a") + ch + 10) for ch in set(offsets))
-        code(f"{','.join(c)} = tuple({''.join(c)!r})")
-        code(f"DUT1_OFFSETS = str( # {table_start.year:04d}{table_start.month:02d}{table_start.day:02d}")
-        line = ""
-        j = 0
-
-        for val, it in itertools.groupby(offsets):
-            part = ""
-            ch = chr(ord("a") + val + 10)
-            sz = len(list(it))
-            if j:
-                part = part + "+"
-            part = part + ch if sz < 2 else part + f"{ch}*{sz}"
-            j += sz
-            if len(line + part) > 60:
-                d = table_start + datetime.timedelta(j - 1)
-                code(f"    {line:<60s} # {d.year:04d}{d.month:02d}{d.day:02d}")
-                line = part
-            else:
-                line = line + part
-        d = table_start + datetime.timedelta(j - 1)
-        code(f"    {line:<60s} # {d.year:04d}{d.month:02d}{d.day:02d}")
-        code(")")
     table_end = table_start + datetime.timedelta(len(offsets) - 1)
-    if OLD_TABLE_START:
-        print(f"old iersdata covered {OLD_TABLE_START} .. {OLD_TABLE_END}")
+    base = ord("a") + 10
+    offsets_bin = bytes(base + ch for ch in offsets)
+
+    target_path.write_text(
+        json.dumps(
+            {
+                "START": table_start.isoformat(),
+                "OFFSETS_GZ": binascii.b2a_base64(gzip.compress(offsets_bin)).decode("ascii").strip(),
+            },
+        ),
+    )
+
     print(f"iersdata covers {table_start} .. {table_end}")
 
 
 def iersdata_path(callback: Callable[[str, str], pathlib.Path]) -> pathlib.Path:
     """Find out the path for this directory"""
-    print("iersdata_path", callback)
-    r = callback("wwvbpy", "unpythonic.net") / "wwvb_iersdata.py"
-    print(f"iersdata_path {r=!r}")
-    return r
+    return callback("wwvbpy", "unpythonic.net") / "iersdata.json"
 
 
 @click.command()
