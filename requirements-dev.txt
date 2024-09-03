@@ -18,8 +18,8 @@ sphinx
 sphinx-autodoc-typehints
 sphinx-rtd-theme
 twine; implementation_name=="cpython"
-types-beautifulsoup4
-types-python-dateutil
-types-requests
+types-beautifulsoup4; implementation_name=="cpython"
+types-python-dateutil; implementation_name=="cpython"
+types-requests; implementation_name=="cpython"
 tzdata
 wheel
