@@ -40,9 +40,8 @@ classifiers = [
 ]
 requires-python = ">=3.9"
 [project.urls]
-homepage = "https://github.com/jepler/wwvbpy"
-repository = "https://github.com/jepler/wwvbpy"
-
+Source = "https://github.com/jepler/wwvbpy"
+Documentation = "https://github.com/jepler/wwvbpy"
 [project.scripts]
 wwvbgen = "wwvb.gen:main"
 wwvbdecode = "wwvb.decode:main"
