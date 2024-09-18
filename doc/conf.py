@@ -16,8 +16,10 @@ import os
 import re
 import subprocess
 import sys
+import pathlib
 
-sys.path.insert(0, os.path.abspath("."))
+ROOT = pathlib.Path(__file__).absolute().parent.parent
+sys.path.insert(0, str(ROOT / "src"))
 
 
 # -- Project information -----------------------------------------------------
