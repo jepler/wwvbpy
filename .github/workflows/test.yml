@@ -22,6 +22,8 @@ jobs:
         python-version: '3.12'
 
     - uses: actions/checkout@v4
+      with:
+        persist-credentials: false
 
     - name: Install deps
       run: python -mpip install -r requirements-dev.txt
@@ -52,6 +54,8 @@ jobs:
     runs-on: ${{ matrix.os-version }}
     steps:
     - uses: actions/checkout@v4
+      with:
+        persist-credentials: false
 
     - name: Set up Python
       uses: actions/setup-python@v5
@@ -84,6 +88,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
+      with:
+        persist-credentials: false
 
     - name: Set up Python
       uses: actions/setup-python@v5
