@@ -12,7 +12,7 @@ repos:
   hooks:
   -   id: check-yaml
   -   id: end-of-file-fixer
-      exclude: tests
+      exclude: src/wwvb/iersdata.json
   -   id: trailing-whitespace
       exclude: test/wwvbgen_testcases
 - repo: https://github.com/fsfe/reuse-tool
