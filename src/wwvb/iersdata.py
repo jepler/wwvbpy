@@ -13,7 +13,7 @@ import json
 
 import platformdirs
 
-__all__ = ["DUT1_DATA_START", "DUT1_OFFSETS", "start", "span", "end"]
+__all__ = ["DUT1_DATA_START", "DUT1_OFFSETS", "end", "span", "start"]
 
 content: dict[str, str] = {"START": "1970-01-01", "OFFSETS_GZ": "H4sIAFNx1mYC/wMAAAAAAAAAAAA="}
 
