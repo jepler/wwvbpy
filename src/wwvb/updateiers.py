@@ -52,7 +52,7 @@ def update_iersdata(  # noqa: PLR0915
         offs_str = r["UT1-UTC"]
         if not offs_str:
             break
-        offs = int(round(float(offs_str) * 10))
+        offs = round(float(offs_str) * 10)
         if not offsets:
             table_start = datetime.date(1858, 11, 17) + datetime.timedelta(jd)
 
@@ -98,7 +98,7 @@ def update_iersdata(  # noqa: PLR0915
         cells = row.findAll("td")
         when = datetime.datetime.strptime(cells[0].text + "+0000", "%Y-%m-%d%z").date()
         dut1 = cells[2].text.replace("s", "").replace(" ", "")
-        dut1 = int(round(float(dut1) * 10))
+        dut1 = round(float(dut1) * 10)
         if wwvb_dut1 is not None:
             assert wwvb_start is not None
             patch(wwvb_start, when, wwvb_dut1)

@@ -49,7 +49,6 @@ def _maybe_warn_update(dt: datetime.date, stacklevel: int = 1) -> None:
     # If the date is less than 300 days after today, there should be (possibly)
     # prospective available now.
     today = datetime.datetime.now(tz=datetime.timezone.utc).date()
-    print(f"_mwu {today=!r} {dt=!r} {iersdata.end=!r}")
     if _date(dt) < today + datetime.timedelta(days=330):
         warnings.warn(
             "Note: Running `updateiers` may provide better DUT1 and LS information",
@@ -727,7 +726,7 @@ class WWVBMinuteIERS(WWVBMinute):
     @classmethod
     def _get_dut1_info(cls, year: int, days: int, old_time: WWVBMinute | None = None) -> tuple[int, bool]:  # noqa: ARG003
         d = datetime.datetime(year, 1, 1, tzinfo=datetime.timezone.utc) + datetime.timedelta(days - 1)
-        return int(round(get_dut1(d) * 10)) * 100, isls(d)
+        return round(get_dut1(d) * 10) * 100, isls(d)
 
 
 def _bcd_bits(n: int) -> Generator[bool, None, None]:
