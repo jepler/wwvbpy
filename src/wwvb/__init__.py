@@ -727,7 +727,7 @@ class WWVBMinuteIERS(WWVBMinute):
     @classmethod
     def _get_dut1_info(cls, year: int, days: int, old_time: WWVBMinute | None = None) -> tuple[int, bool]:  # noqa: ARG003
         d = datetime.datetime(year, 1, 1, tzinfo=datetime.timezone.utc) + datetime.timedelta(days - 1)
-        return int(round(get_dut1(d) * 10)) * 100, isls(d)
+        return round(get_dut1(d) * 10) * 100, isls(d)
 
 
 def _bcd_bits(n: int) -> Generator[bool, None, None]:
