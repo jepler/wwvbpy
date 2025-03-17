@@ -49,7 +49,6 @@ def _maybe_warn_update(dt: datetime.date, stacklevel: int = 1) -> None:
     # If the date is less than 300 days after today, there should be (possibly)
     # prospective available now.
     today = datetime.datetime.now(tz=datetime.timezone.utc).date()
-    print(f"_mwu {today=!r} {dt=!r} {iersdata.end=!r}")
     if _date(dt) < today + datetime.timedelta(days=330):
         warnings.warn(
             "Note: Running `updateiers` may provide better DUT1 and LS information",
