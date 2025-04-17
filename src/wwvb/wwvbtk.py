@@ -7,7 +7,6 @@
 from __future__ import annotations
 
 import functools
-import threading
 import time
 from tkinter import Canvas, TclError, Tk
 from typing import TYPE_CHECKING, Any
@@ -61,11 +60,10 @@ def main(colors: list[str], size: int, min_size: int | None) -> None:  # noqa: P
     if min_size is None:
         min_size = size
 
-    def sleep_deadline(deadline: float) -> None:
-        """Sleep until a deadline"""
+    def deadline_ms(deadline: float) -> None:
+        """Compute the number of ms until a deadline"""
         now = time.time()
-        if deadline > now:
-            time.sleep(deadline - now)
+        return int(max(0, deadline - now) * 1000)
 
     def wwvbtick() -> Generator[tuple[float, wwvb.AmplitudeModulation], None, None]:
         """Yield consecutive values of the WWVB amplitude signal, going from minute to minute"""
@@ -127,18 +125,23 @@ def main(colors: list[str], size: int, min_size: int | None) -> None:  # noqa: P
         """Turn the canvas's virtual LED off"""
         canvas.itemconfigure(circle, fill=colors[i])
 
-    def thread_func() -> None:
-        """Update the canvas virtual LED"""
+    def controller_func() -> None:
+        """Update the canvas virtual LED, yielding the number of ms until the next change"""
         for stamp, code in wwvbsmarttick():
-            sleep_deadline(stamp)
+            yield deadline_ms(stamp)
             led_on(code)
             app.update()
-            sleep_deadline(stamp + 0.2 + 0.3 * int(code))
+            yield deadline_ms(stamp + 0.2 + 0.3 * int(code))
             led_off(code)
             app.update()
 
-    thread = threading.Thread(target=thread_func, daemon=True)
-    thread.start()
+    controller = controller_func().__next__
+
+    def after_func():
+        """Repeatedly run the controller after the desired interval"""
+        app.after(controller(), after_func)
+
+    app.after_idle(after_func)
     app.mainloop()
 
 
