@@ -30,7 +30,7 @@ def validate_colors(ctx: Any, param: Any, value: str) -> list[str]:  # noqa: ARG
     app = _app()
     colors = value.split()
     if len(colors) not in (2, 3, 4, 6):
-        raise click.BadParameter(f"Give 2, 3, 4 or 6 colors (not {len(colors)}")
+        raise click.BadParameter(f"Give 2, 3, 4 or 6 colors (not {len(colors)})")
     for c in colors:
         try:
             app.winfo_rgb(c)
@@ -52,7 +52,13 @@ DEFAULT_COLORS = "#3c3c3c #3c3c3c #3c3c3c #cc3c3c #88883c #3ccc3c"
 
 
 @click.command
-@click.option("--colors", callback=validate_colors, default=DEFAULT_COLORS)
+@click.option(
+    "--colors",
+    callback=validate_colors,
+    default=DEFAULT_COLORS,
+    metavar="COLORS",
+    help="2, 3, 4, or 6 Tk color values",
+)
 @click.option("--size", default=48)
 @click.option("--min-size", default=None)
 def main(colors: list[str], size: int, min_size: int | None) -> None:  # noqa: PLR0915
