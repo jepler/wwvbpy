@@ -7,7 +7,6 @@
 from __future__ import annotations
 
 import functools
-import threading
 import time
 from tkinter import Canvas, TclError, Tk
 from typing import TYPE_CHECKING, Any
@@ -31,7 +30,7 @@ def validate_colors(ctx: Any, param: Any, value: str) -> list[str]:  # noqa: ARG
     app = _app()
     colors = value.split()
     if len(colors) not in (2, 3, 4, 6):
-        raise click.BadParameter(f"Give 2, 3, 4 or 6 colors (not {len(colors)}")
+        raise click.BadParameter(f"Give 2, 3, 4 or 6 colors (not {len(colors)})")
     for c in colors:
         try:
             app.winfo_rgb(c)
@@ -53,7 +52,13 @@ DEFAULT_COLORS = "#3c3c3c #3c3c3c #3c3c3c #cc3c3c #88883c #3ccc3c"
 
 
 @click.command
-@click.option("--colors", callback=validate_colors, default=DEFAULT_COLORS)
+@click.option(
+    "--colors",
+    callback=validate_colors,
+    default=DEFAULT_COLORS,
+    metavar="COLORS",
+    help="2, 3, 4, or 6 Tk color values",
+)
 @click.option("--size", default=48)
 @click.option("--min-size", default=None)
 def main(colors: list[str], size: int, min_size: int | None) -> None:  # noqa: PLR0915
@@ -61,11 +66,10 @@ def main(colors: list[str], size: int, min_size: int | None) -> None:  # noqa: P
     if min_size is None:
         min_size = size
 
-    def sleep_deadline(deadline: float) -> None:
-        """Sleep until a deadline"""
+    def deadline_ms(deadline: float) -> int:
+        """Compute the number of ms until a deadline"""
         now = time.time()
-        if deadline > now:
-            time.sleep(deadline - now)
+        return int(max(0, deadline - now) * 1000)
 
     def wwvbtick() -> Generator[tuple[float, wwvb.AmplitudeModulation], None, None]:
         """Yield consecutive values of the WWVB amplitude signal, going from minute to minute"""
@@ -127,18 +131,23 @@ def main(colors: list[str], size: int, min_size: int | None) -> None:  # noqa: P
         """Turn the canvas's virtual LED off"""
         canvas.itemconfigure(circle, fill=colors[i])
 
-    def thread_func() -> None:
-        """Update the canvas virtual LED"""
+    def controller_func() -> Generator[int]:
+        """Update the canvas virtual LED, yielding the number of ms until the next change"""
         for stamp, code in wwvbsmarttick():
-            sleep_deadline(stamp)
+            yield deadline_ms(stamp)
             led_on(code)
             app.update()
-            sleep_deadline(stamp + 0.2 + 0.3 * int(code))
+            yield deadline_ms(stamp + 0.2 + 0.3 * int(code))
             led_off(code)
             app.update()
 
-    thread = threading.Thread(target=thread_func, daemon=True)
-    thread.start()
+    controller = controller_func().__next__
+
+    def after_func() -> None:
+        """Repeatedly run the controller after the desired interval"""
+        app.after(controller(), after_func)
+
+    app.after_idle(after_func)
     app.mainloop()
 
 
