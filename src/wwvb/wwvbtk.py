@@ -66,7 +66,7 @@ def main(colors: list[str], size: int, min_size: int | None) -> None:  # noqa: P
     if min_size is None:
         min_size = size
 
-    def deadline_ms(deadline: float) -> None:
+    def deadline_ms(deadline: float) -> int:
         """Compute the number of ms until a deadline"""
         now = time.time()
         return int(max(0, deadline - now) * 1000)
@@ -131,7 +131,7 @@ def main(colors: list[str], size: int, min_size: int | None) -> None:  # noqa: P
         """Turn the canvas's virtual LED off"""
         canvas.itemconfigure(circle, fill=colors[i])
 
-    def controller_func() -> None:
+    def controller_func() -> Generator[int]:
         """Update the canvas virtual LED, yielding the number of ms until the next change"""
         for stamp, code in wwvbsmarttick():
             yield deadline_ms(stamp)
@@ -143,7 +143,7 @@ def main(colors: list[str], size: int, min_size: int | None) -> None:  # noqa: P
 
     controller = controller_func().__next__
 
-    def after_func():
+    def after_func() -> None:
         """Repeatedly run the controller after the desired interval"""
         app.after(controller(), after_func)
 
