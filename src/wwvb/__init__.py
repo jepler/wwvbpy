@@ -7,6 +7,7 @@
 
 from __future__ import annotations
 
+import dataclasses
 import datetime
 import enum
 import json
@@ -757,19 +758,25 @@ class PhaseModulation(enum.IntEnum):
     UNSET = -1
 
 
+@dataclasses.dataclass
 class WWVBTimecode:
     """Represent the amplitude and/or phase signal, usually over 1 minute"""
 
-    am: list[AmplitudeModulation]
+    sz: dataclasses.InitVar[int] = 60
+    am: list[AmplitudeModulation] | None = None
+    phase: list[PhaseModulation] | None = None
+
     """The amplitude modulation data"""
 
     phase: list[PhaseModulation]
     """The phase modulation data"""
 
-    def __init__(self, sz: int) -> None:
-        """Construct a WWVB timecode ``sz`` seconds long"""
-        self.am = [AmplitudeModulation.UNSET] * sz
-        self.phase = [PhaseModulation.UNSET] * sz
+    def __post_init__(self, sz):
+        """Fill the am & phase members if not otherwise set"""
+        if self.am is None:
+            self.am = [AmplitudeModulation.UNSET] * sz
+        if self.phase is None:
+            self.phase = [PhaseModulation.UNSET] * sz
 
     def _get_am_bcd(self, *poslist: int) -> int | None:
         """Convert AM data to BCD

@@ -395,6 +395,11 @@ class WWVBRoundtrip(unittest.TestCase):
         self.assertEqual(WWVBMinute2k(2070, 1, 1, 0, 0).year, 2070)
         self.assertEqual(WWVBMinute2k(2099, 1, 1, 0, 0).year, 2099)
 
+    def test_cover_construct(self) -> None:
+        """Ensure coverage of some unusual code paths in WWVBTimecode"""
+        assert wwvb.WWVBTimecode(am=[]).am == []
+        assert wwvb.WWVBTimecode(phase=[]).phase == []
+
 
 if __name__ == "__main__":
     unittest.main()
