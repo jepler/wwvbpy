@@ -59,8 +59,8 @@ DEFAULT_COLORS = "#3c3c3c #3c3c3c #3c3c3c #cc3c3c #88883c #3ccc3c"
     metavar="COLORS",
     help="2, 3, 4, or 6 Tk color values",
 )
-@click.option("--size", default=48)
-@click.option("--min-size", default=None)
+@click.option("--size", default=48, help="initial size in pixels")
+@click.option("--min-size", default=None, type=int, help="minimum size in pixels (default: same as initial size)")
 def main(colors: list[str], size: int, min_size: int | None) -> None:  # noqa: PLR0915
     """Visualize the WWVB signal in realtime"""
     if min_size is None:
