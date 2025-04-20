@@ -330,8 +330,8 @@ class WWVBMinute:
     min: int
     """Minute of hour"""
 
-    dst: int
-    """2-bit DST code """
+    dst: DstStatus
+    """DST status code"""
 
     ut1: int
     """UT1 offset in units of 100ms, range -900 to +900ms"""
@@ -351,7 +351,7 @@ class WWVBMinute:
         days: int,
         hour: int,
         minute: int,
-        dst: int | None = None,
+        dst: DstStatus | int | None = None,
         ut1: int | None = None,
         ls: bool | None = None,
         ly: bool | None = None,
@@ -363,10 +363,7 @@ class WWVBMinute:
         based on class heuristics (except that either `ut1` and `ls` must both
         be specified, or neither one may be specified)
         """
-        if dst is None:
-            dst = cls.get_dst(year, days)
-        if dst not in (0, 1, 2, 3):
-            raise ValueError("dst value should be 0..3")
+        dst = cls.get_dst(year, days) if dst is None else DstStatus(dst)
         if ut1 is None and ls is None:
             ut1, ls = cls._get_dut1_info(year, days)
         elif ut1 is None or ls is None:
@@ -397,13 +394,13 @@ class WWVBMinute:
         return year
 
     @staticmethod
-    def get_dst(year: int, days: int) -> int:
+    def get_dst(year: int, days: int) -> DstStatus:
         """Get the 2-bit WWVB DST value for the given day"""
         d0 = datetime.datetime(year, 1, 1, tzinfo=datetime.timezone.utc) + datetime.timedelta(days - 1)
         d1 = d0 + datetime.timedelta(1)
         dst0 = isdst(d0)
         dst1 = isdst(d1)
-        return dst1 * 2 + dst0
+        return DstStatus(dst1 * 2 + dst0)
 
     def __str__(self) -> str:
         """Implement str()"""
@@ -745,6 +742,16 @@ class PhaseModulation(enum.IntEnum):
     ZERO = 0
     ONE = 1
     UNSET = -1
+
+
+@enum.unique
+class DstStatus(enum.IntEnum):
+    """Constants that describe the DST status of a minute"""
+
+    DST_NOT_IN_EFFECT = 0b00
+    DST_STARTS_TODAY = 0b01
+    DST_ENDS_TODAY = 0b10
+    DST_IN_EFFECT = 0b11
 
 
 @dataclasses.dataclass
