@@ -65,7 +65,7 @@ def wwvbreceive() -> Generator[wwvb.WWVBTimecode | None, wwvb.AmplitudeModulatio
                 state = 1
             elif len(minute) == 60:
                 # print("FULL MINUTE")
-                tc = wwvb.WWVBTimecode(60)
+                tc = wwvb.WWVBTimecode.make_empty(60)
                 tc.am[:] = minute
                 minute = []
                 state = 2

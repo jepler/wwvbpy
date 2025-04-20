@@ -66,12 +66,12 @@ def main(colors: list[str], size: int, min_size: int | None) -> None:  # noqa: P
     if min_size is None:
         min_size = size
 
-    def deadline_ms(deadline: float) -> int:
+    def deadline_ms(deadline: datetime.datetime) -> int:
         """Compute the number of ms until a deadline"""
         now = datetime.datetime.now(datetime.timezone.utc)
         return int(max(0, (deadline - now).total_seconds()) * 1000)
 
-    def wwvbtick() -> Generator[tuple[float, wwvb.AmplitudeModulation], None, None]:
+    def wwvbtick() -> Generator[tuple[datetime.datetime, wwvb.AmplitudeModulation], None, None]:
         """Yield consecutive values of the WWVB amplitude signal, going from minute to minute"""
         timestamp = datetime.datetime.now(datetime.timezone.utc).replace(second=0, microsecond=0)
 
@@ -81,7 +81,7 @@ def main(colors: list[str], size: int, min_size: int | None) -> None:  # noqa: P
                 yield timestamp + datetime.timedelta(seconds=i), code
             timestamp = timestamp + datetime.timedelta(seconds=60)
 
-    def wwvbsmarttick() -> Generator[tuple[float, wwvb.AmplitudeModulation], None, None]:
+    def wwvbsmarttick() -> Generator[tuple[datetime.datetime, wwvb.AmplitudeModulation], None, None]:
         """Yield consecutive values of the WWVB amplitude signal
 
         .. but deal with time progressing unexpectedly, such as when the

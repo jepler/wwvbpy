@@ -19,7 +19,7 @@ class TestPhaseModulation(unittest.TestCase):
 
         ref_pm = "001110110100010010000011001000011000110100110100010110110110"
 
-        ref_minute = wwvb.WWVBMinuteIERS(2012, 186, 17, 30, dst=3)
+        ref_minute = wwvb.WWVBMinuteIERS.from_parts(2012, 186, 17, 30, dst=3)
         ref_time = ref_minute.as_timecode()
 
         test_am = ref_time.to_am_string(["0", "1", "2"])

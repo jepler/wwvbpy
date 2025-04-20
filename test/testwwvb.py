@@ -127,11 +127,13 @@ class WWVBRoundtrip(unittest.TestCase):
         while dt.year < 1993:
             minute = wwvb.WWVBMinuteIERS.from_datetime(dt)
             assert minute is not None
+            assert minute.year == dt.year
             timecode = minute.as_timecode().am
             assert timecode
             decoded_minute: wwvb.WWVBMinute | None = wwvb.WWVBMinuteIERS.from_timecode_am(minute.as_timecode())
             assert decoded_minute
             decoded = decoded_minute.as_timecode().am
+            self.assertEqual(minute, decoded_minute)
             self.assertEqual(
                 timecode,
                 decoded,
@@ -261,12 +263,12 @@ class WWVBRoundtrip(unittest.TestCase):
 
     def test_epoch(self) -> None:
         """Test the 1970-to-2069 epoch"""
-        m = wwvb.WWVBMinute(69, 1, 1, 0, 0)
-        n = wwvb.WWVBMinute(2069, 1, 1, 0, 0)
+        m = wwvb.WWVBMinute.from_parts(69, 1, 1, 0, 0)
+        n = wwvb.WWVBMinute.from_parts(2069, 1, 1, 0, 0)
         self.assertEqual(m, n)
 
-        m = wwvb.WWVBMinute(70, 1, 1, 0, 0)
-        n = wwvb.WWVBMinute(1970, 1, 1, 0, 0)
+        m = wwvb.WWVBMinute.from_parts(70, 1, 1, 0, 0)
+        n = wwvb.WWVBMinute.from_parts(1970, 1, 1, 0, 0)
         self.assertEqual(m, n)
 
     def test_fromstring(self) -> None:
@@ -290,13 +292,13 @@ class WWVBRoundtrip(unittest.TestCase):
     def test_exceptions(self) -> None:
         """Test some error detection"""
         with self.assertRaises(ValueError):
-            wwvb.WWVBMinute(2021, 1, 1, 1, dst=4)
+            wwvb.WWVBMinute.from_parts(2021, 1, 1, 1, dst=4)
 
         with self.assertRaises(ValueError):
-            wwvb.WWVBMinute(2021, 1, 1, 1, ut1=1)
+            wwvb.WWVBMinute.from_parts(2021, 1, 1, 1, ut1=1)
 
         with self.assertRaises(ValueError):
-            wwvb.WWVBMinute(2021, 1, 1, 1, ls=False)
+            wwvb.WWVBMinute.from_parts(2021, 1, 1, 1, ls=False)
 
         with self.assertRaises(ValueError):
             wwvb.WWVBMinute.fromstring("year=1998 days=365 hour=23 min=56 dst=0 ut1=-300 ly=0 ls=1 boo=1")
@@ -310,7 +312,7 @@ class WWVBRoundtrip(unittest.TestCase):
     def test_undefined(self) -> None:
         """Ensure that the check for unset elements in am works"""
         with self.assertWarnsRegex(Warning, "is unset"):
-            str(wwvb.WWVBTimecode(60))
+            str(wwvb.WWVBTimecode.make_empty(60))
 
     def test_tz(self) -> None:
         """Get a little more coverage in the dst change functions"""
@@ -365,40 +367,35 @@ class WWVBRoundtrip(unittest.TestCase):
 
     def test_epoch2(self) -> None:
         """Test that the settable epoch feature works"""
-        self.assertEqual(wwvb.WWVBMinute(0, 1, 1, 0, 0).year, 2000)
-        self.assertEqual(wwvb.WWVBMinute(69, 1, 1, 0, 0).year, 2069)
-        self.assertEqual(wwvb.WWVBMinute(70, 1, 1, 0, 0).year, 1970)
-        self.assertEqual(wwvb.WWVBMinute(99, 1, 1, 0, 0).year, 1999)
+        self.assertEqual(wwvb.WWVBMinute.from_parts(0, 1, 1, 0, 0).year, 2000)
+        self.assertEqual(wwvb.WWVBMinute.from_parts(69, 1, 1, 0, 0).year, 2069)
+        self.assertEqual(wwvb.WWVBMinute.from_parts(70, 1, 1, 0, 0).year, 1970)
+        self.assertEqual(wwvb.WWVBMinute.from_parts(99, 1, 1, 0, 0).year, 1999)
 
         # 4-digit years can always be used
-        self.assertEqual(wwvb.WWVBMinute(2000, 1, 1, 0, 0).year, 2000)
-        self.assertEqual(wwvb.WWVBMinute(2069, 1, 1, 0, 0).year, 2069)
-        self.assertEqual(wwvb.WWVBMinute(1970, 1, 1, 0, 0).year, 1970)
-        self.assertEqual(wwvb.WWVBMinute(1999, 1, 1, 0, 0).year, 1999)
+        self.assertEqual(wwvb.WWVBMinute.from_parts(2000, 1, 1, 0, 0).year, 2000)
+        self.assertEqual(wwvb.WWVBMinute.from_parts(2069, 1, 1, 0, 0).year, 2069)
+        self.assertEqual(wwvb.WWVBMinute.from_parts(1970, 1, 1, 0, 0).year, 1970)
+        self.assertEqual(wwvb.WWVBMinute.from_parts(1999, 1, 1, 0, 0).year, 1999)
 
-        self.assertEqual(wwvb.WWVBMinute(1900, 1, 1, 0, 0).year, 1900)
-        self.assertEqual(wwvb.WWVBMinute(1969, 1, 1, 0, 0).year, 1969)
-        self.assertEqual(wwvb.WWVBMinute(2070, 1, 1, 0, 0).year, 2070)
-        self.assertEqual(wwvb.WWVBMinute(2099, 1, 1, 0, 0).year, 2099)
+        self.assertEqual(wwvb.WWVBMinute.from_parts(1900, 1, 1, 0, 0).year, 1900)
+        self.assertEqual(wwvb.WWVBMinute.from_parts(1969, 1, 1, 0, 0).year, 1969)
+        self.assertEqual(wwvb.WWVBMinute.from_parts(2070, 1, 1, 0, 0).year, 2070)
+        self.assertEqual(wwvb.WWVBMinute.from_parts(2099, 1, 1, 0, 0).year, 2099)
 
-        self.assertEqual(WWVBMinute2k(0, 1, 1, 0, 0).year, 2000)
-        self.assertEqual(WWVBMinute2k(99, 1, 1, 0, 0).year, 2099)
+        self.assertEqual(WWVBMinute2k.from_parts(0, 1, 1, 0, 0).year, 2000)
+        self.assertEqual(WWVBMinute2k.from_parts(99, 1, 1, 0, 0).year, 2099)
 
         # 4-digit years can always be used
-        self.assertEqual(WWVBMinute2k(2000, 1, 1, 0, 0).year, 2000)
-        self.assertEqual(WWVBMinute2k(2069, 1, 1, 0, 0).year, 2069)
-        self.assertEqual(WWVBMinute2k(1970, 1, 1, 0, 0).year, 1970)
-        self.assertEqual(WWVBMinute2k(1999, 1, 1, 0, 0).year, 1999)
+        self.assertEqual(WWVBMinute2k.from_parts(2000, 1, 1, 0, 0).year, 2000)
+        self.assertEqual(WWVBMinute2k.from_parts(2069, 1, 1, 0, 0).year, 2069)
+        self.assertEqual(WWVBMinute2k.from_parts(1970, 1, 1, 0, 0).year, 1970)
+        self.assertEqual(WWVBMinute2k.from_parts(1999, 1, 1, 0, 0).year, 1999)
 
-        self.assertEqual(WWVBMinute2k(1900, 1, 1, 0, 0).year, 1900)
-        self.assertEqual(WWVBMinute2k(1969, 1, 1, 0, 0).year, 1969)
-        self.assertEqual(WWVBMinute2k(2070, 1, 1, 0, 0).year, 2070)
-        self.assertEqual(WWVBMinute2k(2099, 1, 1, 0, 0).year, 2099)
-
-    def test_cover_construct(self) -> None:
-        """Ensure coverage of some unusual code paths in WWVBTimecode"""
-        assert wwvb.WWVBTimecode(am=[]).am == []
-        assert wwvb.WWVBTimecode(phase=[]).phase == []
+        self.assertEqual(WWVBMinute2k.from_parts(1900, 1, 1, 0, 0).year, 1900)
+        self.assertEqual(WWVBMinute2k.from_parts(1969, 1, 1, 0, 0).year, 1969)
+        self.assertEqual(WWVBMinute2k.from_parts(2070, 1, 1, 0, 0).year, 2070)
+        self.assertEqual(WWVBMinute2k.from_parts(2099, 1, 1, 0, 0).year, 2099)
 
 
 if __name__ == "__main__":
