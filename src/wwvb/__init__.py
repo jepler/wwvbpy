@@ -7,11 +7,12 @@
 
 from __future__ import annotations
 
+import dataclasses
 import datetime
 import enum
 import json
 import warnings
-from typing import TYPE_CHECKING, Any, NamedTuple, TextIO, TypeVar
+from typing import TYPE_CHECKING, Any, ClassVar, Self, TextIO
 
 from . import iersdata
 from .tz import Mountain
@@ -21,19 +22,6 @@ if TYPE_CHECKING:
 
 HOUR = datetime.timedelta(seconds=3600)
 SECOND = datetime.timedelta(seconds=1)
-T = TypeVar("T")
-
-
-def _require(x: T | None) -> T:
-    """Check an Optional item is not None."""
-    assert x is not None
-    return x
-
-
-def _removeprefix(s: str, p: str) -> str:
-    if s.startswith(p):
-        return s[len(p) :]
-    return s
 
 
 def _date(dt: datetime.date) -> datetime.date:
@@ -323,7 +311,8 @@ _dst_ls_lut = [
 ]
 
 
-class _WWVBMinute(NamedTuple):
+@dataclasses.dataclass(frozen=True)
+class WWVBMinute:
     """Uniquely identifies a minute of time in the WWVB system.
 
     To use ut1 and ls information from IERS, create a WWVBMinuteIERS value instead.
@@ -341,8 +330,8 @@ class _WWVBMinute(NamedTuple):
     min: int
     """Minute of hour"""
 
-    dst: int
-    """2-bit DST code """
+    dst: DstStatus
+    """DST status code"""
 
     ut1: int
     """UT1 offset in units of 100ms, range -900 to +900ms"""
@@ -353,31 +342,28 @@ class _WWVBMinute(NamedTuple):
     ly: bool
     """Leap year flag"""
 
+    epoch: ClassVar[int] = 1970
 
-class WWVBMinute(_WWVBMinute):
-    """Uniquely identifies a minute of time in the WWVB system.
-
-    To use ut1 and ls information from IERS, create a WWVBMinuteIERS value instead.
-    """
-
-    epoch: int = 1970
-
-    def __new__(  # noqa: PYI034
+    @classmethod
+    def from_parts(
         cls,
         year: int,
         days: int,
         hour: int,
         minute: int,
-        dst: int | None = None,
+        dst: DstStatus | int | None = None,
         ut1: int | None = None,
         ls: bool | None = None,
         ly: bool | None = None,
-    ) -> WWVBMinute:
-        """Construct a WWVBMinute"""
-        if dst is None:
-            dst = cls.get_dst(year, days)
-        if dst not in (0, 1, 2, 3):
-            raise ValueError("dst value should be 0..3")
+    ) -> Self:
+        """Create a WWVBMinute from parts
+
+        The constructor requires all parts are supplied. This classmethod can
+        determine the any or all of the `dst`, `ut1`, `ls`, and `ly` properties
+        based on class heuristics (except that either `ut1` and `ls` must both
+        be specified, or neither one may be specified)
+        """
+        dst = cls.get_dst(year, days) if dst is None else DstStatus(dst)
         if ut1 is None and ls is None:
             ut1, ls = cls._get_dut1_info(year, days)
         elif ut1 is None or ls is None:
@@ -385,7 +371,8 @@ class WWVBMinute(_WWVBMinute):
         year = cls.full_year(year)
         if ly is None:
             ly = isly(year)
-        return _WWVBMinute.__new__(cls, year, days, hour, minute, dst, ut1, ls, ly)
+
+        return cls(year, days, hour, minute, dst, ut1, ls, ly)
 
     @classmethod
     def full_year(cls, year: int) -> int:
@@ -407,20 +394,20 @@ class WWVBMinute(_WWVBMinute):
         return year
 
     @staticmethod
-    def get_dst(year: int, days: int) -> int:
+    def get_dst(year: int, days: int) -> DstStatus:
         """Get the 2-bit WWVB DST value for the given day"""
         d0 = datetime.datetime(year, 1, 1, tzinfo=datetime.timezone.utc) + datetime.timedelta(days - 1)
         d1 = d0 + datetime.timedelta(1)
         dst0 = isdst(d0)
         dst1 = isdst(d1)
-        return dst1 * 2 + dst0
+        return DstStatus(dst1 * 2 + dst0)
 
     def __str__(self) -> str:
         """Implement str()"""
         return (
             f"year={self.year:4d} days={self.days:03d} hour={self.hour:02d} "
-            f"min={self.min:02d} dst={self.dst} ut1={self.ut1} ly={int(self.ly)} "
-            f"ls={int(self.ls)}"
+            f"min={self.min:02d} dst={+self.dst} ut1={self.ut1} ly={+self.ly} "
+            f"ls={+self.ls}"
         )
 
     def as_datetime_utc(self) -> datetime.datetime:
@@ -477,7 +464,7 @@ class WWVBMinute(_WWVBMinute):
 
     def as_timecode(self) -> WWVBTimecode:
         """Fill a WWVBTimecode structure representing this minute.  Fills both the amplitude and phase codes."""
-        t = WWVBTimecode(self.minute_length())
+        t = WWVBTimecode.make_empty(self.minute_length())
 
         self._fill_am_timecode(t)
         self._fill_pm_timecode(t)
@@ -648,7 +635,7 @@ class WWVBMinute(_WWVBMinute):
     @classmethod
     def fromstring(cls, s: str) -> WWVBMinute:
         """Construct a WWVBMinute from a string representation created by print_timecodes"""
-        s = _removeprefix(s, "WWVB timecode: ")
+        s = s.removeprefix("WWVB timecode: ")
         d: dict[str, int] = {}
         for part in s.split():
             k, v = part.split("=")
@@ -661,11 +648,11 @@ class WWVBMinute(_WWVBMinute):
         minute = d.pop("minute")
         dst: int | None = d.pop("dst", None)
         ut1: int | None = d.pop("ut1", None)
-        ls = d.pop("ls", None)
+        ls: int | None = d.pop("ls", None)
         d.pop("ly", None)
         if d:
             raise ValueError(f"Invalid options: {d}")
-        return cls(year, days, hour, minute, dst, ut1, None if ls is None else bool(ls))
+        return cls.from_parts(year, days, hour, minute, dst, ut1, None if ls is None else bool(ls), isly(year))
 
     @classmethod
     def from_datetime(
@@ -679,7 +666,7 @@ class WWVBMinute(_WWVBMinute):
         u = d.utctimetuple()
         if newls is None and newut1 is None:
             newut1, newls = cls._get_dut1_info(u.tm_year, u.tm_yday, old_time)
-        return cls(u.tm_year, u.tm_yday, u.tm_hour, u.tm_min, ut1=newut1, ls=newls)
+        return cls.from_parts(u.tm_year, u.tm_yday, u.tm_hour, u.tm_min, ut1=newut1, ls=newls)
 
     @classmethod
     def from_timecode_am(cls, t: WWVBTimecode) -> WWVBMinute | None:
@@ -716,8 +703,8 @@ class WWVBMinute(_WWVBMinute):
         if days > 366 or (not ly and days > 365):
             return None
         ls = bool(t.am[56])
-        dst = _require(t._get_am_bcd(57, 58))
-        return cls(year, days, hour, minute, dst, ut1, ls, ly)
+        dst = t._get_am_bcd(57, 58) or 0
+        return cls.from_parts(year, days, hour, minute, dst, ut1, ls, ly)
 
 
 class WWVBMinuteIERS(WWVBMinute):
@@ -757,6 +744,17 @@ class PhaseModulation(enum.IntEnum):
     UNSET = -1
 
 
+@enum.unique
+class DstStatus(enum.IntEnum):
+    """Constants that describe the DST status of a minute"""
+
+    DST_NOT_IN_EFFECT = 0b00
+    DST_STARTS_TODAY = 0b01
+    DST_ENDS_TODAY = 0b10
+    DST_IN_EFFECT = 0b11
+
+
+@dataclasses.dataclass
 class WWVBTimecode:
     """Represent the amplitude and/or phase signal, usually over 1 minute"""
 
@@ -766,10 +764,10 @@ class WWVBTimecode:
     phase: list[PhaseModulation]
     """The phase modulation data"""
 
-    def __init__(self, sz: int) -> None:
-        """Construct a WWVB timecode ``sz`` seconds long"""
-        self.am = [AmplitudeModulation.UNSET] * sz
-        self.phase = [PhaseModulation.UNSET] * sz
+    @classmethod
+    def make_empty(cls, sz: int) -> Self:
+        """Provide an empty timecode of the given length"""
+        return cls([AmplitudeModulation.UNSET] * sz, [PhaseModulation.UNSET] * sz)
 
     def _get_am_bcd(self, *poslist: int) -> int | None:
         """Convert AM data to BCD
