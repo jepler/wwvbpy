@@ -12,7 +12,7 @@ import datetime
 import enum
 import json
 import warnings
-from typing import TYPE_CHECKING, Any, NamedTuple, TextIO, TypeVar
+from typing import TYPE_CHECKING, Any, ClassVar, TextIO, TypeVar
 
 from . import iersdata
 from .tz import Mountain
@@ -324,7 +324,8 @@ _dst_ls_lut = [
 ]
 
 
-class _WWVBMinute(NamedTuple):
+@dataclasses.dataclass
+class WWVBMinute:
     """Uniquely identifies a minute of time in the WWVB system.
 
     To use ut1 and ls information from IERS, create a WWVBMinuteIERS value instead.
@@ -342,51 +343,33 @@ class _WWVBMinute(NamedTuple):
     min: int
     """Minute of hour"""
 
-    dst: int
+    dst: int | None = None
     """2-bit DST code """
 
-    ut1: int
+    ut1: int | None = None
     """UT1 offset in units of 100ms, range -900 to +900ms"""
 
-    ls: bool
+    ls: bool | None = None
     """Leap second warning flag"""
 
-    ly: bool
+    ly: bool | None = None
     """Leap year flag"""
 
+    epoch: ClassVar[int] = 1970
 
-class WWVBMinute(_WWVBMinute):
-    """Uniquely identifies a minute of time in the WWVB system.
-
-    To use ut1 and ls information from IERS, create a WWVBMinuteIERS value instead.
-    """
-
-    epoch: int = 1970
-
-    def __new__(  # noqa: PYI034
-        cls,
-        year: int,
-        days: int,
-        hour: int,
-        minute: int,
-        dst: int | None = None,
-        ut1: int | None = None,
-        ls: bool | None = None,
-        ly: bool | None = None,
-    ) -> WWVBMinute:
-        """Construct a WWVBMinute"""
-        if dst is None:
-            dst = cls.get_dst(year, days)
-        if dst not in (0, 1, 2, 3):
+    def __post_init__(self):
+        """Fill the optional members if not otherwise set"""
+        if self.dst is None:
+            self.dst = self.get_dst(self.year, self.days)
+        if self.dst not in (0, 1, 2, 3):
             raise ValueError("dst value should be 0..3")
-        if ut1 is None and ls is None:
-            ut1, ls = cls._get_dut1_info(year, days)
-        elif ut1 is None or ls is None:
+        if self.ut1 is None and self.ls is None:
+            self.ut1, self.ls = self._get_dut1_info(self.year, self.days)
+        elif self.ut1 is None or self.ls is None:
             raise ValueError("sepecify both ut1 and ls or neither one")
-        year = cls.full_year(year)
-        if ly is None:
-            ly = isly(year)
-        return _WWVBMinute.__new__(cls, year, days, hour, minute, dst, ut1, ls, ly)
+        self.year = self.full_year(self.year)
+        if self.ly is None:
+            self.ly = isly(self.year)
 
     @classmethod
     def full_year(cls, year: int) -> int:
