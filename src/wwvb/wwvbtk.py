@@ -6,8 +6,8 @@
 # SPDX-License-Identifier: GPL-3.0-only
 from __future__ import annotations
 
+import datetime
 import functools
-import time
 from tkinter import Canvas, TclError, Tk
 from typing import TYPE_CHECKING, Any
 
@@ -59,31 +59,29 @@ DEFAULT_COLORS = "#3c3c3c #3c3c3c #3c3c3c #cc3c3c #88883c #3ccc3c"
     metavar="COLORS",
     help="2, 3, 4, or 6 Tk color values",
 )
-@click.option("--size", default=48)
-@click.option("--min-size", default=None)
+@click.option("--size", default=48, help="initial size in pixels")
+@click.option("--min-size", default=None, type=int, help="minimum size in pixels (default: same as initial size)")
 def main(colors: list[str], size: int, min_size: int | None) -> None:  # noqa: PLR0915
     """Visualize the WWVB signal in realtime"""
     if min_size is None:
         min_size = size
 
-    def deadline_ms(deadline: float) -> int:
+    def deadline_ms(deadline: datetime.datetime) -> int:
         """Compute the number of ms until a deadline"""
-        now = time.time()
-        return int(max(0, deadline - now) * 1000)
+        now = datetime.datetime.now(datetime.timezone.utc)
+        return int(max(0, (deadline - now).total_seconds()) * 1000)
 
-    def wwvbtick() -> Generator[tuple[float, wwvb.AmplitudeModulation], None, None]:
+    def wwvbtick() -> Generator[tuple[datetime.datetime, wwvb.AmplitudeModulation]]:
         """Yield consecutive values of the WWVB amplitude signal, going from minute to minute"""
-        timestamp = time.time() // 60 * 60
+        timestamp = datetime.datetime.now(datetime.timezone.utc).replace(second=0, microsecond=0)
 
         while True:
-            tt = time.gmtime(timestamp)
-            key = tt.tm_year, tt.tm_yday, tt.tm_hour, tt.tm_min
-            timecode = wwvb.WWVBMinuteIERS(*key).as_timecode()
+            timecode = wwvb.WWVBMinuteIERS.from_datetime(timestamp).as_timecode()
             for i, code in enumerate(timecode.am):
-                yield timestamp + i, code
-            timestamp = timestamp + 60
+                yield timestamp + datetime.timedelta(seconds=i), code
+            timestamp = timestamp + datetime.timedelta(seconds=60)
 
-    def wwvbsmarttick() -> Generator[tuple[float, wwvb.AmplitudeModulation], None, None]:
+    def wwvbsmarttick() -> Generator[tuple[datetime.datetime, wwvb.AmplitudeModulation]]:
         """Yield consecutive values of the WWVB amplitude signal
 
         .. but deal with time progressing unexpectedly, such as when the
@@ -94,10 +92,10 @@ def main(colors: list[str], size: int, min_size: int | None) -> None:  # noqa: P
         """
         while True:
             for stamp, code in wwvbtick():
-                now = time.time()
-                if stamp < now - 60:
+                now = datetime.datetime.now(datetime.timezone.utc)
+                if stamp < now - datetime.timedelta(seconds=60):
                     break
-                if stamp < now - 1:
+                if stamp < now - datetime.timedelta(seconds=1):
                     continue
                 yield stamp, code
 
@@ -137,7 +135,7 @@ def main(colors: list[str], size: int, min_size: int | None) -> None:  # noqa: P
             yield deadline_ms(stamp)
             led_on(code)
             app.update()
-            yield deadline_ms(stamp + 0.2 + 0.3 * int(code))
+            yield deadline_ms(stamp + datetime.timedelta(seconds=0.2 + 0.3 * int(code)))
             led_off(code)
             app.update()
 
