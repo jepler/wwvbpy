@@ -729,7 +729,7 @@ class WWVBMinuteIERS(WWVBMinute):
         return round(get_dut1(d) * 10) * 100, isls(d)
 
 
-def _bcd_bits(n: int) -> Generator[bool, None, None]:
+def _bcd_bits(n: int) -> Generator[bool]:
     """Return the bcd representation of n, starting with the least significant bit"""
     while True:
         d = n % 10
