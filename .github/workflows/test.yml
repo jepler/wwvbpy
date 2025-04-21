@@ -40,7 +40,8 @@ jobs:
         - '3.10'
         - '3.11'
         - '3.12'
-        - '3.13.0-alpha.0 - 3.13'
+        - '3.13'
+        - '3.14.0-alpha.0 - 3.14'
         os-version:
         - 'ubuntu-latest'
         include:
