@@ -395,6 +395,38 @@ class WWVBRoundtrip(unittest.TestCase):
         self.assertEqual(WWVBMinute2k(2070, 1, 1, 0, 0).year, 2070)
         self.assertEqual(WWVBMinute2k(2099, 1, 1, 0, 0).year, 2099)
 
+    def test_invalid_minute(self) -> None:
+        """Check that minute 61 is not valid in an AM timecode"""
+        base_minute = wwvb.WWVBMinute(2021, 1, 1, 0, 0)
+        minute = base_minute.as_timecode()
+        minute._put_am_bcd(61, 1, 2, 3, 5, 6, 7, 8)  # valid BCD, invalid minute
+        decoded_minute = wwvb.WWVBMinute.from_timecode_am(minute)
+        assert decoded_minute is None
+
+    def test_invalid_hour(self) -> None:
+        """Check that hour 25 is not valid in an AM timecode"""
+        base_minute = wwvb.WWVBMinute(2021, 1, 1, 0, 0)
+        minute = base_minute.as_timecode()
+        minute._put_am_bcd(29, 12, 13, 15, 16, 17, 18)  # valid BCD, invalid hour
+        decoded_minute = wwvb.WWVBMinute.from_timecode_am(minute)
+        assert decoded_minute is None
+
+    def test_invalid_bcd_day(self) -> None:
+        """Check that invalid BCD is detected in AM timecode"""
+        base_minute = wwvb.WWVBMinute(2021, 1, 1, 0, 0)
+        minute = base_minute.as_timecode()
+        minute.am[30:34] = [wwvb.AmplitudeModulation.ONE] * 4  # invalid BCD 0xf
+        decoded_minute = wwvb.WWVBMinute.from_timecode_am(minute)
+        assert decoded_minute is None
+
+    def test_invalid_mark(self) -> None:
+        """Check that invalid presence of MARK in a data field is detected"""
+        base_minute = wwvb.WWVBMinute(2021, 1, 1, 0, 0)
+        minute = base_minute.as_timecode()
+        minute.am[57] = wwvb.AmplitudeModulation.MARK
+        decoded_minute = wwvb.WWVBMinute.from_timecode_am(minute)
+        assert decoded_minute is None
+
 
 if __name__ == "__main__":
     unittest.main()

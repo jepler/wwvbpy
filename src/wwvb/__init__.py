@@ -24,12 +24,6 @@ SECOND = datetime.timedelta(seconds=1)
 T = TypeVar("T")
 
 
-def _require(x: T | None) -> T:
-    """Check an Optional item is not None."""
-    assert x is not None
-    return x
-
-
 def _removeprefix(s: str, p: str) -> str:
     if s.startswith(p):
         return s[len(p) :]
@@ -689,7 +683,7 @@ class WWVBMinute(_WWVBMinute):
         return cls(u.tm_year, u.tm_yday, u.tm_hour, u.tm_min, ut1=newut1, ls=newls)
 
     @classmethod
-    def from_timecode_am(cls, t: WWVBTimecode) -> WWVBMinute | None:
+    def from_timecode_am(cls, t: WWVBTimecode) -> WWVBMinute | None:  # noqa: PLR0912
         """Construct a WWVBMinute from a WWVBTimecode"""
         for i in (0, 9, 19, 29, 39, 49, 59):
             if t.am[i] != AmplitudeModulation.MARK:
@@ -704,8 +698,12 @@ class WWVBMinute(_WWVBMinute):
         minute = t._get_am_bcd(1, 2, 3, 5, 6, 7, 8)
         if minute is None:
             return None
+        if minute >= 60:
+            return None
         hour = t._get_am_bcd(12, 13, 15, 16, 17, 18)
         if hour is None:
+            return None
+        if hour >= 24:
             return None
         days = t._get_am_bcd(22, 23, 25, 26, 27, 28, 30, 31, 32, 33)
         if days is None:
@@ -723,7 +721,9 @@ class WWVBMinute(_WWVBMinute):
         if days > 366 or (not ly and days > 365):
             return None
         ls = bool(t.am[56])
-        dst = _require(t._get_am_bcd(57, 58))
+        dst = t._get_am_bcd(57, 58)
+        if dst is None:
+            return None
         return cls(year, days, hour, minute, dst, ut1, ls, ly)
 
 
@@ -784,7 +784,10 @@ class WWVBTimecode:
         The the bits ``self.am[poslist[i]]`` in MSB order are converted from
         BCD to integer
         """
-        pos = reversed(poslist)
+        pos = list(poslist)[::-1]
+        for p in pos:
+            if self.am[p] not in {AmplitudeModulation.ZERO, AmplitudeModulation.ONE}:
+                return None
         val = [bool(self.am[p]) for p in pos]
         result = 0
         base = 1
