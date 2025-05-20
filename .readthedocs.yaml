@@ -1,0 +1,17 @@
+# SPDX-FileCopyrightText: 2024 Jeff Epler
+#
+# SPDX-License-Identifier: GPL-3.0-only
+
+version: 2
+
+build:
+  os: ubuntu-lts-latest
+  tools:
+    python: "3"
+
+sphinx:
+  configuration: doc/conf.py
+
+python:
+  install:
+    - requirements: requirements-dev.txt
