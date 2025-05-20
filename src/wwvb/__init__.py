@@ -1,5 +1,13 @@
 #!/usr/bin/python3
-"""A library for WWVB timecodes"""
+"""A package and CLI for WWVB timecodes
+
+This is the full featured library suitable for use on 'real computers'.
+For a reduced version suitable for use on MicroPython & CircuitPython,
+see `uwwvb`.
+
+This package also includes the commandline programs listed above,
+perhaps most importantly ``wwvbgen`` for generating WWVB timecodes.
+"""
 
 # SPDX-FileCopyrightText: 2011-2024 Jeff Epler
 #
@@ -322,16 +330,17 @@ class DstStatus(enum.IntEnum):
     """Constants that describe the DST status of a minute"""
 
     DST_NOT_IN_EFFECT = 0b00
+    """DST not in effect today"""
     DST_STARTS_TODAY = 0b01
+    """DST starts today at 0200 local standard time"""
     DST_ENDS_TODAY = 0b10
+    """DST ends today at 0200 local standard time"""
     DST_IN_EFFECT = 0b11
+    """DST in effect all day today"""
 
 
 class _WWVBMinute(NamedTuple):
-    """Uniquely identifies a minute of time in the WWVB system.
-
-    To use ut1 and ls information from IERS, create a WWVBMinuteIERS value instead.
-    """
+    """(implementation detail)"""
 
     year: int
     """2-digit year within the WWVB epoch"""
@@ -361,7 +370,8 @@ class _WWVBMinute(NamedTuple):
 class WWVBMinute(_WWVBMinute):
     """Uniquely identifies a minute of time in the WWVB system.
 
-    To use ut1 and ls information from IERS, create a WWVBMinuteIERS value instead.
+    To use ``ut1`` and ``ls`` information from IERS, create a `WWVBMinuteIERS`
+    object instead.
     """
 
     epoch: int = 1970
@@ -377,7 +387,19 @@ class WWVBMinute(_WWVBMinute):
         ls: bool | None = None,
         ly: bool | None = None,
     ) -> WWVBMinute:
-        """Construct a WWVBMinute"""
+        """Construct a WWVBMinute
+
+        :param year: The 2- or 4-digit year. This parameter is converted by the `full_year` method.
+        :param days: 1-based day of year
+
+        :param hour: UTC hour of day
+
+        :param minute: Minute of hour
+        :param dst: 2-bit DST code
+        :param ut1: UT1 offset in units of 100ms, range -900 to +900ms
+        :param ls: Leap second warning flag
+        :param ly: Leap year flag
+        """
         dst = cls.get_dst(year, days) if dst is None else DstStatus(dst)
         if ut1 is None and ls is None:
             ut1, ls = cls._get_dut1_info(year, days)
@@ -425,7 +447,10 @@ class WWVBMinute(_WWVBMinute):
         )
 
     def as_datetime_utc(self) -> datetime.datetime:
-        """Convert to a UTC datetime"""
+        """Convert to a UTC datetime
+
+        The returned object has ``tzinfo=datetime.timezone.utc``.
+        """
         d = datetime.datetime(self.year, 1, 1, tzinfo=datetime.timezone.utc)
         d += datetime.timedelta(self.days - 1, self.hour * 3600 + self.min * 60)
         return d
@@ -438,7 +463,18 @@ class WWVBMinute(_WWVBMinute):
         *,
         dst_observed: bool = True,
     ) -> datetime.datetime:
-        """Convert to a local datetime according to the DST bits"""
+        """Convert to a local datetime according to the DST bits
+
+        The returned object has ``tz=datetime.timezone(computed_offset)``.
+
+        :param standard_time_offset: The UTC offset of local standard time, in seconds west of UTC.
+            The default value, ``7 * 3600``, is for Colorado, the source of the WWVB broadcast.
+
+        :param dst_observed: If ``True`` then the locale observes DST, and a
+            one hour offset is applied according to WWVB rules. If ``False``, then
+            the standard time offset is used at all times.
+
+        """
         u = self.as_datetime_utc()
         offset = datetime.timedelta(seconds=-standard_time_offset)
         d = u - datetime.timedelta(seconds=standard_time_offset)
@@ -750,9 +786,13 @@ class AmplitudeModulation(enum.IntEnum):
     """Constants that describe an Amplitude Modulation value"""
 
     ZERO = 0
+    """A zero bit (reduced carrier during the first 200ms of the second)"""
     ONE = 1
+    """A one bit (reduced carrier during the first 500ms of the second)"""
     MARK = 2
+    """A mark bit (reduced carrier during the first 800ms of the second)"""
     UNSET = -1
+    """An unset or unknown amplitude modulation value"""
 
 
 @enum.unique
@@ -760,8 +800,11 @@ class PhaseModulation(enum.IntEnum):
     """Constants that describe a Phase Modulation value"""
 
     ZERO = 0
+    """A one bit (180° phase shift during the second)"""
     ONE = 1
+    """A zero bit (No phase shift during the second)"""
     UNSET = -1
+    """An unset or unknown phase modulation value"""
 
 
 class WWVBTimecode:

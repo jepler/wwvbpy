@@ -4,7 +4,10 @@
 
 # ruff: noqa: C405 PYI024 PLR2004 FBT001 FBT002
 
-"""Implementation of a WWVB state machine & decoder for resource-constrained systems"""
+"""Implementation of a WWVB state machine & decoder for resource-constrained systems
+
+This version is intended for use with MicroPython & CircuitPython.
+"""
 
 from __future__ import annotations
 
