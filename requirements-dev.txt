@@ -14,9 +14,10 @@ pre-commit
 python-dateutil
 requests; implementation_name=="cpython"
 setuptools>=68; implementation_name=="cpython"
-sphinx>=7,<8
+sphinx
 sphinx-autodoc-typehints
 sphinx-rtd-theme
+sphinx-mdinclude
 twine; implementation_name=="cpython"
 types-beautifulsoup4; implementation_name=="cpython"
 types-python-dateutil; implementation_name=="cpython"

@@ -56,6 +56,7 @@ version = release = final_version
 # ones.
 extensions = [
     "sphinx.ext.autodoc",
+    "sphinx_mdinclude",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -81,6 +82,10 @@ html_static_path = ["_static"]
 
 autodoc_typehints = "description"
 autodoc_class_signature = "separated"
+
+default_role = "any"
+
+intersphinx_mapping = {'py': ('https://docs.python.org/3', None)}
 
 # SPDX-FileCopyrightText: 2021-2024 Jeff Epler
 #
