@@ -375,6 +375,9 @@ class WWVBMinute(_WWVBMinute):
     """
 
     epoch: int = 1970
+    """The full (4-digit) year of the start of the WWVB epoch
+
+    See `full_year` for documentation of how this class property is used."""
 
     def __new__(  # noqa: PYI034
         cls,
@@ -414,13 +417,19 @@ class WWVBMinute(_WWVBMinute):
     def full_year(cls, year: int) -> int:
         """Convert a (possibly two-digit) year to a full year.
 
-        If the argument is above 100, it is assumed to be a full year.
+        If the argument is at least 100, it is assumed to be a full year.
         Otherwise, the intuitive method is followed: Say the epoch is 1970,
         then 70..99 means 1970..99 and 00..69 means 2000..2069.
 
         To actually use a different epoch, derive a class from WWVBMinute (or
         WWVBMinuteIERS) and give it a different epoch property.  Then, create
         instances of that class instead of WWVBMinute.
+
+        Unfortunately, even by setting ``epoch = 0`` in a subclass it is not possible
+        to generate timecodes for AD 1..99. This is because the definition of the phase
+        modulation signal refers to the "minute of the century", where a century starts
+        in year "xx00". Computing this requires constructing ``datetime(0,1,1)`` which is
+        not permitted.
         """
         century = cls.epoch // 100 * 100
         if year < (cls.epoch % 100):
