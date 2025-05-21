@@ -55,6 +55,10 @@ jobs:
         python -mpip install wheel
         python -mpip install -r requirements-dev.txt
 
+    - name: Check stubs
+      if: (! startsWith(matrix.python-version, 'pypy-'))
+      run: make mypy PYTHON=python
+
 
   test:
     strategy:
