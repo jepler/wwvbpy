@@ -48,3 +48,6 @@ dut1table = "wwvb.dut1table:main"
 updateiers = "wwvb.updateiers:main"
 [project.gui-scripts]
 wwvbtk = "wwvb.wwvbtk:main"
+[[tool.mypy.overrides]]
+module = ["adafruit_datetime"]
+follow_untyped_imports = true
