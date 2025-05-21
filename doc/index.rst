@@ -2,17 +2,10 @@
 ..
 .. SPDX-License-Identifier: GPL-3.0-only
 
-wwvbpy
-======
+wwvbpy |version|
+================
 
-.. image:: https://github.com/jepler/wwvbpy/actions/workflows/test.yml/badge.svg
-    :target: https://github.com/jepler/wwvbpy/actions/workflows/test.yml
-    :alt: Test wwvbpy
-
-.. image:: https://img.shields.io/pypi/v/wwvb
-    :target: https://pypi.org/project/wwvb
-    :alt: PyPI
-
+.. mdinclude:: ../README.md
 
 .. toctree::
    :maxdepth: 2

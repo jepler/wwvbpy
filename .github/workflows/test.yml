@@ -31,6 +31,31 @@ jobs:
     - name: Build HTML docs
       run: make html
 
+  typing:
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version:
+        - '3.13'
+        os-version:
+        - 'ubuntu-latest'
+    runs-on: ${{ matrix.os-version }}
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        persist-credentials: false
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install deps
+      run: |
+        python -mpip install wheel
+        python -mpip install -r requirements-dev.txt
+
+
   test:
     strategy:
       fail-fast: false
@@ -67,10 +92,6 @@ jobs:
       run: |
         python -mpip install wheel
         python -mpip install -r requirements-dev.txt
-
-    - name: Check stubs
-      if: (! startsWith(matrix.python-version, 'pypy-'))
-      run: make mypy PYTHON=python
 
     - name: Coverage
       run: make coverage PYTHON=python

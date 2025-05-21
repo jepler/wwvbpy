@@ -7,13 +7,11 @@ SPDX-License-Identifier: GPL-3.0-only
 [![codecov](https://codecov.io/gh/jepler/wwvbpy/branch/main/graph/badge.svg?token=Exx0c3Gp65)](https://codecov.io/gh/jepler/wwvbpy)
 [![Update DUT1 data](https://github.com/jepler/wwvbpy/actions/workflows/cron.yml/badge.svg)](https://github.com/jepler/wwvbpy/actions/workflows/cron.yml)
 [![PyPI](https://img.shields.io/pypi/v/wwvb)](https://pypi.org/project/wwvb)
-[![CodeQL](https://github.com/jepler/wwvbpy/actions/workflows/codeql.yml/badge.svg)](https://github.com/jepler/wwvbpy/actions/workflows/codeql.yml)
 [![pre-commit.ci status](https://results.pre-commit.ci/badge/github/jepler/wwvbpy/main.svg)](https://results.pre-commit.ci/latest/github/jepler/wwvbpy/main)
 
 # Purpose
 
-wwvbpy generates WWVB timecodes for any desired time.  These timecodes
-may be useful in testing WWVB decoder software.
+Python package and command line programs for interacting with WWVB timecodes.
 
 Where possible, wwvbpy uses existing facilities for calendar and time
 manipulation (datetime and dateutil).
@@ -39,7 +37,7 @@ The package includes:
 
 # Development status
 
-The author (@jepler) occasionally develops and maintains this project, but
+The author ([@jepler](https://github.com/jepler)) occasionally develops and maintains this project, but
 issues are not likely to be acted on.  They would be interested in adding
 co-maintainer(s).
 
@@ -67,7 +65,7 @@ channel.
 # Usage
 
 ~~~~
-Usage: python -m wwvb.gen [OPTIONS] [TIMESPEC]...
+Usage: wwvbgen [OPTIONS] [TIMESPEC]...
 
   Generate WWVB timecodes
 
@@ -97,7 +95,7 @@ Options:
 
 For example, to display the leap second that occurred at the end of 1998,
 ~~~~
-$ python wwvbgen.py -m 7 1998 365 23 56
+$ wwvbgen -m 7 1998 365 23 56
 WWVB timecode: year=98 days=365 hour=23 min=56 dst=0 ut1=-300 ly=0 ls=1
 '98+365 23:56  210100110200100001120011001102010100010200110100121000001002
 '98+365 23:57  210100111200100001120011001102010100010200110100121000001002
@@ -119,7 +117,7 @@ The letters `a` through `u` represent offsets of -1.0s through +1.0s
 in 0.1s increments; `k` represents 0s.  (In practice, only a smaller range
 of values, typically -0.7s to +0.8s, is seen)
 
-For 2001 through 2019, NIST has published the actual DUT1 values broadcast,
+For 2001 through 2024, NIST has published the actual DUT1 values broadcast,
 and the date of each change, though it in the format of an HTML
 table and not designed for machine readability:
 
