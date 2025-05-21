@@ -44,7 +44,7 @@ test_venv:
 
 .PHONY: mypy
 mypy:
-	$(Q)mypy --strict --no-warn-unused-ignores src
+	$(Q)mypy --strict --no-warn-unused-ignores src test
 
 .PHONY: update
 update:
