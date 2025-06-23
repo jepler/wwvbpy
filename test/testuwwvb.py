@@ -4,7 +4,7 @@
 #
 # SPDX-License-Identifier: GPL-3.0-only
 
-# ruff: noqa: N802 D102
+# ruff: noqa: N802
 import datetime
 import random
 import sys
