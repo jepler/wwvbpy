@@ -384,6 +384,7 @@ class WWVBMinute(_WWVBMinute):
         minute: int,
         dst: DstStatus | int | None = None,
         ut1: int | None = None,
+        *,
         ls: bool | None = None,
         ly: bool | None = None,
     ) -> WWVBMinute:
@@ -659,15 +660,15 @@ class WWVBMinute(_WWVBMinute):
         else:
             self._fill_pm_timecode_regular(t)
 
-    def next_minute(self, newut1: int | None = None, newls: bool | None = None) -> WWVBMinute:
+    def next_minute(self, *, newut1: int | None = None, newls: bool | None = None) -> WWVBMinute:
         """Return an object representing the next minute"""
         d = self.as_datetime() + datetime.timedelta(minutes=1)
-        return self.from_datetime(d, newut1, newls, self)
+        return self.from_datetime(d, newut1=newut1, newls=newls, old_time=self)
 
-    def previous_minute(self, newut1: int | None = None, newls: bool | None = None) -> WWVBMinute:
+    def previous_minute(self, *, newut1: int | None = None, newls: bool | None = None) -> WWVBMinute:
         """Return an object representing the previous minute"""
         d = self.as_datetime() - datetime.timedelta(minutes=1)
-        return self.from_datetime(d, newut1, newls, self)
+        return self.from_datetime(d, newut1=newut1, newls=newls, old_time=self)
 
     @classmethod
     def _get_dut1_info(cls: type, year: int, days: int, old_time: WWVBMinute | None = None) -> tuple[int, bool]:  # noqa: ARG003
@@ -696,18 +697,19 @@ class WWVBMinute(_WWVBMinute):
         days = d.pop("days")
         hour = d.pop("hour")
         minute = d.pop("minute")
-        dst: int | None = d.pop("dst", None)
-        ut1: int | None = d.pop("ut1", None)
+        dst = d.pop("dst", None)
+        ut1 = d.pop("ut1", None)
         ls = d.pop("ls", None)
         d.pop("ly", None)
         if d:
             raise ValueError(f"Invalid options: {d}")
-        return cls(year, days, hour, minute, dst, ut1, None if ls is None else bool(ls))
+        return cls(year, days, hour, minute, dst, ut1=ut1, ls=None if ls is None else bool(ls))
 
     @classmethod
     def from_datetime(
         cls,
         d: datetime.datetime,
+        *,
         newut1: int | None = None,
         newls: bool | None = None,
         old_time: WWVBMinute | None = None,
@@ -760,7 +762,7 @@ class WWVBMinute(_WWVBMinute):
         dst = t._get_am_bcd(57, 58)
         if dst is None:
             return None
-        return cls(year, days, hour, minute, dst, ut1, ls, ly)
+        return cls(year, days, hour, minute, dst, ut1, ls=ls, ly=ly)
 
 
 class WWVBMinuteIERS(WWVBMinute):
@@ -858,7 +860,7 @@ class WWVBTimecode:
             else:
                 self.am[p] = AmplitudeModulation.ZERO
 
-    def _put_pm_bit(self, i: int, v: PhaseModulation | int | bool) -> None:
+    def _put_pm_bit(self, i: int, v: PhaseModulation | int) -> None:
         """Update a bit of the Phase Modulation signal"""
         self.phase[i] = PhaseModulation(v)
 

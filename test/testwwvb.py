@@ -1,5 +1,4 @@
 #!/usr/bin/python3
-# ruff: noqa: E501
 
 """Test most wwvblib functionality"""
 
