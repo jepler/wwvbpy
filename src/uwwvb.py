@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: GPL-3.0-only
 
-# ruff: noqa: C405 PYI024 PLR2004 FBT001 FBT002
+# ruff: noqa: C405, PYI024, FBT001, FBT002
 
 """Implementation of a WWVB state machine & decoder for resource-constrained systems
 
