@@ -51,3 +51,5 @@ wwvbtk = "wwvb.wwvbtk:main"
 [[tool.mypy.overrides]]
 module = ["adafruit_datetime"]
 follow_untyped_imports = true
+[tool.coverage.report]
+exclude_also=["if TYPE_CHECKING:"]
