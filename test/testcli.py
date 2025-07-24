@@ -14,6 +14,14 @@ import unittest
 from collections.abc import Sequence
 from typing import Any
 
+# These imports must remain, even though the module contents are not used directly!
+import wwvb.dut1table
+import wwvb.gen
+
+# The asserts below are to help prevent their removal by a linter.
+assert wwvb.dut1table.__name__ == "wwvb.dut1table"
+assert wwvb.gen.__name__ == "wwvb.gen"
+
 coverage_add = ("-m", "coverage", "run", "--branch", "-p") if "COVERAGE_RUN" in os.environ else ()
 
 

@@ -5,7 +5,7 @@ adafruit-circuitpython-datetime
 beautifulsoup4
 build
 click
-coverage
+coverage >= 7.1.0
 mypy; implementation_name=="cpython"
 click>=8.1.5; implementation_name=="cpython"
 leapseconddata
