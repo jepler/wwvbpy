@@ -47,7 +47,7 @@ def update_iersdata(  # noqa: PLR0915
     """Update iersdata.py"""
     offsets: list[int] = []
     iersdata_text = _get_text(IERS_URL)
-    table_start = None
+    table_start: datetime.date | None = None
     for r in csv.DictReader(io.StringIO(iersdata_text), delimiter=";"):
         jd = float(r["MJD"])
         offs_str = r["UT1-UTC"]
