@@ -413,6 +413,13 @@ class WWVBMinute(_WWVBMinute):
             ly = isly(year)
         return super().__new__(cls, year, days, hour, minute, dst, ut1, ls, ly)
 
+    def __init__(self, *args: Any, **kw: Any) -> None:
+        """Do-nothing function.
+
+        Instance initialization is performed in __new__. This implementation of __init__
+        works around a pyrefly bug.
+        """
+
     @classmethod
     def full_year(cls, year: int) -> int:
         """Convert a (possibly two-digit) year to a full year.
