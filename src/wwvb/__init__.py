@@ -21,6 +21,8 @@ import json
 import warnings
 from typing import TYPE_CHECKING, Any, NamedTuple, TextIO, TypeVar
 
+from typing_extensions import Self
+
 from . import iersdata
 from .tz import Mountain
 
@@ -376,7 +378,7 @@ class WWVBMinute(_WWVBMinute):
 
     epoch: int = 1970
 
-    def __new__(  # noqa: PYI034
+    def __new__(
         cls,
         year: int,
         days: int,
@@ -387,7 +389,7 @@ class WWVBMinute(_WWVBMinute):
         *,
         ls: bool | None = None,
         ly: bool | None = None,
-    ) -> WWVBMinute:
+    ) -> Self:
         """Construct a WWVBMinute
 
         :param year: The 2- or 4-digit year. This parameter is converted by the `full_year` method.

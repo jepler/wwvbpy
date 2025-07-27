@@ -22,5 +22,6 @@ twine; implementation_name=="cpython"
 types-beautifulsoup4; implementation_name=="cpython"
 types-python-dateutil; implementation_name=="cpython"
 types-requests; implementation_name=="cpython"
+typing-extensions; implementation_name=="cpython"
 tzdata
 wheel
