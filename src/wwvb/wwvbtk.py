@@ -69,7 +69,7 @@ def main(colors: list[str], size: int, min_size: int | None) -> None:  # noqa: P
     def deadline_ms(deadline: datetime.datetime) -> int:
         """Compute the number of ms until a deadline"""
         now = datetime.datetime.now(datetime.timezone.utc)
-        return int(max(0, (deadline - now).total_seconds()) * 1000)
+        return int(max(0.0, (deadline - now).total_seconds()) * 1000)
 
     def wwvbtick() -> Generator[tuple[datetime.datetime, wwvb.AmplitudeModulation]]:
         """Yield consecutive values of the WWVB amplitude signal, going from minute to minute"""
