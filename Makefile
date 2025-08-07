@@ -46,6 +46,15 @@ test_venv:
 mypy:
 	$(Q)mypy --strict --no-warn-unused-ignores src test
 
+.PHONY: pyright
+pyright:
+	$(Q)pyright src test
+
+.PHONY: pyrefly
+pyrefly:
+	$(Q)pyrefly check src test
+
+
 .PHONY: update
 update:
 	$(Q)env PYTHONPATH=src $(PYTHON) -mwwvb.updateiers --dist

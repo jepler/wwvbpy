@@ -411,7 +411,14 @@ class WWVBMinute(_WWVBMinute):
         year = cls.full_year(year)
         if ly is None:
             ly = isly(year)
-        return _WWVBMinute.__new__(cls, year, days, hour, minute, dst, ut1, ls, ly)
+        return super().__new__(cls, year, days, hour, minute, dst, ut1, ls, ly)
+
+    def __init__(self, *args: Any, **kw: Any) -> None:
+        """Do-nothing function.
+
+        Instance initialization is performed in __new__. This implementation of __init__
+        works around a pyrefly bug.
+        """
 
     @classmethod
     def full_year(cls, year: int) -> int:
@@ -662,12 +669,12 @@ class WWVBMinute(_WWVBMinute):
         else:
             self._fill_pm_timecode_regular(t)
 
-    def next_minute(self, *, newut1: int | None = None, newls: bool | None = None) -> WWVBMinute:
+    def next_minute(self, *, newut1: int | None = None, newls: bool | None = None) -> Self:
         """Return an object representing the next minute"""
         d = self.as_datetime() + datetime.timedelta(minutes=1)
         return self.from_datetime(d, newut1=newut1, newls=newls, old_time=self)
 
-    def previous_minute(self, *, newut1: int | None = None, newls: bool | None = None) -> WWVBMinute:
+    def previous_minute(self, *, newut1: int | None = None, newls: bool | None = None) -> Self:
         """Return an object representing the previous minute"""
         d = self.as_datetime() - datetime.timedelta(minutes=1)
         return self.from_datetime(d, newut1=newut1, newls=newls, old_time=self)
@@ -686,7 +693,7 @@ class WWVBMinute(_WWVBMinute):
         return 0, False
 
     @classmethod
-    def fromstring(cls, s: str) -> WWVBMinute:
+    def fromstring(cls, s: str) -> Self:
         """Construct a WWVBMinute from a string representation created by print_timecodes"""
         s = _removeprefix(s, "WWVB timecode: ")
         d: dict[str, int] = {}
@@ -702,7 +709,7 @@ class WWVBMinute(_WWVBMinute):
         dst = d.pop("dst", None)
         ut1 = d.pop("ut1", None)
         ls = d.pop("ls", None)
-        d.pop("ly", None)
+        d.pop("ly", None)  # Always use calculated ly flag
         if d:
             raise ValueError(f"Invalid options: {d}")
         return cls(year, days, hour, minute, dst, ut1=ut1, ls=None if ls is None else bool(ls))
@@ -715,7 +722,7 @@ class WWVBMinute(_WWVBMinute):
         newut1: int | None = None,
         newls: bool | None = None,
         old_time: WWVBMinute | None = None,
-    ) -> WWVBMinute:
+    ) -> Self:
         """Construct a WWVBMinute from a datetime, possibly specifying ut1/ls data or propagating it from an old time"""
         u = d.utctimetuple()
         if newls is None and newut1 is None:
@@ -723,7 +730,7 @@ class WWVBMinute(_WWVBMinute):
         return cls(u.tm_year, u.tm_yday, u.tm_hour, u.tm_min, ut1=newut1, ls=newls)
 
     @classmethod
-    def from_timecode_am(cls, t: WWVBTimecode) -> WWVBMinute | None:  # noqa: PLR0912
+    def from_timecode_am(cls, t: WWVBTimecode) -> Self | None:  # noqa: PLR0912
         """Construct a WWVBMinute from a WWVBTimecode"""
         for i in (0, 9, 19, 29, 39, 49, 59):
             if t.am[i] != AmplitudeModulation.MARK:

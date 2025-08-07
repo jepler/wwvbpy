@@ -47,6 +47,7 @@ def update_iersdata(  # noqa: PLR0915
     """Update iersdata.py"""
     offsets: list[int] = []
     iersdata_text = _get_text(IERS_URL)
+    table_start: datetime.date | None = None
     for r in csv.DictReader(io.StringIO(iersdata_text), delimiter=";"):
         jd = float(r["MJD"])
         offs_str = r["UT1-UTC"]
@@ -78,6 +79,8 @@ def update_iersdata(  # noqa: PLR0915
             table_start = min(datetime.date(1972, 1, 1), table_start)
 
         offsets.append(offs)
+
+    assert table_start is not None
 
     wwvb_text = _get_text(NIST_URL)
     wwvb_data = bs4.BeautifulSoup(wwvb_text, features="html.parser")
