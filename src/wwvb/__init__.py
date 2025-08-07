@@ -669,12 +669,12 @@ class WWVBMinute(_WWVBMinute):
         else:
             self._fill_pm_timecode_regular(t)
 
-    def next_minute(self, *, newut1: int | None = None, newls: bool | None = None) -> WWVBMinute:
+    def next_minute(self, *, newut1: int | None = None, newls: bool | None = None) -> Self:
         """Return an object representing the next minute"""
         d = self.as_datetime() + datetime.timedelta(minutes=1)
         return self.from_datetime(d, newut1=newut1, newls=newls, old_time=self)
 
-    def previous_minute(self, *, newut1: int | None = None, newls: bool | None = None) -> WWVBMinute:
+    def previous_minute(self, *, newut1: int | None = None, newls: bool | None = None) -> Self:
         """Return an object representing the previous minute"""
         d = self.as_datetime() - datetime.timedelta(minutes=1)
         return self.from_datetime(d, newut1=newut1, newls=newls, old_time=self)
