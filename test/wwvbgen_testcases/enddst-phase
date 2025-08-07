@@ -1,7 +1,14 @@
 # SPDX-FileCopyrightText: 2021 Jeff Epler
 #
 # SPDX-License-Identifier: CC0-1.0
-
+#
+# "For six minutes each half hour, from 10–16 and 40–46 minutes past each hour,
+# one-minute frames are replaced by a special extended time frame. Rather than
+# transmitting 35 bits of information in one minute, this transmits 7 bits
+# (time of day and DST status only) over 6 minutes, giving 30 times as much
+# energy per transmitted bit, a 14.8 dB improvement in the link budget compared
+# to the standard one-minute time code." (wikipedia)
+#
 WWVB timecode: year=2021 days=311 hour=08 min=10 dst=1 ut1=-100 ly=0 ls=0 --channel=phase
 2021-311 08:10  010000110100000111110110000001010110111111100110110101010001
 2021-311 08:11  001001100111100011101110101111010010110010100111001000110001
