@@ -22,8 +22,6 @@ import wwvb.gen
 assert wwvb.dut1table.__name__ == "wwvb.dut1table"
 assert wwvb.gen.__name__ == "wwvb.gen"
 
-coverage_add = ("-m", "coverage", "run", "--branch", "-p") if "COVERAGE_RUN" in os.environ else ()
-
 
 class CLITestCase(unittest.TestCase):
     """Test various CLI commands within wwvbpy"""
@@ -34,10 +32,10 @@ class CLITestCase(unittest.TestCase):
         return subprocess.check_output(args, stdin=subprocess.DEVNULL, encoding="utf-8", env=env)
 
     def moduleArgs(self, *args: str) -> Sequence[str]:
-        return (sys.executable, *coverage_add, "-m", *args)
+        return (sys.executable, "-m", *args)
 
     def moduleOutput(self, *args: str) -> str:
-        return self.programOutput(sys.executable, *coverage_add, "-m", *args)
+        return self.programOutput(sys.executable, "-m", *args)
 
     def assertProgramOutput(self, expected: str, *args: str) -> None:
         """Check the output from invoking a program matches the expected"""
