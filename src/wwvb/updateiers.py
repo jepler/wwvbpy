@@ -91,6 +91,7 @@ def update_iersdata(  # noqa: PLR0915
     wwvb_data_stamp = datetime.datetime.fromisoformat(meta.attrs["content"]).replace(tzinfo=None).date()
 
     def patch(patch_start: datetime.date, patch_end: datetime.date, val: int) -> None:
+        assert table_start is not None
         off_start = (patch_start - table_start).days
         off_end = (patch_end - table_start).days
         offsets[off_start:off_end] = [val] * (off_end - off_start)
