@@ -19,25 +19,21 @@ import datetime
 import enum
 import json
 import warnings
-from typing import TYPE_CHECKING, Any, NamedTuple, TextIO, TypeVar
-
-from typing_extensions import Self
+from dataclasses import dataclass
+from typing import ClassVar
 
 from . import iersdata
 from .tz import Mountain
 
+TYPE_CHECKING = False
 if TYPE_CHECKING:
     from collections.abc import Generator
+    from typing import Any, Self, TextIO, TypeVar
+
+    T = TypeVar("T")
 
 HOUR = datetime.timedelta(seconds=3600)
 SECOND = datetime.timedelta(seconds=1)
-T = TypeVar("T")
-
-
-def _removeprefix(s: str, p: str) -> str:
-    if s.startswith(p):
-        return s[len(p) :]
-    return s
 
 
 def _date(dt: datetime.date) -> datetime.date:
@@ -341,8 +337,13 @@ class DstStatus(enum.IntEnum):
     """DST in effect all day today"""
 
 
-class _WWVBMinute(NamedTuple):
-    """(implementation detail)"""
+@dataclass(frozen=True)
+class WWVBMinute:
+    """Uniquely identifies a minute of time in the WWVB system.
+
+    To use ``ut1`` and ``ls`` information from IERS, create a `WWVBMinuteIERS`
+    object instead.
+    """
 
     year: int
     """2-digit year within the WWVB epoch"""
@@ -353,7 +354,7 @@ class _WWVBMinute(NamedTuple):
     hour: int
     """UTC hour of day"""
 
-    min: int
+    minute: int
     """Minute of hour"""
 
     dst: DstStatus
@@ -368,18 +369,10 @@ class _WWVBMinute(NamedTuple):
     ly: bool
     """Leap year flag"""
 
+    epoch: ClassVar[int] = 1970
 
-class WWVBMinute(_WWVBMinute):
-    """Uniquely identifies a minute of time in the WWVB system.
-
-    To use ``ut1`` and ``ls`` information from IERS, create a `WWVBMinuteIERS`
-    object instead.
-    """
-
-    epoch: int = 1970
-
-    def __new__(
-        cls,
+    def __init__(
+        self,
         year: int,
         days: int,
         hour: int,
@@ -389,7 +382,7 @@ class WWVBMinute(_WWVBMinute):
         *,
         ls: bool | None = None,
         ly: bool | None = None,
-    ) -> Self:
+    ) -> None:
         """Construct a WWVBMinute
 
         :param year: The 2- or 4-digit year. This parameter is converted by the `full_year` method.
@@ -403,22 +396,23 @@ class WWVBMinute(_WWVBMinute):
         :param ls: Leap second warning flag
         :param ly: Leap year flag
         """
-        dst = cls.get_dst(year, days) if dst is None else DstStatus(dst)
+        dst = self.get_dst(year, days) if dst is None else DstStatus(dst)
         if ut1 is None and ls is None:
-            ut1, ls = cls._get_dut1_info(year, days)
+            ut1, ls = self._get_dut1_info(year, days)
         elif ut1 is None or ls is None:
             raise ValueError("sepecify both ut1 and ls or neither one")
-        year = cls.full_year(year)
+        year = self.full_year(year)
         if ly is None:
             ly = isly(year)
-        return super().__new__(cls, year, days, hour, minute, dst, ut1, ls, ly)
 
-    def __init__(self, *args: Any, **kw: Any) -> None:
-        """Do-nothing function.
-
-        Instance initialization is performed in __new__. This implementation of __init__
-        works around a pyrefly bug.
-        """
+        super().__setattr__("year", year)
+        super().__setattr__("days", days)
+        super().__setattr__("hour", hour)
+        super().__setattr__("minute", minute)
+        super().__setattr__("dst", dst)
+        super().__setattr__("ut1", ut1)
+        super().__setattr__("ls", ls)
+        super().__setattr__("ly", ly)
 
     @classmethod
     def full_year(cls, year: int) -> int:
@@ -452,7 +446,7 @@ class WWVBMinute(_WWVBMinute):
         """Implement str()"""
         return (
             f"year={self.year:4d} days={self.days:03d} hour={self.hour:02d} "
-            f"min={self.min:02d} dst={self.dst} ut1={self.ut1} ly={int(self.ly)} "
+            f"min={self.minute:02d} dst={self.dst} ut1={self.ut1} ly={int(self.ly)} "
             f"ls={int(self.ls)}"
         )
 
@@ -462,7 +456,7 @@ class WWVBMinute(_WWVBMinute):
         The returned object has ``tzinfo=datetime.timezone.utc``.
         """
         d = datetime.datetime(self.year, 1, 1, tzinfo=datetime.timezone.utc)
-        d += datetime.timedelta(self.days - 1, self.hour * 3600 + self.min * 60)
+        d += datetime.timedelta(self.days - 1, self.hour * 3600 + self.minute * 60)
         return d
 
     as_datetime = as_datetime_utc
@@ -516,7 +510,7 @@ class WWVBMinute(_WWVBMinute):
             return 60
         if not self._is_end_of_month():
             return 60
-        if self.hour != 23 or self.min != 59:
+        if self.hour != 23 or self.minute != 59:
             return 60
         if self.ut1 > 0:
             return 59
@@ -560,7 +554,7 @@ class WWVBMinute(_WWVBMinute):
             t.am[60] = AmplitudeModulation.MARK
         for i in [4, 10, 11, 14, 20, 21, 24, 34, 35, 44, 54]:
             t.am[i] = AmplitudeModulation.ZERO
-        t._put_am_bcd(self.min, 1, 2, 3, 5, 6, 7, 8)
+        t._put_am_bcd(self.minute, 1, 2, 3, 5, 6, 7, 8)
         t._put_am_bcd(self.hour, 12, 13, 15, 16, 17, 18)
         t._put_am_bcd(self.days, 22, 23, 25, 26, 27, 28, 30, 31, 32, 33)
         ut1_sign = self.ut1 >= 0
@@ -574,14 +568,14 @@ class WWVBMinute(_WWVBMinute):
 
     def _fill_pm_timecode_extended(self, t: WWVBTimecode) -> None:
         """During minutes 10..15 and 40..45, the amplitude signal holds 'extended information'"""
-        assert 10 <= self.min < 16 or 40 <= self.min < 46
-        minno = self.min % 10
+        assert 10 <= self.minute < 16 or 40 <= self.minute < 46
+        minno = self.minute % 10
         assert minno < 6
 
         dst = self.dst
         # Note that these are 1 different than Table 11
         # because our LFSR sequence is zero-based
-        seqno = (self.min // 30) * 2
+        seqno = (self.minute // 30) * 2
         if dst == 0:
             pass
         elif dst == 3:
@@ -664,7 +658,7 @@ class WWVBMinute(_WWVBMinute):
 
     def _fill_pm_timecode(self, t: WWVBTimecode) -> None:
         """Fill the phase portion of a timecode object"""
-        if 10 <= self.min < 16 or 40 <= self.min < 46:
+        if 10 <= self.minute < 16 or 40 <= self.minute < 46:
             self._fill_pm_timecode_extended(t)
         else:
             self._fill_pm_timecode_regular(t)
@@ -695,7 +689,7 @@ class WWVBMinute(_WWVBMinute):
     @classmethod
     def fromstring(cls, s: str) -> Self:
         """Construct a WWVBMinute from a string representation created by print_timecodes"""
-        s = _removeprefix(s, "WWVB timecode: ")
+        s = s.removeprefix("WWVB timecode: ")
         d: dict[str, int] = {}
         for part in s.split():
             k, v = part.split("=")
@@ -772,6 +766,15 @@ class WWVBMinute(_WWVBMinute):
         if dst is None:
             return None
         return cls(year, days, hour, minute, dst, ut1, ls=ls, ly=ly)
+
+    @property
+    def min(self) -> int:
+        """Deprecated alias for `WWVBMinute.minute`
+
+        Update your code to use the `minute` property instead of the `min` property.
+        """
+        warnings.warn("WWVBMinute.min property is deprecated", category=DeprecationWarning, stacklevel=1)
+        return self.minute
 
 
 class WWVBMinuteIERS(WWVBMinute):
@@ -943,7 +946,7 @@ def print_timecodes(
                 print(file=file)
             print(f"WWVB timecode: {w!s}{channel_text}{style_text}", file=file)
         first = False
-        pfx = f"{w.year:04d}-{w.days:03d} {w.hour:02d}:{w.min:02d} "
+        pfx = f"{w.year:04d}-{w.days:03d} {w.hour:02d}:{w.minute:02d} "
         tc = w.as_timecode()
         if len(style_chars) == 6:
             print(f"{pfx} {tc.to_both_string(style_chars)}", file=file)
@@ -985,7 +988,7 @@ def print_timecodes_json(
             "year": w.year,
             "days": w.days,
             "hour": w.hour,
-            "minute": w.min,
+            "minute": w.minute,
         }
 
         tc = w.as_timecode()
