@@ -36,12 +36,6 @@ HOUR = datetime.timedelta(seconds=3600)
 SECOND = datetime.timedelta(seconds=1)
 
 
-def _removeprefix(s: str, p: str) -> str:
-    if s.startswith(p):
-        return s[len(p) :]
-    return s
-
-
 def _date(dt: datetime.date) -> datetime.date:
     """Return the date object itself, or the date property of a datetime"""
     if isinstance(dt, datetime.datetime):
@@ -695,7 +689,7 @@ class WWVBMinute:
     @classmethod
     def fromstring(cls, s: str) -> Self:
         """Construct a WWVBMinute from a string representation created by print_timecodes"""
-        s = _removeprefix(s, "WWVB timecode: ")
+        s = s.removeprefix("WWVB timecode: ")
         d: dict[str, int] = {}
         for part in s.split():
             k, v = part.split("=")
