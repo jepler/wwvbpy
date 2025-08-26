@@ -306,6 +306,11 @@ class WWVBRoundtrip(unittest.TestCase):
             wwvb._maybe_warn_update(datetime.date(1970, 1, 1))
             wwvb._maybe_warn_update(datetime.datetime(1970, 1, 1, 0, 0, tzinfo=datetime.timezone.utc))
 
+    def test_deprecated_min(self) -> None:
+        """Ensure that the 'maybe_warn_update' function is covered"""
+        with self.assertWarnsRegex(DeprecationWarning, "min property"):
+            self.assertEqual(wwvb.WWVBMinute(2021, 1, 1, 1).min, wwvb.WWVBMinute(2021, 1, 1, 1).minute)
+
     def test_undefined(self) -> None:
         """Ensure that the check for unset elements in am works"""
         with self.assertWarnsRegex(Warning, "is unset"):
