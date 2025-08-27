@@ -47,7 +47,7 @@ class WWVBRoundtrip(unittest.TestCase):
         any_leap_second = False
         for _ in range(20):
             timecode = minute.as_timecode()
-            decoded = None
+            decoded: uwwvb.WWVBMinute | None = None
             if len(timecode.am) == 61:
                 any_leap_second = True
             for code in timecode.am:
