@@ -19,7 +19,6 @@ ZERO, ONE, MARK = range(3)
 
 always_mark = set((0, 9, 19, 29, 39, 49, 59))
 always_zero = set((4, 10, 11, 14, 20, 21, 34, 35, 44, 54))
-bcd_weights = (1, 2, 4, 8, 10, 20, 40, 80, 100, 200, 400, 800)
 
 WWVBMinute = namedtuple("WWVBMinute", ["year", "days", "hour", "minute", "dst", "ut1", "ls", "ly"])
 
@@ -76,16 +75,16 @@ class WWVBDecoder:
 
 def get_am_bcd(seq: list[int], *poslist: int) -> int | None:
     """Convert the bits seq[positions[0]], ... seq[positions[len(positions-1)]] [in MSB order] from BCD to decimal"""
-    pos = list(poslist)[::-1]
-    val = [int(seq[p]) for p in pos]
-    while len(val) % 4 != 0:
-        val.append(0)
+    k = len(poslist)
     result = 0
     base = 1
-    for i in range(0, len(val), 4):
+    while k >= 0:
         digit = 0
         for j in range(4):
-            digit += 1 << j if val[i + j] else 0
+            k -= 1
+            if k < 0:
+                break
+            digit += 1 << j if seq[poslist[k]] else 0
         if digit > 9:
             return None
         result += digit * base
