@@ -197,6 +197,21 @@ class WWVBRoundtrip(unittest.TestCase):
                 decoded = uwwvb.decode_wwvb(test_input)
                 self.assertIsNone(decoded)
 
+    def test_noise4(self) -> None:
+        """Test of the full minute decoder with marks at every never-mark position"""
+        minute = wwvb.WWVBMinuteIERS.from_datetime(
+            datetime.datetime(2012, 6, 30, 23, 50, tzinfo=datetime.timezone.utc),
+        )
+        timecode = minute.as_timecode()
+        for position in range(60):
+            if position in uwwvb.always_mark:
+                continue
+            with self.subTest(test=position):
+                test_input = [int(i) for i in timecode.am]
+                test_input[position] = uwwvb.MARK
+                decoded = uwwvb.decode_wwvb(test_input)
+                self.assertIsNone(decoded)
+
     def test_str(self) -> None:
         """Test the str() of a WWVBDecoder"""
         self.assertEqual(str(uwwvb.WWVBDecoder()), "<WWVBDecoder 1 []>")
