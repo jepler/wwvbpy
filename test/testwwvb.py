@@ -435,7 +435,3 @@ class WWVBRoundtrip(unittest.TestCase):
         minute.am[57] = wwvb.AmplitudeModulation.MARK
         decoded_minute = wwvb.WWVBMinute.from_timecode_am(minute)
         assert decoded_minute is None
-
-
-if __name__ == "__main__":
-    unittest.main()

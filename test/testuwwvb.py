@@ -215,7 +215,3 @@ class WWVBRoundtrip(unittest.TestCase):
             datetime.datetime(2020, 12, 31, 17, 00, tzinfo=zoneinfo.ZoneInfo("America/Denver")),  # Mountain time!
             uwwvb.as_datetime_local(decoded),
         )
-
-
-if __name__ == "__main__":
-    unittest.main()

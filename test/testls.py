@@ -56,7 +56,3 @@ class TestLeapSecond(unittest.TestCase):
                 assert not our_is_ls
             d = datetime.datetime.combine(nm, datetime.time(), tzinfo=datetime.timezone.utc)
         self.assertEqual(leap, bench)
-
-
-if __name__ == "__main__":
-    unittest.main()
