@@ -1,4 +1,5 @@
 #!/usr/bin/python3
+
 """Test most wwvblib commandline programs"""
 
 # ruff: noqa: N802 D102
@@ -6,13 +7,13 @@
 #
 # SPDX-License-Identifier: GPL-3.0-only
 
+from __future__ import annotations
+
 import json
 import os
 import subprocess
 import sys
 import unittest
-from collections.abc import Sequence
-from typing import Any
 
 # These imports must remain, even though the module contents are not used directly!
 import wwvb.dut1table
@@ -21,6 +22,12 @@ import wwvb.gen
 # The asserts below are to help prevent their removal by a linter.
 assert wwvb.dut1table.__name__ == "wwvb.dut1table"
 assert wwvb.gen.__name__ == "wwvb.gen"
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
+    from wwvb import JsonMinute
 
 
 class CLITestCase(unittest.TestCase):
@@ -55,7 +62,7 @@ class CLITestCase(unittest.TestCase):
     def assertStarts(self, expected: str, actual: str, *args: str) -> None:
         self.assertMultiLineEqual(expected, actual[: len(expected)], f"args={args}")
 
-    def assertModuleJson(self, expected: Any, *args: str) -> None:
+    def assertModuleJson(self, expected: list[JsonMinute], *args: str) -> None:
         """Check the output from invoking a `python -m modulename` program matches the expected"""
         actual = self.moduleOutput(*args)
         # Note: in mypy, revealed type of json.loads is typing.Any!
