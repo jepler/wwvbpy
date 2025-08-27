@@ -99,10 +99,17 @@ def decode_wwvb(
     """Convert a received minute of wwvb symbols to a WWVBMinute.  Returns None if any error is detected."""
     if not t:
         return None
-    if not all(t[i] == MARK for i in always_mark):
-        return None
-    if not all(t[i] == ZERO for i in always_zero):
-        return None
+    for i in range(len(t)):
+        is_mark: bool = t[i] == MARK
+        is_zero: bool = t[i] == ZERO
+        expect_mark = i in always_mark or i == 60
+        expect_zero = i in always_zero
+
+        if expect_mark != is_mark:
+            return None
+        if expect_zero and not is_zero:
+            return None
+
     # Checking redundant DUT1 sign bits
     if t[36] == t[37]:
         return None
