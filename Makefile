@@ -36,6 +36,10 @@ coverage:
 	$(Q)$(PYTHON) -mcoverage xml $(COVERAGE_INCLUDE)
 	$(Q)$(PYTHON) -mcoverage report --fail-under=100 $(COVERAGE_INCLUDE)
 
+.PHONY: test
+test:
+	$(Q)env PYTHONPATH=src $(PYTHON) -munittest discover -s test
+
 .PHONY: test_venv
 test_venv:
 	$(Q)$(PYTHON) -mvenv --clear _env
