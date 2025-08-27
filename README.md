@@ -4,7 +4,6 @@ SPDX-FileCopyrightText: 2021-2024 Jeff Epler
 SPDX-License-Identifier: GPL-3.0-only
 -->
 [![Test wwvbgen](https://github.com/jepler/wwvbpy/actions/workflows/test.yml/badge.svg)](https://github.com/jepler/wwvbpy/actions/workflows/test.yml)
-[![codecov](https://codecov.io/gh/jepler/wwvbpy/branch/main/graph/badge.svg?token=Exx0c3Gp65)](https://codecov.io/gh/jepler/wwvbpy)
 [![Update DUT1 data](https://github.com/jepler/wwvbpy/actions/workflows/cron.yml/badge.svg)](https://github.com/jepler/wwvbpy/actions/workflows/cron.yml)
 [![PyPI](https://img.shields.io/pypi/v/wwvb)](https://pypi.org/project/wwvb)
 [![pre-commit.ci status](https://results.pre-commit.ci/badge/github/jepler/wwvbpy/main.svg)](https://results.pre-commit.ci/latest/github/jepler/wwvbpy/main)
