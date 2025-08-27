@@ -7,6 +7,8 @@ build
 click
 coverage >= 7.10.3
 mypy; implementation_name=="cpython"
+pyright; implementation_name=="cpython"
+pyrefly; implementation_name=="cpython"
 click>=8.1.5; implementation_name=="cpython"
 leapseconddata
 platformdirs
