@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import datetime
 import functools
-from tkinter import Canvas, TclError, Tk
+from tkinter import Canvas, Event, TclError, Tk
 
 import click
 
@@ -17,7 +17,6 @@ import wwvb
 TYPE_CHECKING = False
 if TYPE_CHECKING:
     from collections.abc import Generator
-    from typing import Any
 
 
 @functools.cache
@@ -107,7 +106,7 @@ def main(colors: list[str], size: int, min_size: int | None) -> None:  # noqa: P
     canvas.pack(fill="both", expand=True)
     app.wm_deiconify()
 
-    def resize_canvas(event: Any) -> None:
+    def resize_canvas(event: Event) -> None:
         """Keep the circle filling the window when it is resized"""
         sz = min(event.width, event.height) - 8
         if sz < 0:

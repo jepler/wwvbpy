@@ -58,6 +58,7 @@ class CLITestCase(unittest.TestCase):
     def assertModuleJson(self, expected: Any, *args: str) -> None:
         """Check the output from invoking a `python -m modulename` program matches the expected"""
         actual = self.moduleOutput(*args)
+        # Note: in mypy, revealed type of json.loads is typing.Any!
         self.assertEqual(json.loads(actual), expected)
 
     def assertModuleOutputStarts(self, expected: str, *args: str) -> None:

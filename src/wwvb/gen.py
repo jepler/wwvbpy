@@ -9,15 +9,18 @@ from __future__ import annotations
 
 import datetime
 import sys
-from typing import Any
 
 import click
 import dateutil.parser
 
 from . import WWVBMinute, WWVBMinuteIERS, print_timecodes, print_timecodes_json, styles
 
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from . import WWVBChannel
 
-def parse_timespec(ctx: Any, param: Any, value: list[str]) -> datetime.datetime:  # noqa: ARG001
+
+def parse_timespec(ctx: click.Context, param: click.Parameter, value: list[str]) -> datetime.datetime:  # noqa: ARG001
     """Parse a time specifier from the commandline"""
     try:
         if len(value) == 5:
@@ -95,7 +98,7 @@ def main(
     dut1: int,
     minutes: int,
     style: str,
-    channel: str,
+    channel: WWVBChannel,
     all_timecodes: bool,
     timespec: datetime.datetime,
 ) -> None:

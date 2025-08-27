@@ -14,11 +14,12 @@ import io
 import pathlib
 import random
 import sys
+import typing
 import unittest
 
 import uwwvb
 import wwvb
-from wwvb import decode, iersdata, tz
+from wwvb import WWVBChannel, decode, iersdata, tz
 
 
 class WWVBMinute2k(wwvb.WWVBMinute):
@@ -44,11 +45,15 @@ class WWVBTestCase(unittest.TestCase):
                 header = lines[0].split()
                 timestamp = " ".join(header[:10])
                 options = header[10:]
-                channel = "amplitude"
+                channel: WWVBChannel = "amplitude"
                 style = "default"
                 for o in options:
                     if o.startswith("--channel="):
-                        channel = o[10:]
+                        value = o[10:]
+                        if value in {"both", "amplitude", "phase"}:
+                            channel = typing.cast("WWVBChannel", value)
+                        else:
+                            raise ValueError(f"Unknown channel {o!r}")
                     elif o.startswith("--style="):
                         style = o[8:]
                     else:
