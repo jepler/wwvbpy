@@ -9,14 +9,15 @@ from __future__ import annotations
 import datetime
 import functools
 from tkinter import Canvas, TclError, Tk
-from typing import TYPE_CHECKING, Any
 
 import click
 
 import wwvb
 
+TYPE_CHECKING = False
 if TYPE_CHECKING:
     from collections.abc import Generator
+    from typing import Any
 
 
 @functools.cache
