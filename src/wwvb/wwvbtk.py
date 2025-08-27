@@ -8,13 +8,13 @@ from __future__ import annotations
 
 import datetime
 import functools
-from tkinter import Canvas, TclError, Tk
-from typing import TYPE_CHECKING, Any
+from tkinter import Canvas, Event, TclError, Tk
 
 import click
 
 import wwvb
 
+TYPE_CHECKING = False
 if TYPE_CHECKING:
     from collections.abc import Generator
 
@@ -25,7 +25,7 @@ def _app() -> Tk:
     return Tk()
 
 
-def validate_colors(ctx: Any, param: Any, value: str) -> list[str]:  # noqa: ARG001
+def validate_colors(ctx: click.Context, param: click.Parameter, value: str) -> list[str]:  # noqa: ARG001
     """Check that all colors in a string are valid, splitting it to a list"""
     app = _app()
     colors = value.split()
@@ -106,7 +106,7 @@ def main(colors: list[str], size: int, min_size: int | None) -> None:  # noqa: P
     canvas.pack(fill="both", expand=True)
     app.wm_deiconify()
 
-    def resize_canvas(event: Any) -> None:
+    def resize_canvas(event: Event) -> None:
         """Keep the circle filling the window when it is resized"""
         sz = min(event.width, event.height) - 8
         if sz < 0:
@@ -141,10 +141,12 @@ def main(colors: list[str], size: int, min_size: int | None) -> None:  # noqa: P
 
     controller = controller_func().__next__
 
+    # pyrefly: ignore  # bad-assignment
     def after_func() -> None:
         """Repeatedly run the controller after the desired interval"""
         app.after(controller(), after_func)
 
+    # pyrefly: ignore  # bad-argument-type
     app.after_idle(after_func)
     app.mainloop()
 

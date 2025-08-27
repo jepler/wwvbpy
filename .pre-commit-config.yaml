@@ -24,7 +24,13 @@ repos:
   rev: v0.12.10
   hooks:
     # Run the linter.
-    - id: ruff
+    - id: ruff-check
       args: [ --fix ]
     # Run the formatter.
     - id: ruff-format
+- repo: https://github.com/asottile/pyupgrade
+  rev: v3.20.0
+  hooks:
+  - id: pyupgrade
+    args: [ --py39-plus ]
+    exclude: src/uwwvb.py # CircuitPython prevaling standard!

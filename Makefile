@@ -24,7 +24,7 @@ ENVPYTHON ?= _env/bin/python3
 endif
 
 .PHONY: default
-default: coverage mypy
+default: coverage mypy pyright pyrefly
 
 COVERAGE_INCLUDE=--include "src/**/*.py"
 .PHONY: coverage

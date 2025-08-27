@@ -47,7 +47,7 @@ class WWVBRoundtrip(unittest.TestCase):
         any_leap_second = False
         for _ in range(20):
             timecode = minute.as_timecode()
-            decoded = None
+            decoded: uwwvb.WWVBMinute | None = None
             if len(timecode.am) == 61:
                 any_leap_second = True
             for code in timecode.am:
@@ -215,7 +215,3 @@ class WWVBRoundtrip(unittest.TestCase):
             datetime.datetime(2020, 12, 31, 17, 00, tzinfo=zoneinfo.ZoneInfo("America/Denver")),  # Mountain time!
             uwwvb.as_datetime_local(decoded),
         )
-
-
-if __name__ == "__main__":
-    unittest.main()

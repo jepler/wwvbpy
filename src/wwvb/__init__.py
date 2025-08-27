@@ -20,15 +20,30 @@ import enum
 import json
 import warnings
 from dataclasses import dataclass
-from typing import ClassVar
+from typing import ClassVar, Literal
 
 from . import iersdata
 from .tz import Mountain
 
+WWVBChannel = Literal["amplitude", "phase", "both"]
+
 TYPE_CHECKING = False
 if TYPE_CHECKING:
     from collections.abc import Generator
-    from typing import Any, Self, TextIO, TypeVar
+    from typing import NotRequired, Self, TextIO, TypedDict, TypeVar
+
+    class JsonMinute(TypedDict):
+        """Implementation detail
+
+        This is the Python object type that is serialized by `print_timecodes_json`
+        """
+
+        year: int
+        days: int
+        hour: int
+        minute: int
+        amplitude: NotRequired[str]
+        phase: NotRequired[str]
 
     T = TypeVar("T")
 
@@ -927,7 +942,7 @@ styles = {
 def print_timecodes(
     w: WWVBMinute,
     minutes: int,
-    channel: str,
+    channel: WWVBChannel,
     style: str,
     file: TextIO,
     *,
@@ -964,7 +979,7 @@ def print_timecodes(
 def print_timecodes_json(
     w: WWVBMinute,
     minutes: int,
-    channel: str,
+    channel: WWVBChannel,
     file: TextIO,
 ) -> None:
     """Print a range of timecodes in JSON format.
@@ -984,7 +999,7 @@ def print_timecodes_json(
     """
     result = []
     for _ in range(minutes):
-        data: dict[str, Any] = {
+        data: JsonMinute = {
             "year": w.year,
             "days": w.days,
             "hour": w.hour,

@@ -6,10 +6,10 @@
 from __future__ import annotations
 
 import sys
-from typing import TYPE_CHECKING
 
 import wwvb
 
+TYPE_CHECKING = False
 if TYPE_CHECKING:
     from collections.abc import Generator
 
