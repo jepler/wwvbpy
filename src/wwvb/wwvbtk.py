@@ -26,7 +26,7 @@ def _app() -> Tk:
     return Tk()
 
 
-def validate_colors(ctx: Any, param: Any, value: str) -> list[str]:  # noqa: ARG001
+def validate_colors(ctx: click.Context, param: click.Parameter, value: str) -> list[str]:  # noqa: ARG001
     """Check that all colors in a string are valid, splitting it to a list"""
     app = _app()
     colors = value.split()
