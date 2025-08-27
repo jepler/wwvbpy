@@ -51,6 +51,7 @@ class WWVBTestCase(unittest.TestCase):
                     if o.startswith("--channel="):
                         value = o[10:]
                         if value in {"both", "amplitude", "phase"}:
+                            # pyrefly: ignore  # redundant-cast
                             channel = typing.cast("WWVBChannel", value)
                         else:
                             raise ValueError(f"Unknown channel {o!r}")
