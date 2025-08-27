@@ -141,10 +141,12 @@ def main(colors: list[str], size: int, min_size: int | None) -> None:  # noqa: P
 
     controller = controller_func().__next__
 
+    # pyrefly: ignore  # bad-assignment
     def after_func() -> None:
         """Repeatedly run the controller after the desired interval"""
         app.after(controller(), after_func)
 
+    # pyrefly: ignore  # bad-argument-type
     app.after_idle(after_func)
     app.mainloop()
 
