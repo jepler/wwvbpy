@@ -3,10 +3,11 @@ SPDX-FileCopyrightText: 2021-2024 Jeff Epler
 
 SPDX-License-Identifier: GPL-3.0-only
 -->
-[![Test wwvbgen](https://github.com/jepler/wwvbpy/actions/workflows/test.yml/badge.svg)](https://github.com/jepler/wwvbpy/actions/workflows/test.yml)
-[![Update DUT1 data](https://github.com/jepler/wwvbpy/actions/workflows/cron.yml/badge.svg)](https://github.com/jepler/wwvbpy/actions/workflows/cron.yml)
 [![PyPI](https://img.shields.io/pypi/v/wwvb)](https://pypi.org/project/wwvb)
-[![pre-commit.ci status](https://results.pre-commit.ci/badge/github/jepler/wwvbpy/main.svg)](https://results.pre-commit.ci/latest/github/jepler/wwvbpy/main)
+
+# We've moved!
+
+This project has [migrated to codeberg.org](https://codeberg.org/jepler/wwvbpy). The github version will remain indefinitely but in archived mode.
 
 # Purpose
 
